@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, ShieldCheck, Users, Globe, Sparkles, Key } from 'lucide-react';
+import { Mic, ShieldCheck, Users, Globe, Key, Sparkles, Shield } from 'lucide-react';
 
 export default function Header() {
   const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount, geminiKey, saveApiKey } = useApp();
@@ -15,13 +15,13 @@ export default function Header() {
 
   return (
     <header style={{
-      background: 'rgba(11, 19, 32, 0.85)',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid var(--border-glass)',
+      background: '#ffffff',
+      borderBottom: '1px solid var(--border-light)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
-      padding: '12px 24px'
+      padding: '12px 24px',
+      boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
     }}>
       <div style={{
         maxWidth: '1200px',
@@ -32,57 +32,57 @@ export default function Header() {
         flexWrap: 'wrap',
         gap: '16px'
       }}>
-        {/* Brand Logo & Tagline */}
+        {/* Brand Logo & Name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => setActiveTab('voice')}>
           <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--accent-emerald), var(--accent-teal))',
+            width: '40px',
+            height: '40px',
+            borderRadius: '8px',
+            background: 'var(--accent-emerald)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)'
+            color: '#ffffff'
           }}>
-            <Mic size={22} color="#04111d" />
+            <Mic size={22} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.4rem', color: '#fff', margin: 0, lineHeight: 1 }}>LokVani AI</h1>
-              <span style={{
-                background: 'rgba(16, 185, 129, 0.15)',
-                color: 'var(--accent-emerald)',
-                fontSize: '0.68rem',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '12px',
-                border: '1px solid rgba(16, 185, 129, 0.3)'
-              }}>Public Good AI</span>
+              <h1 style={{ fontSize: '1.35rem', color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>LokVani AI</h1>
+              <span className="status-tag status-verified" style={{ fontSize: '0.65rem' }}>
+                <Shield size={11} /> Public Good Platform
+              </span>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Inclusive Voice AI with Edge Kirana Verification
+              Inclusive Voice AI & Edge Verification Node
             </p>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - Rectangular Buttons */}
         <nav style={{
           display: 'flex',
-          background: 'rgba(255, 255, 255, 0.05)',
+          gap: '4px',
+          background: 'var(--bg-card-subtle)',
           padding: '4px',
-          borderRadius: 'var(--radius-full)',
-          border: '1px solid var(--border-glass)'
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--border-light)'
         }}>
           <button
             onClick={() => setActiveTab('voice')}
-            className={`btn-secondary ${activeTab === 'voice' ? 'active-tab' : ''}`}
             style={{
-              padding: '8px 18px',
+              padding: '8px 16px',
               fontSize: '0.85rem',
+              borderRadius: '6px',
               border: 'none',
-              background: activeTab === 'voice' ? 'linear-gradient(135deg, var(--accent-emerald), var(--accent-teal))' : 'transparent',
-              color: activeTab === 'voice' ? '#04111d' : 'var(--text-main)',
-              fontWeight: activeTab === 'voice' ? 700 : 500
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: activeTab === 'voice' ? '#ffffff' : 'transparent',
+              color: activeTab === 'voice' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+              fontWeight: activeTab === 'voice' ? 700 : 500,
+              boxShadow: activeTab === 'voice' ? '0 1px 3px rgba(15,23,42,0.08)' : 'none'
             }}
           >
             <Mic size={16} /> Voice App
@@ -90,32 +90,30 @@ export default function Header() {
 
           <button
             onClick={() => setActiveTab('trust')}
-            className={`btn-secondary ${activeTab === 'trust' ? 'active-tab' : ''}`}
             style={{
-              padding: '8px 18px',
+              padding: '8px 16px',
               fontSize: '0.85rem',
+              borderRadius: '6px',
               border: 'none',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
               position: 'relative',
-              background: activeTab === 'trust' ? 'linear-gradient(135deg, var(--accent-emerald), var(--accent-teal))' : 'transparent',
-              color: activeTab === 'trust' ? '#04111d' : 'var(--text-main)',
-              fontWeight: activeTab === 'trust' ? 700 : 500
+              background: activeTab === 'trust' ? '#ffffff' : 'transparent',
+              color: activeTab === 'trust' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+              fontWeight: activeTab === 'trust' ? 700 : 500,
+              boxShadow: activeTab === 'trust' ? '0 1px 3px rgba(15,23,42,0.08)' : 'none'
             }}
           >
             <ShieldCheck size={16} /> Kirana Node
             {pendingReviewsCount > 0 && (
               <span style={{
-                position: 'absolute',
-                top: '-4px',
-                right: '-4px',
                 background: 'var(--accent-rose)',
-                color: '#fff',
-                borderRadius: '50%',
-                width: '18px',
-                height: '18px',
+                color: '#ffffff',
+                borderRadius: '4px',
+                padding: '1px 6px',
                 fontSize: '0.7rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 fontWeight: 700
               }}>
                 {pendingReviewsCount}
@@ -125,14 +123,19 @@ export default function Header() {
 
           <button
             onClick={() => setActiveTab('intel')}
-            className={`btn-secondary ${activeTab === 'intel' ? 'active-tab' : ''}`}
             style={{
-              padding: '8px 18px',
+              padding: '8px 16px',
               fontSize: '0.85rem',
+              borderRadius: '6px',
               border: 'none',
-              background: activeTab === 'intel' ? 'linear-gradient(135deg, var(--accent-emerald), var(--accent-teal))' : 'transparent',
-              color: activeTab === 'intel' ? '#04111d' : 'var(--text-main)',
-              fontWeight: activeTab === 'intel' ? 700 : 500
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: activeTab === 'intel' ? '#ffffff' : 'transparent',
+              color: activeTab === 'intel' ? 'var(--accent-emerald)' : 'var(--text-muted)',
+              fontWeight: activeTab === 'intel' ? 700 : 500,
+              boxShadow: activeTab === 'intel' ? '0 1px 3px rgba(15,23,42,0.08)' : 'none'
             }}
           >
             <Users size={16} /> Community Intel
@@ -140,45 +143,23 @@ export default function Header() {
         </nav>
 
         {/* Controls: Language Toggle & API Key Settings */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid var(--border-glass)',
-              color: '#fff',
-              padding: '6px 14px',
-              borderRadius: 'var(--radius-full)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.82rem',
-              fontWeight: 600
-            }}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
           >
-            <Globe size={14} color="var(--accent-teal)" />
+            <Globe size={14} color="var(--accent-blue)" />
             {language === 'hi' ? 'हिंदी (Hindi)' : 'English'}
           </button>
 
           <button
             onClick={() => setShowKeyModal(true)}
-            title="Configure Gemini API Key"
-            style={{
-              background: geminiKey ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-              border: geminiKey ? '1px solid var(--accent-emerald)' : '1px solid var(--border-glass)',
-              color: geminiKey ? 'var(--accent-emerald)' : 'var(--text-muted)',
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-full)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.82rem'
-            }}
+            className="btn-secondary"
+            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
           >
             <Key size={14} />
-            {geminiKey ? 'API Key Active' : 'API Settings'}
+            {geminiKey ? 'API Active' : 'API Key'}
           </button>
         </div>
       </div>
@@ -188,19 +169,19 @@ export default function Header() {
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.75)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="glass-card" style={{ padding: '28px', maxWidth: '440px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={20} color="var(--accent-emerald)" /> Gemini API Configuration
+          <div className="ui-card" style={{ padding: '24px', maxWidth: '420px', width: '90%' }}>
+            <h3 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={18} color="var(--accent-emerald)" /> Gemini API Settings
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-              Add your free Google Gemini API Key for live custom LLM synthesis. If left empty, LokVani AI uses its built-in smart offline reasoning engine.
+              Add your Google Gemini API Key. If left empty, LokVani AI uses its built-in offline smart reasoning engine.
             </p>
             <form onSubmit={handleKeySave}>
               <input
@@ -210,26 +191,18 @@ export default function Header() {
                 onChange={(e) => setTempKey(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '10px 14px',
+                  padding: '9px 12px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: '1px solid var(--border-glass)',
-                  color: '#fff',
+                  background: '#ffffff',
+                  border: '1px solid var(--border-light)',
+                  color: 'var(--text-main)',
                   fontSize: '0.9rem',
                   marginBottom: '16px'
                 }}
               />
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowKeyModal(false)}
-                  className="btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                  Save Key
-                </button>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowKeyModal(false)} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Save Key</button>
               </div>
             </form>
           </div>

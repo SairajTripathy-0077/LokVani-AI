@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { speechService } from '../services/speechService';
 import { processUserSpeechQuery } from '../services/aiCoreEngine';
-import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap } from 'lucide-react';
 
 const DEMO_PRESETS = [
   {
     label: 'PM-Kisan & Mandi Rate',
     query: 'Mujhe PM-Kisan scheme ke liye apply karna hai aur tamatar ka mandi bhav jan-na hai.',
-    icon: '🌾'
+    icon: Wheat
   },
   {
     label: 'Crop Disease Advisory',
     query: 'Tamatar me keede lag rahe hain, konsa pesticide spray karna chahiye?',
-    icon: '🐛'
+    icon: Bug
   },
   {
     label: 'Onion Market Rate',
     query: 'Aaj Gorakhpur Mandi me pyaaz ka thoke rate kya hai?',
-    icon: '🧅'
+    icon: TrendingUp
   }
 ];
 
@@ -70,7 +70,6 @@ export default function UserVoiceApp() {
     setAppState('THINKING');
 
     try {
-      // Call AI Core Engine (Local/Backend API)
       const aiResponse = await processUserSpeechQuery(queryText, {
         userLocation: 'Azamgarh, UP',
         apiKey: geminiKey
@@ -95,7 +94,6 @@ export default function UserVoiceApp() {
       addQuery(newQuery);
       setActiveQueryResult(newQuery);
 
-      // Speak TTS answer if auto-verified
       if (!aiResponse.needs_trust_node_review) {
         handlePlayTTS(aiResponse.spoken_response?.hindi_tts);
       } else {
@@ -134,124 +132,100 @@ export default function UserVoiceApp() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '16px 12px' }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
       
-      {/* Mobile-Optimized Voice Hero Banner */}
-      <div className="glass-card glass-card-accent" style={{ padding: '24px 16px', textAlign: 'center', marginBottom: '20px' }}>
+      {/* Light Theme Main Card */}
+      <div className="ui-card ui-card-accent" style={{ padding: '28px 20px', textAlign: 'center', marginBottom: '24px' }}>
         
-        {/* Animated State Pill Indicator */}
+        {/* Status Indicator Bar - No Capsules, Rectangular Tag */}
         <div style={{ marginBottom: '16px' }}>
-          <span style={{
-            background: appState === 'LISTENING' ? 'rgba(239, 68, 68, 0.2)' : appState === 'THINKING' ? 'rgba(20, 184, 166, 0.2)' : appState === 'SPEAKING' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-            color: appState === 'LISTENING' ? 'var(--accent-rose)' : appState === 'THINKING' ? 'var(--accent-teal)' : appState === 'SPEAKING' ? 'var(--accent-emerald)' : 'var(--text-muted)',
-            border: appState === 'LISTENING' ? '1px solid var(--accent-rose)' : appState === 'THINKING' ? '1px solid var(--accent-teal)' : appState === 'SPEAKING' ? '1px solid var(--accent-emerald)' : '1px solid var(--border-glass)',
-            fontSize: '0.8rem',
-            fontWeight: 800,
-            padding: '6px 16px',
-            borderRadius: 'var(--radius-full)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            {appState === 'LISTENING' && <><span className="dot-ping" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-rose)', display: 'inline-block' }}></span> Listening (Hindi/English)...</>}
-            {appState === 'THINKING' && <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Thinking & Consulting Trust Node...</>}
-            {appState === 'SPEAKING' && <><Volume2 size={14} /> Speaking Response Audio...</>}
-            {appState === 'IDLE' && <>🎙️ Voice Assistant Ready</>}
+          <span className={`status-tag ${appState === 'LISTENING' ? 'status-high-stakes' : appState === 'THINKING' ? 'status-blue' : appState === 'SPEAKING' ? 'status-verified' : 'status-verified'}`}>
+            {appState === 'LISTENING' && <><Mic size={14} /> Listening (Hindi / English)...</>}
+            {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Processing & Checking Trust Node...</>}
+            {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Spoken Audio Response...</>}
+            {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
           </span>
         </div>
 
-        <h2 style={{ fontSize: '1.6rem', color: '#fff', marginBottom: '6px' }}>
-          {language === 'hi' ? 'बोलकर पूछें (Voice Search)' : 'Speak Your Query'}
+        <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', marginBottom: '6px' }}>
+          {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Speak Your Query'}
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: '0 auto 20px auto', maxWidth: '500px' }}>
-          Mandi rates, Govt scheme eligibility, & crop advisory — 1 tap to speak.
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 auto 20px auto', maxWidth: '520px' }}>
+          Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
         </p>
 
-        {/* Large Mobile Touch Microphone Button */}
+        {/* Large Rectangular Touch Microphone Trigger */}
         <div style={{ marginBottom: '20px' }}>
           <div className="mic-btn-container">
             <button
               onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
               className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
-              style={{
-                width: '120px',
-                height: '120px',
-                fontSize: '2.5rem'
-              }}
               title="Tap to Speak"
             >
-              {appState === 'LISTENING' ? <MicOff size={52} /> : <Mic size={52} />}
+              {appState === 'LISTENING' ? <MicOff size={48} /> : <Mic size={48} />}
             </button>
           </div>
 
           {transcript && (
             <div style={{
               marginTop: '16px',
-              background: 'rgba(0,0,0,0.5)',
-              border: '1px solid var(--border-glass)',
+              background: 'var(--bg-card-subtle)',
+              border: '1px solid var(--border-light)',
               borderRadius: 'var(--radius-sm)',
               padding: '10px 14px',
               display: 'inline-block',
               maxWidth: '90%',
               fontSize: '0.95rem',
-              color: 'var(--accent-teal)'
+              color: 'var(--accent-blue)',
+              fontWeight: 600
             }}>
               "{transcript}"
             </div>
           )}
         </div>
 
-        {/* Quick Presets Bar */}
-        <div style={{ borderTop: '1px solid var(--border-glass)', paddingTop: '14px' }}>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '8px' }}>
-            ⚡ 1-Tap Pitch Presets
+        {/* Quick Pitch Presets with Vector Icons */}
+        <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+            <Zap size={13} color="var(--accent-emerald)" /> Instant Demo Presets
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-            {DEMO_PRESETS.map((preset, idx) => (
-              <button
-                key={idx}
-                onClick={() => handlePresetSelect(preset)}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid var(--border-glass)',
-                  color: '#fff',
-                  borderRadius: 'var(--radius-full)',
-                  padding: '6px 14px',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                <span>{preset.icon}</span>
-                <span>{preset.label}</span>
-              </button>
-            ))}
+            {DEMO_PRESETS.map((preset, idx) => {
+              const IconComp = preset.icon;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handlePresetSelect(preset)}
+                  className="btn-secondary"
+                  style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                >
+                  <IconComp size={14} color="var(--accent-emerald)" />
+                  <span>{preset.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Active Response Display Card */}
+      {/* Active Response Card */}
       {activeQueryResult && (
-        <div className="glass-card" style={{ padding: '20px', marginBottom: '20px', borderLeft: activeQueryResult.is_high_stakes ? '5px solid var(--accent-amber)' : '5px solid var(--accent-emerald)' }}>
+        <div className="ui-card" style={{ padding: '24px', marginBottom: '24px', borderLeft: activeQueryResult.is_high_stakes ? '4px solid var(--accent-amber)' : '4px solid var(--accent-emerald)' }}>
           
-          {/* Status Indicator Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+          {/* Header Status Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
             <div>
               {activeQueryResult.status === 'VERIFIED_BY_TRUST_NODE' ? (
-                <span className="badge badge-verified">
-                  <ShieldCheck size={14} /> CONFIRMED BY KIRANA NODE
+                <span className="status-tag status-verified">
+                  <ShieldCheck size={14} /> Confirmed by Kirana Node
                 </span>
               ) : activeQueryResult.status === 'PENDING_TRUST_REVIEW' ? (
-                <span className="badge badge-pending">
-                  <AlertTriangle size={14} /> UNDER KIRANA NODE REVIEW
+                <span className="status-tag status-pending">
+                  <AlertTriangle size={14} /> Under Kirana Node Review
                 </span>
               ) : (
-                <span className="badge badge-verified">
-                  <CheckCircle2 size={14} /> AUTO-CONFIRMED RESPONSE
+                <span className="status-tag status-verified">
+                  <CheckCircle2 size={14} /> Auto-Confirmed Response
                 </span>
               )}
             </div>
@@ -259,29 +233,29 @@ export default function UserVoiceApp() {
             <button
               onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.short_answer_hi : activeQueryResult.short_answer_en)}
               className="btn-primary"
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              style={{ padding: '7px 16px', fontSize: '0.85rem' }}
             >
-              {appState === 'SPEAKING' ? <VolumeX size={16} /> : <Volume2 size={16} />}
-              {appState === 'SPEAKING' ? 'Stop' : 'Listen Answer'}
+              {appState === 'SPEAKING' ? <VolumeX size={15} /> : <Volume2 size={15} />}
+              {appState === 'SPEAKING' ? 'Stop Audio' : 'Listen Spoken Answer'}
             </button>
           </div>
 
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '12px' }}>
-            <strong>Query:</strong> "{activeQueryResult.queryText}"
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
+            <strong>User Query:</strong> "{activeQueryResult.queryText}"
           </p>
 
-          {/* Hindi Main Spoken Text */}
+          {/* Hindi Spoken Text Box */}
           <div style={{
-            background: 'rgba(0,0,0,0.4)',
+            background: 'var(--bg-card-subtle)',
             padding: '16px',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-glass)',
-            marginBottom: '14px'
+            border: '1px solid var(--border-light)',
+            marginBottom: '16px'
           }}>
-            <h4 style={{ color: 'var(--accent-emerald)', fontSize: '1rem', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <h4 style={{ color: 'var(--accent-emerald)', fontSize: '0.95rem', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} /> Spoken Response (Hindi / English)
             </h4>
-            <p style={{ fontSize: '1.15rem', fontWeight: 700, color: '#fff', margin: '0 0 6px 0', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 6px 0', lineHeight: 1.4 }}>
               {activeQueryResult.short_answer_hi}
             </p>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -292,11 +266,11 @@ export default function UserVoiceApp() {
           {/* High-Stakes Banner Notice */}
           {activeQueryResult.status === 'PENDING_TRUST_REVIEW' && (
             <div style={{
-              background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.35)',
+              background: 'var(--accent-amber-light)',
+              border: '1px solid rgba(217, 119, 6, 0.3)',
               borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-              marginBottom: '14px',
+              padding: '12px 16px',
+              marginBottom: '16px',
               display: 'flex',
               alignItems: 'flex-start',
               gap: '10px'
@@ -311,7 +285,7 @@ export default function UserVoiceApp() {
                 </p>
                 <button
                   onClick={() => setActiveTab('trust')}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-teal)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                 >
                   Inspect in Kirana Operator Dashboard <ArrowRight size={14} />
                 </button>
@@ -319,10 +293,10 @@ export default function UserVoiceApp() {
             </div>
           )}
 
-          {/* Action Checklist */}
+          {/* Action Steps */}
           {activeQueryResult.actionable_steps?.length > 0 && (
-            <div style={{ marginBottom: '14px' }}>
-              <h5 style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '6px' }}>Action Steps:</h5>
+            <div style={{ marginBottom: '16px' }}>
+              <h5 style={{ color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', marginBottom: '6px' }}>Action Steps:</h5>
               <ul style={{ paddingLeft: '18px', color: 'var(--text-main)', fontSize: '0.88rem', margin: 0 }}>
                 {activeQueryResult.actionable_steps.map((step, idx) => (
                   <li key={idx} style={{ marginBottom: '4px' }}>{step}</li>
@@ -332,7 +306,7 @@ export default function UserVoiceApp() {
           )}
 
           {/* Footer Trigger */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border-glass)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
               Location: {activeQueryResult.location}
             </span>
@@ -341,7 +315,7 @@ export default function UserVoiceApp() {
               className="btn-secondary"
               style={{ fontSize: '0.8rem', padding: '6px 12px' }}
             >
-              📢 Report Local Rate
+              <Megaphone size={14} color="var(--accent-emerald)" /> Report Local Rate
             </button>
           </div>
         </div>
@@ -351,50 +325,52 @@ export default function UserVoiceApp() {
       {showPriceReportModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="glass-card" style={{ padding: '20px', maxWidth: '400px', width: '92%' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: '#fff' }}>📢 Report Local Market Rate</h3>
+          <div className="ui-card" style={{ padding: '24px', maxWidth: '400px', width: '90%' }}>
+            <h3 style={{ margin: '0 0 10px 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Megaphone size={18} color="var(--accent-emerald)" /> Report Local Market Rate
+            </h3>
             <form onSubmit={handlePriceReportSubmit}>
-              <div style={{ marginBottom: '10px' }}>
+              <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Commodity</label>
                 <input
                   type="text"
                   value={reportItem}
                   onChange={e => setReportItem(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
-              <div style={{ marginBottom: '10px' }}>
+              <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Price (₹/kg)</label>
                 <input
                   type="number"
                   value={reportPrice}
                   onChange={e => setReportPrice(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
-              <div style={{ marginBottom: '14px' }}>
+              <div style={{ marginBottom: '16px' }}>
                 <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Mandi / Location</label>
                 <input
                   type="text"
                   value={reportLocation}
                   onChange={e => setReportLocation(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', background: 'rgba(0,0,0,0.5)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowPriceReportModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><Send size={14} /> Submit</button>
+                <button type="submit" className="btn-primary"><Send size={14} /> Submit Rate</button>
               </div>
             </form>
           </div>

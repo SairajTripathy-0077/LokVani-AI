@@ -21,16 +21,16 @@ function MainContent() {
 export default function App() {
   return (
     <AppProvider>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
         <Header />
         <MainContent />
         <footer style={{
           marginTop: 'auto',
           padding: '16px 24px',
-          background: 'rgba(7, 13, 24, 0.95)',
-          borderTop: '1px solid var(--border-glass)',
+          background: '#ffffff',
+          borderTop: '1px solid var(--border-light)',
           textAlign: 'center',
-          fontSize: '0.8rem',
+          fontSize: '0.82rem',
           color: 'var(--text-muted)'
         }}>
           <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -46,7 +46,7 @@ export default function App() {
               href="https://github.com/SairajTripathy-0077/OOSC-Hackathon.git"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--accent-teal)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+              style={{ color: 'var(--accent-blue)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
             >
               <Github size={14} /> GitHub Repository
             </a>

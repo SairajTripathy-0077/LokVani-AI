@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Users, TrendingUp, MapPin, PlusCircle, CheckCircle, Clock, CloudSun, Shield, Send } from 'lucide-react';
+import { Users, TrendingUp, MapPin, PlusCircle, CheckCircle, CloudSun, Megaphone, Globe, Send } from 'lucide-react';
 
 export default function CommunityIntel() {
   const { communityIntel, addCommunityIntel } = useApp();
@@ -25,24 +25,14 @@ export default function CommunityIntel() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '24px 16px' }}>
       
-      {/* Banner */}
-      <div className="glass-card glass-card-accent" style={{ padding: '24px', marginBottom: '24px' }}>
+      {/* Light Theme Banner */}
+      <div className="ui-card ui-card-accent" style={{ padding: '24px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <span style={{
-              background: 'rgba(20, 184, 166, 0.15)',
-              color: 'var(--accent-teal)',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              padding: '4px 12px',
-              borderRadius: 'var(--radius-full)',
-              border: '1px solid rgba(20, 184, 166, 0.3)',
-              marginBottom: '8px',
-              display: 'inline-block'
-            }}>
-              🌐 Waze for Rural Micro-Economies
+            <span className="status-tag status-blue" style={{ marginBottom: '8px' }}>
+              <Globe size={13} /> Waze for Rural Micro-Economies
             </span>
-            <h2 style={{ fontSize: '1.5rem', color: '#fff', margin: '4px 0' }}>
+            <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', margin: '4px 0' }}>
               Community Intelligence Network
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0, maxWidth: '640px' }}>
@@ -53,9 +43,9 @@ export default function CommunityIntel() {
           <button
             onClick={() => setShowAddModal(true)}
             className="btn-primary"
-            style={{ padding: '10px 20px', fontSize: '0.88rem' }}
+            style={{ padding: '10px 18px', fontSize: '0.88rem' }}
           >
-            <PlusCircle size={18} /> Report Local Rate
+            <PlusCircle size={17} /> Report Local Rate
           </button>
         </div>
       </div>
@@ -63,7 +53,7 @@ export default function CommunityIntel() {
       {/* Real-time Mandi Rates Ticker Grid */}
       <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1.15rem', color: '#fff', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 style={{ fontSize: '1.15rem', color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <TrendingUp size={20} color="var(--accent-emerald)" />
             Live Mandi Commodity Prices ({communityIntel.length})
           </h3>
@@ -74,13 +64,13 @@ export default function CommunityIntel() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
           {communityIntel.map((ci) => (
-            <div key={ci.id} className="glass-card" style={{ padding: '18px', position: 'relative' }}>
+            <div key={ci.id} className="ui-card" style={{ padding: '18px' }}>
               
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <div>
-                  <h4 style={{ color: '#fff', fontSize: '1.1rem', margin: 0 }}>{ci.item}</h4>
+                  <h4 style={{ color: 'var(--text-main)', fontSize: '1.1rem', margin: 0 }}>{ci.item}</h4>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                    <MapPin size={12} color="var(--accent-teal)" /> {ci.location}
+                    <MapPin size={12} color="var(--accent-blue)" /> {ci.location}
                   </span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -92,7 +82,7 @@ export default function CommunityIntel() {
               </div>
 
               <div style={{
-                background: 'rgba(0,0,0,0.25)',
+                background: 'var(--bg-card-subtle)',
                 borderRadius: '6px',
                 padding: '8px 10px',
                 fontSize: '0.78rem',
@@ -104,7 +94,7 @@ export default function CommunityIntel() {
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Users size={12} /> {ci.reporter}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-teal)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-emerald)', fontWeight: 600 }}>
                   <CheckCircle size={12} /> Verified Data
                 </span>
               </div>
@@ -115,24 +105,24 @@ export default function CommunityIntel() {
       </div>
 
       {/* Weather & Local Advisory Feed */}
-      <div className="glass-card" style={{ padding: '20px' }}>
-        <h3 style={{ fontSize: '1.1rem', color: '#fff', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="ui-card" style={{ padding: '20px' }}>
+        <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CloudSun size={20} color="var(--accent-amber)" />
           Regional Weather & Micro-Advisories
         </h3>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
-          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
-            <span className="badge badge-verified" style={{ marginBottom: '6px' }}>MET Broadcast</span>
-            <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '4px 0' }}>Azamgarh & Gorakhpur Belt</h4>
+          <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <span className="status-tag status-verified" style={{ marginBottom: '6px' }}>MET Broadcast</span>
+            <h4 style={{ color: 'var(--text-main)', fontSize: '0.95rem', margin: '4px 0' }}>Azamgarh & Gorakhpur Belt</h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
               Light to moderate rainfall expected over the next 48 hours. Ensure harvested grain stocks are covered with tarpaulin.
             </p>
           </div>
 
-          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-glass)' }}>
-            <span className="badge badge-pending" style={{ marginBottom: '6px' }}>Community Pest Alert</span>
-            <h4 style={{ color: '#fff', fontSize: '0.95rem', margin: '4px 0' }}>Jaunpur Tomato Clusters</h4>
+          <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <span className="status-tag status-pending" style={{ marginBottom: '6px' }}>Pest Warning</span>
+            <h4 style={{ color: 'var(--text-main)', fontSize: '0.95rem', margin: '4px 0' }}>Jaunpur Tomato Clusters</h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
               3 neighboring farmers reported early signs of leaf blight. Recommended spraying Neem-oil or Copper Oxychloride.
             </p>
@@ -144,50 +134,52 @@ export default function CommunityIntel() {
       {showAddModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.8)',
-          backdropFilter: 'blur(8px)',
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="glass-card" style={{ padding: '24px', maxWidth: '440px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: '#fff' }}>📢 Submit Local Commodity Price</h3>
+          <div className="ui-card" style={{ padding: '24px', maxWidth: '440px', width: '90%' }}>
+            <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Megaphone size={18} color="var(--accent-emerald)" /> Submit Local Commodity Price
+            </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
               Contribute your local market rate to update the community database.
             </p>
 
             <form onSubmit={handleFormSubmit}>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Crop / Commodity</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Crop / Commodity</label>
                 <input
                   type="text"
                   placeholder="e.g. Tamatar, Pyaaz, Aloo, Gehun"
                   value={item}
                   onChange={e => setItem(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Price (₹)</label>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Price (₹)</label>
                   <input
                     type="number"
                     placeholder="28"
                     value={price}
                     onChange={e => setPrice(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Unit</label>
+                  <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Unit</label>
                   <select
                     value={unit}
                     onChange={e => setUnit(e.target.value)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(15,25,45,0.9)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                   >
                     <option value="kg">kg</option>
                     <option value="quintal">quintal</option>
@@ -197,29 +189,29 @@ export default function CommunityIntel() {
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Mandi / Location</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Mandi / Location</label>
                 <input
                   type="text"
                   placeholder="e.g. Azamgarh Mandi"
                   value={location}
                   onChange={e => setLocation(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Your Name / Role</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Your Name / Role</label>
                 <input
                   type="text"
                   placeholder="e.g. Ramesh (Farmer)"
                   value={reporter}
                   onChange={e => setReporter(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-glass)', color: '#fff' }}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" className="btn-primary"><Send size={14} /> Submit Rate</button>
               </div>
