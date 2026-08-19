@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { speechService } from '../services/speechService';
 import { processUserSpeechQuery } from '../services/aiCoreEngine';
-import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap, Key } from 'lucide-react';
 
 const DEMO_PRESETS = [
   {
@@ -88,7 +88,8 @@ export default function UserVoiceApp() {
         short_answer_en: aiResponse.spoken_response?.english_translation || 'Information retrieved.',
         risk_category: aiResponse.risk_metadata?.risk_category || 'NONE',
         trust_note: aiResponse.risk_metadata?.trust_reason || '',
-        actionable_steps: aiResponse.actionable_steps || []
+        actionable_steps: aiResponse.actionable_steps || [],
+        engine_source: aiResponse.engine_source || 'LOCAL_NLP_ENGINE'
       };
 
       addQuery(newQuery);
@@ -134,10 +135,31 @@ export default function UserVoiceApp() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
       
+      {/* Gemini API Key Alert Banner if empty */}
+      {!geminiKey && (
+        <div style={{
+          background: 'var(--accent-blue-light)',
+          border: '1px solid rgba(37, 99, 235, 0.3)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '10px 14px',
+          marginBottom: '16px',
+          fontSize: '0.82rem',
+          color: 'var(--accent-blue)',
+          display: 'flex',
+          justify: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Key size={14} /> <strong>Gemini API Key is empty.</strong> Add your free key in top header to enable live LLM generation.
+          </span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Using Offline Engine</span>
+        </div>
+      )}
+
       {/* Main Container Card */}
       <div className="ui-card ui-card-accent" style={{ padding: '28px 20px', textAlign: 'center', marginBottom: '24px' }}>
         
-        {/* Status Indicator Bar - Plain Text Only */}
+        {/* Status Indicator Bar */}
         <div style={{ marginBottom: '16px' }}>
           <span className={`status-tag ${appState === 'LISTENING' ? 'status-high-stakes' : appState === 'THINKING' ? 'status-blue' : appState === 'SPEAKING' ? 'status-verified' : 'status-verified'}`}>
             {appState === 'LISTENING' && <><Mic size={14} /> Listening (Hindi / English)...</>}
@@ -206,9 +228,9 @@ export default function UserVoiceApp() {
       {activeQueryResult && (
         <div className="ui-card" style={{ padding: '24px', marginBottom: '24px', borderLeft: activeQueryResult.is_high_stakes ? '4px solid var(--accent-amber)' : '4px solid var(--accent-emerald)' }}>
           
-          {/* Header Status - Plain Text Only */}
+          {/* Header Status Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {activeQueryResult.status === 'VERIFIED_BY_TRUST_NODE' ? (
                 <span className="status-tag status-verified">
                   <ShieldCheck size={14} /> Confirmed by Kirana Node
@@ -220,6 +242,12 @@ export default function UserVoiceApp() {
               ) : (
                 <span className="status-tag status-verified">
                   <CheckCircle2 size={14} /> Auto-Confirmed Response
+                </span>
+              )}
+
+              {activeQueryResult.engine_source === 'GEMINI_LIVE_AI' && (
+                <span className="status-tag status-blue" style={{ fontSize: '0.7rem' }}>
+                  <Sparkles size={11} /> Gemini 1.5 Flash Live
                 </span>
               )}
             </div>
@@ -257,7 +285,7 @@ export default function UserVoiceApp() {
             </p>
           </div>
 
-          {/* High-Stakes Notice - Plain Left Border Only */}
+          {/* High-Stakes Notice */}
           {activeQueryResult.status === 'PENDING_TRUST_REVIEW' && (
             <div style={{
               borderLeft: '3px solid var(--accent-amber)',

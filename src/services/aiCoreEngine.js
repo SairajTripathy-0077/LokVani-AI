@@ -2,21 +2,22 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GOVT_SCHEMES } from '../data/mockData.js';
 
 /**
- * LokVani AI High-Precision Dynamic Voice Engine
- * Synthesizes customized, accurate Hindi & English responses for ANY spoken query.
+ * LokVani AI High-Precision Voice Engine
+ * Connects to Google Gemini API for live natural language query synthesis,
+ * with fallback to local dynamic NLP engine.
  */
 
 const SYSTEM_PROMPT = `
-You are LokVani AI, an inclusive voice AI assistant for farmers and micro-vendors in India.
-Analyze the user's voice query and provide a precise, accurate JSON response.
+You are LokVani AI, an intelligent voice AI assistant for farmers and micro-vendors in India.
+Analyze the user's voice query and provide an accurate, helpful response.
 
-Rules:
-1. short_answer_hi: Short, natural Hindi answer (max 25-30 words, suitable for voice TTS playback).
-2. short_answer_en: English translation.
+Requirements:
+1. spoken_response.hindi_tts: Clear, natural Hindi answer in Devanagari script (max 25-30 words, suitable for voice speech playback).
+2. spoken_response.english_translation: Accurate English translation.
 3. intent: "scheme_query | price_query | general_advice | weather_advisory"
-4. needs_trust_node_review: TRUE if query involves scheme eligibility, loans, document applications, or chemical pesticide dosage. FALSE for simple price lookups or weather alerts.
+4. needs_trust_node_review: Set to TRUE if query involves government scheme eligibility, bank loans, legal paperwork, or chemical pesticide dosage. Set to FALSE for simple price lookups or weather alerts.
 
-Return JSON ONLY:
+Return ONLY valid JSON matching this schema:
 {
   "intent": "scheme_query | price_query | general_advice | weather_advisory",
   "spoken_response": {
@@ -59,8 +60,10 @@ export async function processUserSpeechQuery(transcribedText, options = {}) {
   const apiKey = options.apiKey || (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : process.env.VITE_GEMINI_API_KEY);
   const userLocation = options.userLocation || 'Azamgarh, UP';
 
+  console.log(`[LokVani AI Engine] User Query: "${transcribedText}" | Gemini Key Available: ${Boolean(apiKey && apiKey.trim().length > 5)}`);
+
   // 1. Live Gemini AI Call (If API Key Present)
-  if (apiKey && apiKey.trim().length > 10) {
+  if (apiKey && apiKey.trim().length > 5) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey.trim());
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -72,21 +75,45 @@ export async function processUserSpeechQuery(transcribedText, options = {}) {
       const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
       
+      console.log('[LokVani AI Engine] Successfully processed query via Gemini 1.5 Flash API!');
       return {
         query_input: transcribedText,
+        engine_source: 'GEMINI_LIVE_AI',
         ...parsed
       };
     } catch (err) {
-      console.warn('Gemini API call error, using local high-precision NLP engine:', err.message);
+      console.warn('[LokVani AI Engine] Gemini API call error:', err.message);
+      // Try fallback model gemini-pro if flash fails
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey.trim());
+        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+        const prompt = `${SYSTEM_PROMPT}\n\nUser Voice Input: "${transcribedText}"\nLocation: ${userLocation}`;
+        const response = await model.generateContent(prompt);
+        const text = response.response.text();
+        const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+
+        return {
+          query_input: transcribedText,
+          engine_source: 'GEMINI_LIVE_AI',
+          ...parsed
+        };
+      } catch (err2) {
+        console.error('[LokVani AI Engine] Both Gemini models failed, falling back to NLP engine:', err2.message);
+      }
     }
   }
 
-  // 2. High-Precision Universal Dynamic Engine
-  return universalVoiceNlpEngine(transcribedText, userLocation);
+  // 2. High-Precision Universal Dynamic Engine Fallback
+  const fallbackResult = universalVoiceNlpEngine(transcribedText, userLocation);
+  return {
+    engine_source: 'LOCAL_NLP_ENGINE',
+    ...fallbackResult
+  };
 }
 
 /**
- * Universal Dynamic Voice Engine with Correct Intent Evaluation Order
+ * Universal Dynamic Voice Engine
  */
 function universalVoiceNlpEngine(userSpeech, userLocation) {
   const text = userSpeech.trim();
@@ -103,9 +130,7 @@ function universalVoiceNlpEngine(userSpeech, userLocation) {
     s.name.toLowerCase().split(' ').some(w => w.length > 3 && lower.includes(w))
   );
 
-  // --- INTENT EVALUATION ORDER ---
-
-  // 1. CROP DISEASE, PESTICIDE & FERTILIZER INTENT (Evaluated FIRST so "Tamatar me keeda" or "Gehun me khad" is NOT misclassified as a price query)
+  // 1. CROP DISEASE, PESTICIDE & FERTILIZER INTENT
   if (lower.includes('keeda') || lower.includes('कीड़ा') || lower.includes('spray') || lower.includes('छिड़काव') || lower.includes('pesticide') || lower.includes('दवा') || lower.includes('dap') || lower.includes('urea') || lower.includes('खाद') || lower.includes('disease') || lower.includes('blight') || lower.includes('peele')) {
     const cropName = matchedCommodity ? matchedCommodity.name : extractGeneralTopic(text);
     const isFertilizer = lower.includes('dap') || lower.includes('urea') || lower.includes('खाद');
@@ -180,8 +205,8 @@ function universalVoiceNlpEngine(userSpeech, userLocation) {
     };
   }
 
-  // 4. MARKET PRICE QUERY INTENT (Evaluated ONLY if not a pesticide, scheme, or weather query)
-  if (matchedCommodity || lower.includes('bhav') || lower.includes('भाव') || lower.includes('rate') || lower.includes('रेट') || lower.includes('price') || lower.includes('mandi') || lower.includes('मंडी') || lower.includes('thok')) {
+  // 4. MARKET PRICE QUERY INTENT
+  if (matchedCommodity || lower.includes('bhav') || lower.includes('भाव') || lower.includes('rate') || lower.includes('रेट') || lower.includes('price') || lower.includes('मंडी') || lower.includes('mandi') || lower.includes('thok')) {
     const item = matchedCommodity ? matchedCommodity.name : extractGeneralTopic(text);
     const price = matchedCommodity ? matchedCommodity.price : 30;
     const unit = matchedCommodity ? matchedCommodity.unit : 'kg';
@@ -205,7 +230,7 @@ function universalVoiceNlpEngine(userSpeech, userLocation) {
     };
   }
 
-  // 5. GENERAL SPEECH ANSWER SYNTHESIZER (Custom response for any custom user voice question)
+  // 5. GENERAL SPEECH ANSWER SYNTHESIZER
   const topic = extractGeneralTopic(text);
   return {
     query_input: userSpeech,
@@ -226,9 +251,6 @@ function universalVoiceNlpEngine(userSpeech, userLocation) {
   };
 }
 
-/**
- * Extracts key topic phrase from arbitrary user speech text
- */
 function extractGeneralTopic(text) {
   if (!text) return 'Aapke sawal';
   const clean = text.replace(/mujhe|batao|kya|hai|kaisey|kaise|karna|chahiye|aur|ke|ki|ka|me|mein|par|karo/gi, '').trim();
