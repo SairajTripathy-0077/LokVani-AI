@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { GOVT_SCHEMES, MOCK_COMMUNITY_INTEL, MOCK_USER_QUERIES } from '../data/mockData';
+import { fetchLiveWeatherData, fetchLiveMandiPrices } from '../services/realDataService';
 
 const AppContext = createContext();
 
@@ -51,8 +52,30 @@ export function AppProvider({ children }) {
     const saved = localStorage.getItem('lokvani_intel');
     return saved ? JSON.parse(saved) : MOCK_COMMUNITY_INTEL;
   });
+  const [liveWeather, setLiveWeather] = useState(null);
   const [govtSchemes] = useState(GOVT_SCHEMES);
   const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('lokvani_api_key') || '');
+
+  // Load Live Real Data from APIs on mount
+  useEffect(() => {
+    async function loadRealData() {
+      // 1. Fetch Live Weather from Open-Meteo
+      const weather = await fetchLiveWeatherData('Azamgarh');
+      setLiveWeather(weather);
+
+      // 2. Fetch Live Mandi Prices from Agmarknet API
+      const livePrices = await fetchLiveMandiPrices();
+      if (livePrices && livePrices.length > 0) {
+        setCommunityIntel(prev => {
+          // Merge live prices with user submissions
+          const existingIds = new Set(prev.map(p => p.id));
+          const uniqueLive = livePrices.filter(lp => !existingIds.has(lp.id));
+          return [...uniqueLive, ...prev];
+        });
+      }
+    }
+    loadRealData();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('lokvani_queries', JSON.stringify(queries));
@@ -116,6 +139,7 @@ export function AppProvider({ children }) {
       approveQuery,
       communityIntel,
       addCommunityIntel,
+      liveWeather,
       pendingReviewsCount,
       geminiKey,
       saveApiKey

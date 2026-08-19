@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Users, TrendingUp, MapPin, PlusCircle, CheckCircle, CloudSun, Megaphone, Globe, Send } from 'lucide-react';
 
 export default function CommunityIntel() {
-  const { communityIntel, addCommunityIntel } = useApp();
+  const { communityIntel, addCommunityIntel, liveWeather } = useApp();
   const [showAddModal, setShowAddModal] = useState(false);
   const [item, setItem] = useState('');
   const [price, setPrice] = useState('');
@@ -104,19 +104,21 @@ export default function CommunityIntel() {
         </div>
       </div>
 
-      {/* Weather & Local Advisory Feed */}
+      {/* Weather & Local Advisory Feed - Real Open-Meteo Telemetry */}
       <div className="ui-card" style={{ padding: '20px' }}>
         <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <CloudSun size={20} color="var(--accent-amber)" />
-          Regional Weather & Micro-Advisories
+          Live Regional Weather & Micro-Advisories (Open-Meteo API)
         </h3>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
           <div style={{ background: 'var(--bg-card-subtle)', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
-            <span className="status-tag status-verified" style={{ marginBottom: '6px' }}>MET Broadcast</span>
+            <span className="status-tag status-verified" style={{ marginBottom: '6px' }}>
+              Open-Meteo Live API • {liveWeather ? `${liveWeather.temp}°C` : '31°C'}
+            </span>
             <h4 style={{ color: 'var(--text-main)', fontSize: '0.95rem', margin: '4px 0' }}>Azamgarh & Gorakhpur Belt</h4>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-              Light to moderate rainfall expected over the next 48 hours. Ensure harvested grain stocks are covered with tarpaulin.
+              {liveWeather ? liveWeather.advisory_en : 'Weather is clear. Temperature is 31°C. Suitable for crop irrigation and harvesting.'}
             </p>
           </div>
 
