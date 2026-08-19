@@ -134,10 +134,10 @@ export default function UserVoiceApp() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
       
-      {/* Light Theme Main Card */}
+      {/* Main Container Card */}
       <div className="ui-card ui-card-accent" style={{ padding: '28px 20px', textAlign: 'center', marginBottom: '24px' }}>
         
-        {/* Status Indicator Bar - No Capsules, Rectangular Tag */}
+        {/* Status Indicator Bar - Plain Text Only */}
         <div style={{ marginBottom: '16px' }}>
           <span className={`status-tag ${appState === 'LISTENING' ? 'status-high-stakes' : appState === 'THINKING' ? 'status-blue' : appState === 'SPEAKING' ? 'status-verified' : 'status-verified'}`}>
             {appState === 'LISTENING' && <><Mic size={14} /> Listening (Hindi / English)...</>}
@@ -154,7 +154,7 @@ export default function UserVoiceApp() {
           Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
         </p>
 
-        {/* Large Rectangular Touch Microphone Trigger */}
+        {/* Square Touch Microphone Trigger */}
         <div style={{ marginBottom: '20px' }}>
           <div className="mic-btn-container">
             <button
@@ -169,14 +169,8 @@ export default function UserVoiceApp() {
           {transcript && (
             <div style={{
               marginTop: '16px',
-              background: 'var(--bg-card-subtle)',
-              border: '1px solid var(--border-light)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '10px 14px',
-              display: 'inline-block',
-              maxWidth: '90%',
-              fontSize: '0.95rem',
               color: 'var(--accent-blue)',
+              fontSize: '0.95rem',
               fontWeight: 600
             }}>
               "{transcript}"
@@ -184,7 +178,7 @@ export default function UserVoiceApp() {
           )}
         </div>
 
-        {/* Quick Pitch Presets with Vector Icons */}
+        {/* Quick Pitch Presets */}
         <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
             <Zap size={13} color="var(--accent-emerald)" /> Instant Demo Presets
@@ -212,7 +206,7 @@ export default function UserVoiceApp() {
       {activeQueryResult && (
         <div className="ui-card" style={{ padding: '24px', marginBottom: '24px', borderLeft: activeQueryResult.is_high_stakes ? '4px solid var(--accent-amber)' : '4px solid var(--accent-emerald)' }}>
           
-          {/* Header Status Bar */}
+          {/* Header Status - Plain Text Only */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
             <div>
               {activeQueryResult.status === 'VERIFIED_BY_TRUST_NODE' ? (
@@ -263,33 +257,25 @@ export default function UserVoiceApp() {
             </p>
           </div>
 
-          {/* High-Stakes Banner Notice */}
+          {/* High-Stakes Notice - Plain Left Border Only */}
           {activeQueryResult.status === 'PENDING_TRUST_REVIEW' && (
             <div style={{
-              background: 'var(--accent-amber-light)',
-              border: '1px solid rgba(217, 119, 6, 0.3)',
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 16px',
-              marginBottom: '16px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '10px'
+              borderLeft: '3px solid var(--accent-amber)',
+              paddingLeft: '12px',
+              marginBottom: '16px'
             }}>
-              <ShieldAlert size={20} color="var(--accent-amber)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <strong style={{ color: 'var(--accent-amber)', fontSize: '0.88rem', display: 'block' }}>
-                  Under Kirana Node Verification
-                </strong>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', margin: '2px 0 6px 0' }}>
-                  {activeQueryResult.trust_note || 'This high-stakes query is queued for local Kirana node verification.'}
-                </p>
-                <button
-                  onClick={() => setActiveTab('trust')}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  Inspect in Kirana Operator Dashboard <ArrowRight size={14} />
-                </button>
-              </div>
+              <strong style={{ color: 'var(--accent-amber)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ShieldAlert size={16} /> Under Kirana Node Verification
+              </strong>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', margin: '2px 0 6px 0' }}>
+                {activeQueryResult.trust_note || 'This high-stakes query is queued for local Kirana node verification.'}
+              </p>
+              <button
+                onClick={() => setActiveTab('trust')}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              >
+                Inspect in Kirana Operator Dashboard <ArrowRight size={14} />
+              </button>
             </div>
           )}
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ShieldCheck, AlertTriangle, CheckCircle2, Edit3, Store, UserCheck, HeartHandshake, Sparkles, XCircle, Shield } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, CheckCircle2, Edit3, Store, UserCheck, HeartHandshake, Sparkles, XCircle } from 'lucide-react';
 
 export default function TrustNodeDashboard() {
   const { queries, approveQuery } = useApp();
@@ -53,10 +53,10 @@ export default function TrustNodeDashboard() {
               <Store size={26} />
             </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h2 style={{ fontSize: '1.3rem', color: 'var(--text-main)', margin: 0 }}>Gupta Kirana & CSC Node</h2>
-                <span className="status-tag status-verified" style={{ fontSize: '0.65rem' }}>
-                  <UserCheck size={12} /> Certified Verifier
+                <span className="status-tag status-verified">
+                  <UserCheck size={14} /> Certified Verifier
                 </span>
               </div>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
@@ -65,18 +65,18 @@ export default function TrustNodeDashboard() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', background: 'var(--bg-card-subtle)', padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
+          <div style={{ display: 'flex', gap: '16px', borderLeft: '1px solid var(--border-light)', paddingLeft: '16px' }}>
             <div style={{ textAlign: 'center' }}>
               <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent-amber)', display: 'block', lineHeight: 1 }}>
                 {pendingQueries.length}
               </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Pending</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Pending</span>
             </div>
-            <div style={{ borderLeft: '1px solid var(--border-light)', paddingLeft: '12px', textAlign: 'center' }}>
+            <div style={{ borderLeft: '1px solid var(--border-light)', paddingLeft: '16px', textAlign: 'center' }}>
               <span style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent-emerald)', display: 'block', lineHeight: 1 }}>
                 {verifiedQueries.length + 42}
               </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Verified</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Verified</span>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export default function TrustNodeDashboard() {
             {pendingQueries.map((q) => (
               <div key={q.id} className="ui-card" style={{ padding: '20px', borderLeft: '4px solid var(--accent-amber)' }}>
                 
-                {/* User Info & Risk Badge */}
+                {/* User Info & Risk Badge - Plain Text Only */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                   <div>
                     <span className="status-tag status-high-stakes" style={{ marginRight: '8px' }}>
@@ -143,13 +143,11 @@ export default function TrustNodeDashboard() {
                   <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem' }}>"{q.queryText}"</p>
                 </div>
 
-                {/* Why Flagged Reason Banner */}
+                {/* Why Flagged Reason Notice */}
                 {q.trust_note && (
                   <div style={{
-                    background: 'var(--accent-amber-light)',
-                    border: '1px solid rgba(217, 119, 6, 0.25)',
-                    borderRadius: '6px',
-                    padding: '8px 12px',
+                    borderLeft: '3px solid var(--accent-amber)',
+                    paddingLeft: '10px',
                     marginBottom: '14px',
                     fontSize: '0.82rem',
                     color: 'var(--accent-amber)',
@@ -217,8 +215,8 @@ export default function TrustNodeDashboard() {
                     <button
                       onClick={() => handleReject(q.id)}
                       style={{
-                        background: 'var(--accent-rose-light)',
-                        border: '1px solid rgba(220, 38, 38, 0.3)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-light)',
                         color: 'var(--accent-rose)',
                         borderRadius: 'var(--radius-sm)',
                         padding: '8px 16px',
@@ -271,8 +269,8 @@ export default function TrustNodeDashboard() {
             {verifiedQueries.map((vq) => (
               <div key={vq.id} className="ui-card" style={{ padding: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span className="status-tag status-verified" style={{ fontSize: '0.68rem' }}>
-                    <CheckCircle2 size={12} /> Verified by {vq.verified_by || 'Gupta Kirana Node'}
+                  <span className="status-tag status-verified">
+                    <CheckCircle2 size={13} /> Verified by {vq.verified_by || 'Gupta Kirana Node'}
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                     {vq.verified_at || 'Just now'}

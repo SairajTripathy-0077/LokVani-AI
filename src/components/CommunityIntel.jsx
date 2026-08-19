@@ -25,12 +25,12 @@ export default function CommunityIntel() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '24px 16px' }}>
       
-      {/* Light Theme Banner */}
+      {/* Banner */}
       <div className="ui-card ui-card-accent" style={{ padding: '24px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <span className="status-tag status-blue" style={{ marginBottom: '8px' }}>
-              <Globe size={13} /> Waze for Rural Micro-Economies
+              <Globe size={14} /> Waze for Rural Micro-Economies
             </span>
             <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', margin: '4px 0' }}>
               Community Intelligence Network
@@ -94,8 +94,8 @@ export default function CommunityIntel() {
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Users size={12} /> {ci.reporter}
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--accent-emerald)', fontWeight: 600 }}>
-                  <CheckCircle size={12} /> Verified Data
+                <span className="status-tag status-verified">
+                  <CheckCircle size={13} /> Verified Data
                 </span>
               </div>
 
