@@ -3,25 +3,12 @@ import { GOVT_SCHEMES, MOCK_COMMUNITY_INTEL } from '../data/mockData.js';
 
 /**
  * LokVani AI Core Engine
- * Processes transcribed voice input in Hinglish/Hindi, classifies intent, extracts entities,
- * performs RAG lookup over Indian government schemes & community intel, generates TTS spoken responses,
- * and tags high-stakes risk for Kirana Trust Node verification.
+ * Dynamic Hinglish & Devanagari Multi-Script NLP Engine & Risk Classifier
  */
 
 const SYSTEM_PROMPT = `
-You are the core intelligence engine for LokVani AI ("Public Voice AI"), serving small farmers and street vendors in India.
-Your job is to parse transcribed informal Hindi/Hinglish voice input, extract key entities, retrieve facts, generate a short spoken-style TTS response, and assess high-stakes risk for Kirana Trust Node verification.
-
-Rules for Spoken Answers:
-- Max 25-35 words per answer in simple Hindi (Devanagari).
-- No complex jargon or technical legal terms.
-- Optimized for natural text-to-speech audio reading.
-
-Schema Rules:
-- intent: Must be one of ["scheme_query", "price_query", "general_advice", "weather_advisory"]
-- needs_trust_node_review: Must be TRUE if query involves scheme eligibility, financial commitments, pesticide dosage, or document paperwork. FALSE for simple price/weather lookups.
-
-Return ONLY a single valid JSON object matching this structure:
+You are LokVani AI, a voice assistant for farmers & micro-vendors in India.
+Analyze the user's voice query and return JSON ONLY:
 {
   "intent": "scheme_query | price_query | general_advice | weather_advisory",
   "entities": {
@@ -31,48 +18,31 @@ Return ONLY a single valid JSON object matching this structure:
     "target_scheme": "string or null"
   },
   "spoken_response": {
-    "hindi_tts": "short simple Hindi answer for voice playback",
+    "hindi_tts": "short simple Hindi answer (max 30 words)",
     "english_translation": "English translation"
   },
-  "needs_trust_node_review": true,
+  "needs_trust_node_review": boolean,
   "confidence_score": 0.95,
   "risk_metadata": {
     "risk_category": "FINANCIAL_ELIGIBILITY | PESTICIDE_SAFETY | FINANCIAL_LOAN | AGRICULTURAL_DOSAGE | NONE",
-    "trust_reason": "Explanation of why Kirana node review is recommended"
+    "trust_reason": "string"
   },
   "actionable_steps": ["step 1", "step 2"]
 }
 `;
 
-/**
- * Main AI Query Processing Pipeline
- * @param {string} transcribedText - Transcribed user voice speech (informal Hindi / Hinglish)
- * @param {object} options - Options object ({ apiKey, userLocation })
- * @returns {Promise<object>} Structured AI response payload
- */
 export async function processUserSpeechQuery(transcribedText, options = {}) {
   const apiKey = options.apiKey || (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : process.env.VITE_GEMINI_API_KEY);
   const userLocation = options.userLocation || 'Azamgarh, UP';
 
-  // 1. Context Enrichment from Local Knowledge Data
-  const matchedSchemes = searchSchemesDataset(transcribedText);
-  const matchedPrices = searchCommunityIntel(transcribedText);
-
-  const contextPayload = {
-    user_location: userLocation,
-    available_schemes_sample: matchedSchemes.length > 0 ? matchedSchemes : GOVT_SCHEMES.slice(0, 5),
-    community_prices_sample: matchedPrices.length > 0 ? matchedPrices : MOCK_COMMUNITY_INTEL.slice(0, 5)
-  };
-
-  // 2. Call Gemini API if API Key present
+  // 1. Live Gemini AI Synthesis (If API key provided)
   if (apiKey) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      const fullPrompt = `${SYSTEM_PROMPT}\n\nLocal Data Context:\n${JSON.stringify(contextPayload, null, 2)}\n\nTranscribed Voice Speech: "${transcribedText}"`;
-
-      const response = await model.generateContent(fullPrompt);
+      const prompt = `${SYSTEM_PROMPT}\n\nUser Query: "${transcribedText}" (Location: ${userLocation})`;
+      const response = await model.generateContent(prompt);
       const text = response.response.text();
       
       const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -80,207 +50,193 @@ export async function processUserSpeechQuery(transcribedText, options = {}) {
       
       return {
         query_input: transcribedText,
-        ...parsed,
-        retrieved_context: {
-          matched_schemes_count: matchedSchemes.length,
-          matched_prices_count: matchedPrices.length,
-          top_matched_scheme: matchedSchemes[0]?.name || null,
-          top_matched_price: matchedPrices[0] ? `₹${matchedPrices[0].price}/${matchedPrices[0].unit} at ${matchedPrices[0].location}` : null
-        }
+        ...parsed
       };
     } catch (err) {
-      console.warn('Gemini API call failed or unconfigured, running local deterministic fallback classifier:', err.message);
+      console.warn('Gemini API call failed, running dynamic multi-script fallback engine:', err.message);
     }
   }
 
-  // 3. Deterministic Local AI Engine (Offline / Zero-API Fallback)
-  return fallbackAiEngine(transcribedText, contextPayload);
+  // 2. High-Precision Multi-Script (Devanagari + Hinglish) Offline Engine
+  return dynamicMultiScriptEngine(transcribedText, userLocation);
 }
 
 /**
- * Keyword RAG Search over Government Schemes Dataset
+ * High-Precision Multi-Script NLP Classifier (Handles Hindi Devanagari & Latin Hinglish)
  */
-function searchSchemesDataset(query) {
-  const lower = query.toLowerCase();
-  return GOVT_SCHEMES.filter(s => 
-    lower.includes(s.name.toLowerCase()) ||
-    s.documents.some(d => lower.includes(d.toLowerCase())) ||
-    lower.includes(s.target.toLowerCase()) ||
-    (lower.includes('scheme') || lower.includes('yojana') || lower.includes('loan') || lower.includes('kisan') || lower.includes('svanidhi') || lower.includes('bima') || lower.includes('kusum'))
-  );
-}
+function dynamicMultiScriptEngine(transcribedText, userLocation) {
+  const text = transcribedText.toLowerCase();
 
-/**
- * Keyword RAG Search over Community Intelligence Ticker
- */
-function searchCommunityIntel(query) {
-  const lower = query.toLowerCase();
-  return MOCK_COMMUNITY_INTEL.filter(ci => 
-    lower.includes(ci.item.toLowerCase()) ||
-    lower.includes(ci.location.toLowerCase()) ||
-    lower.includes(ci.type.toLowerCase())
-  );
-}
+  // --- ENTITY MATCHING ---
+  const commodity = detectCommodity(text);
+  const scheme = detectScheme(text);
+  const location = detectLocation(text) || userLocation;
 
-/**
- * Deterministic Fallback Rules Engine
- */
-function fallbackAiEngine(transcribedText, context) {
-  const lower = transcribedText.toLowerCase();
+  // --- 1. SCHEME & LOAN ELIGIBILITY INTENT ---
+  if (scheme || text.includes('scheme') || text.includes('yojana') || text.includes('योजना') || text.includes('loan') || text.includes('ऋण') || text.includes('apply') || text.includes('आवेदन') || text.includes('eligibility') || text.includes('पात्रता')) {
+    const targetScheme = scheme || GOVT_SCHEMES[0];
+    
+    return {
+      query_input: transcribedText,
+      intent: 'scheme_query',
+      entities: {
+        crop_commodity: commodity ? commodity.name : null,
+        location,
+        need: `Information regarding ${targetScheme.name}`,
+        target_scheme: targetScheme.name
+      },
+      retrieved_context: {
+        matched_scheme: targetScheme.name,
+        benefits: targetScheme.benefits
+      },
+      spoken_response: {
+        hindi_tts: `${targetScheme.name} me ${targetScheme.benefits} Aadhar card aur ${targetScheme.documents[1] || 'bank papers'} ke sath Kirana node par e-KYC karein.`,
+        english_translation: `${targetScheme.name} provides ${targetScheme.benefits} Submit ${targetScheme.documents.join(', ')} at your Kirana Trust Node.`
+      },
+      needs_trust_node_review: true, // High-Stakes Financial/Eligibility Query
+      confidence_score: 0.96,
+      risk_metadata: {
+        risk_category: targetScheme.name.includes('Loan') || targetScheme.name.includes('SVANidhi') || targetScheme.name.includes('KCC') ? 'FINANCIAL_LOAN' : 'FINANCIAL_ELIGIBILITY',
+        trust_reason: `High-stakes ${targetScheme.name} query: Requires Kirana operator to check applicant document eligibility.`
+      },
+      actionable_steps: targetScheme.documents.map(doc => `${doc} tayyar rakhein`)
+    };
+  }
 
-  // Intent Classification & Entity Extraction
-  let intent = 'general_advice';
-  let is_high_stakes = false;
-  let risk_category = 'NONE';
-  let trust_reason = 'Auto-verified response.';
-
-  const entities = {
-    crop_commodity: extractCommodity(lower),
-    location: extractLocation(lower) || 'Azamgarh Mandi',
-    need: transcribedText,
-    target_scheme: null
-  };
-
-  // Rule 1: Govt Schemes or Financial Loans
-  if (lower.includes('scheme') || lower.includes('yojana') || lower.includes('pm kisan') || lower.includes('loan') || lower.includes('svanidhi') || lower.includes('apply')) {
-    intent = 'scheme_query';
-    is_high_stakes = true;
-    risk_category = lower.includes('loan') ? 'FINANCIAL_LOAN' : 'FINANCIAL_ELIGIBILITY';
-    entities.target_scheme = lower.includes('svanidhi') ? 'PM SVANidhi' : 'PM-Kisan Samman Nidhi';
-    trust_reason = 'High-stakes scheme application: Requires Kirana node document and e-KYC verification.';
-
-    const matchedScheme = context.available_schemes_sample[0] || GOVT_SCHEMES[0];
-    const matchedPrice = context.community_prices_sample.find(p => p.item.toLowerCase().includes(entities.crop_commodity?.toLowerCase() || 'tamatar'));
+  // --- 2. PESTICIDE / CROP DISEASE / FERTILIZER INTENT ---
+  if (text.includes('keeda') || text.includes('कीड़ा') || text.includes('spray') || text.includes('छिड़काव') || text.includes('pesticide') || text.includes('दवा') || text.includes('blight') || text.includes('disease') || text.includes('dap') || text.includes('urea') || text.includes('खाद')) {
+    const cropName = commodity ? commodity.name : 'Crop';
+    const isFertilizer = text.includes('dap') || text.includes('urea') || text.includes('खाद');
 
     return {
       query_input: transcribedText,
-      intent,
-      entities,
-      retrieved_context: {
-        matched_scheme: matchedScheme.name,
-        matched_mandi_price: matchedPrice ? `₹${matchedPrice.price}/${matchedPrice.unit} at ${matchedPrice.location}` : '₹28/kg at Azamgarh Mandi'
+      intent: 'general_advice',
+      entities: {
+        crop_commodity: cropName,
+        location,
+        need: isFertilizer ? 'Fertilizer Dosage Advisory' : 'Pesticide Crop Disease Advisory',
+        target_scheme: null
       },
       spoken_response: {
-        hindi_tts: `${matchedScheme.name} ke liye Aadhar card, bank passbook, aur zameen papers zaroori hain. Aaj local mandi me tamatar ₹28 kilo hai.`,
-        english_translation: `${matchedScheme.name} requires Aadhar card, bank passbook, and land papers. Today local tomato rate is ₹28/kg.`
+        hindi_tts: isFertilizer
+          ? `${cropName} me per acre 50 kg DAP aur 45 kg Urea daalein. Sahi matra ke liye Kirana dada se mitti jaanch confirm karein.`
+          : `${cropName} me keede ke liye Copper Oxychloride 3g per liter paani me milakar spray karein. Sahi dosage Kirana center se confirm karein.`,
+        english_translation: isFertilizer
+          ? `For ${cropName}, apply 50kg DAP and 45kg Urea per acre. Confirm dosage with Kirana Node based on soil test.`
+          : `For ${cropName} pest, spray Copper Oxychloride (3g/L). Confirm exact dosage with Kirana Trust Node.`
       },
-      needs_trust_node_review: is_high_stakes,
-      confidence_score: 0.94,
+      needs_trust_node_review: true, // High-Stakes Chemical/Agricultural Dosage Query
+      confidence_score: 0.93,
       risk_metadata: {
-        risk_category,
-        trust_reason
+        risk_category: isFertilizer ? 'AGRICULTURAL_DOSAGE' : 'PESTICIDE_SAFETY',
+        trust_reason: isFertilizer ? 'Fertilizer application rate: Requires Kirana node review based on soil type.' : 'Chemical pesticide advice: Requires local edge verification for crop safety.'
       },
       actionable_steps: [
-        'Aadhar card ko bank account se link karein',
-        'Land Khasra paper ready rakhein',
-        'Kirana CSC center par biometric e-KYC verify karwayein'
+        'Subah ya shaam ke vaqt spray/khad daalein',
+        'Peene ke paani ke srot se dur rakhein'
       ]
     };
   }
 
-  // Rule 2: Pesticide / Crop Disease
-  if (lower.includes('keeda') || lower.includes('spray') || lower.includes('pesticide') || lower.includes('blight') || lower.includes('dawa')) {
-    intent = 'general_advice';
-    is_high_stakes = true;
-    risk_category = 'PESTICIDE_SAFETY';
-    trust_reason = 'Chemical crop spray recommendation: Requires local Kirana operator to confirm pesticide dosage safety.';
+  // --- 3. MARKET PRICE LOOKUP INTENT ---
+  if (text.includes('bhav') || text.includes('भाव') || text.includes('rate') || text.includes('रेट') || text.includes('price') || text.includes('दावा') || text.includes('mandi') || text.includes('मंडी') || text.includes('thok') || text.includes('थोक') || commodity) {
+    const item = commodity ? commodity.name : 'Tamatar (Tomato)';
+    const itemPrice = commodity ? commodity.price : 28;
 
     return {
       query_input: transcribedText,
-      intent,
-      entities,
+      intent: 'price_query',
+      entities: {
+        crop_commodity: item,
+        location,
+        need: `Market price lookup for ${item}`,
+        target_scheme: null
+      },
       retrieved_context: {
-        matched_disease: 'Tomato Leaf Blight',
-        recommended_chemical: 'Copper Oxychloride (3g/L)'
+        matched_commodity: item,
+        mandi_price: `₹${itemPrice}/kg at ${location}`
       },
       spoken_response: {
-        hindi_tts: 'Tamatar me keede ke liye Copper Oxychloride 3 gram per liter paani me milakar spray karein. Sahi matra ke liye Kirana dada se confirm karein.',
-        english_translation: 'Spray Copper Oxychloride (3g per liter water) for tomato blight. Confirm exact dosage with your local Kirana Trust Node.'
+        hindi_tts: `Aaj ${location} me ${item} ka rate ₹${itemPrice} prati kilo hai.`,
+        english_translation: `Today at ${location}, ${item} rate is ₹${itemPrice}/kg.`
       },
-      needs_trust_node_review: true,
-      confidence_score: 0.91,
-      risk_metadata: {
-        risk_category,
-        trust_reason
-      },
-      actionable_steps: [
-        'Spray subah ya shaam ke vaqt karein',
-        'Sahasrara patto ko hatakar jala dein'
-      ]
-    };
-  }
-
-  // Rule 3: Market Price Inquiry
-  if (lower.includes('bhav') || lower.includes('rate') || lower.includes('price') || lower.includes('mandi') || lower.includes('kilo')) {
-    intent = 'price_query';
-    is_high_stakes = false;
-    risk_category = 'NONE';
-    trust_reason = 'Low-risk price inquiry: Auto-verified via real-time community price ticker.';
-
-    const item = entities.crop_commodity || 'Tamatar (Tomato)';
-    const price = item.includes('Pyaaz') ? '34' : '28';
-
-    return {
-      query_input: transcribedText,
-      intent,
-      entities,
-      retrieved_context: {
-        community_rate: `₹${price}/kg at ${entities.location}`
-      },
-      spoken_response: {
-        hindi_tts: `Aaj ${entities.location} me ${item} ka bhav ₹${price} prati kilo hai.`,
-        english_translation: `Today at ${entities.location}, ${item} rate is ₹${price}/kg.`
-      },
-      needs_trust_node_review: false,
+      needs_trust_node_review: false, // Low-Risk Market Lookup
       confidence_score: 0.98,
       risk_metadata: {
-        risk_category,
-        trust_reason
+        risk_category: 'NONE',
+        trust_reason: 'Auto-verified market rate lookup from community price feed.'
       },
       actionable_steps: [
-        'Subah 10 baje se pehle Mandi stock le jayein',
-        'Niche report button se apna rate share karein'
+        'Subah Mandi me stock le jayein',
+        'Apna Mandi rate niche share karein'
       ]
     };
   }
 
-  // Default Weather Advisory
+  // --- 4. WEATHER ADVISORY INTENT ---
   return {
     query_input: transcribedText,
     intent: 'weather_advisory',
-    entities,
-    retrieved_context: {
-      weather_forecast: 'Light rain expected over next 48h'
+    entities: {
+      crop_commodity: commodity ? commodity.name : null,
+      location,
+      need: 'Weather forecast advisory',
+      target_scheme: null
     },
     spoken_response: {
-      hindi_tts: 'Agle 48 ghante me halki barish ki sambhavna hai. Apni fasal ko tarpaulin se dhak kar rakhein.',
-      english_translation: 'Light rain expected over next 48 hours. Cover harvested crops with tarpaulin.'
+      hindi_tts: `Agle 48 ghante me ${location} me halki barish ki sambhavna hai. Fasal ko tarpaulin se dhak kar rakhein.`,
+      english_translation: `Light rainfall expected in ${location} over next 48 hours. Cover harvested crops.`
     },
-    needs_trust_node_review: false,
+    needs_trust_node_review: false, // Low-Risk Weather Advisory
     confidence_score: 0.95,
     risk_metadata: {
       risk_category: 'NONE',
       trust_reason: 'Auto-verified regional weather alert.'
     },
     actionable_steps: [
-      'Fasal ko dhak kar rakhein',
+      'Fasal ko tarpaulin se dhakein',
       'Khet me paani nikasi saaf karein'
     ]
   };
 }
 
-function extractCommodity(text) {
-  if (text.includes('tamatar') || text.includes('tomato')) return 'Tamatar (Tomato)';
-  if (text.includes('pyaaz') || text.includes('onion')) return 'Pyaaz (Onion)';
-  if (text.includes('aloo') || text.includes('potato')) return 'Aloo (Potato)';
-  if (text.includes('gehun') || text.includes('wheat')) return 'Gehun (Wheat)';
-  return 'Tamatar (Tomato)';
+/**
+ * Multi-Script Commodity Detector (Hindi Devanagari + Latin Hinglish)
+ */
+function detectCommodity(text) {
+  if (text.includes('tamatar') || text.includes('tomato') || text.includes('टमाटर')) return { name: 'Tamatar (Tomato)', price: 28 };
+  if (text.includes('pyaaz') || text.includes('onion') || text.includes('प्याज़') || text.includes('प्याज')) return { name: 'Pyaaz (Onion)', price: 34 };
+  if (text.includes('aloo') || text.includes('potato') || text.includes('आलू')) return { name: 'Aloo (Potato)', price: 18 };
+  if (text.includes('gehun') || text.includes('wheat') || text.includes('गेहूं') || text.includes('गेहुं')) return { name: 'Gehun (Wheat)', price: 24 };
+  if (text.includes('mirch') || text.includes('chilli') || text.includes('मिर्च')) return { name: 'Hari Mirch (Chilli)', price: 42 };
+  if (text.includes('baingan') || text.includes('brinjal') || text.includes('बैंगन')) return { name: 'Baingan (Brinjal)', price: 22 };
+  if (text.includes('bhindi') || text.includes('okra') || text.includes('भिंडी')) return { name: 'Bhindi (Okra)', price: 32 };
+  if (text.includes('karela') || text.includes('bitter gourd') || text.includes('करेला')) return { name: 'Karela (Bitter Gourd)', price: 38 };
+  if (text.includes('lahsun') || text.includes('garlic') || text.includes('लहसुन')) return { name: 'Garlic (Lahsun)', price: 140 };
+  return null;
 }
 
-function extractLocation(text) {
-  if (text.includes('azamgarh')) return 'Azamgarh Mandi';
-  if (text.includes('gorakhpur')) return 'Gorakhpur Mandi';
-  if (text.includes('varanasi')) return 'Varanasi Mandi';
-  if (text.includes('lucknow')) return 'Lucknow Mandi';
-  return 'Azamgarh Mandi';
+/**
+ * Multi-Script Scheme Detector (Hindi Devanagari + Latin Hinglish)
+ */
+function detectScheme(text) {
+  if (text.includes('pm kisan') || text.includes('pm-kisan') || text.includes('पीएम किसान') || text.includes('samman nidhi')) return GOVT_SCHEMES[0];
+  if (text.includes('svanidhi') || text.includes('स्वनिधि') || text.includes('vendor loan') || text.includes('thela')) return GOVT_SCHEMES[1];
+  if (text.includes('fasal bima') || text.includes('pmfby') || text.includes('फ़सल बीमा')) return GOVT_SCHEMES[2];
+  if (text.includes('kcc') || text.includes('kisan credit') || text.includes('किसान क्रेडिट')) return GOVT_SCHEMES[3];
+  if (text.includes('kusum') || text.includes('solar pump') || text.includes('सोलर पंप')) return GOVT_SCHEMES[4];
+  if (text.includes('soil health') || text.includes('mitti jaanch') || text.includes('मिट्टी')) return GOVT_SCHEMES[5];
+  return null;
+}
+
+/**
+ * Location Detector (Hindi Devanagari + Latin Hinglish)
+ */
+function detectLocation(text) {
+  if (text.includes('azamgarh') || text.includes('आजमगढ़')) return 'Azamgarh Mandi';
+  if (text.includes('gorakhpur') || text.includes('गोरखपुर')) return 'Gorakhpur Mandi';
+  if (text.includes('varanasi') || text.includes('वाराणसी') || text.includes('banaras')) return 'Varanasi Mandi';
+  if (text.includes('lucknow') || text.includes('लखनऊ')) return 'Lucknow Mandi';
+  if (text.includes('jaunpur') || text.includes('जौनपुर')) return 'Jaunpur Mandi';
+  return null;
 }
