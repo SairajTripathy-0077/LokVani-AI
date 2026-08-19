@@ -47,12 +47,7 @@ export default function Header() {
             <Mic size={22} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.35rem', color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>LokVani AI</h1>
-              <span className="status-tag status-verified" style={{ fontSize: '0.65rem' }}>
-                <Shield size={11} /> Public Good Platform
-              </span>
-            </div>
+            <h1 style={{ fontSize: '1.35rem', color: 'var(--text-main)', margin: 0, lineHeight: 1 }}>LokVani AI</h1>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
               Inclusive Voice AI & Edge Verification Node
             </p>
