@@ -28,7 +28,7 @@ export default function UserVoiceApp() {
   // App States: 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
   const [appState, setAppState] = useState('IDLE');
   const [transcript, setTranscript] = useState('');
-  const [activeQueryResult, setActiveQueryResult] = useState(queries[0] || null);
+  const [activeQueryResult, setActiveQueryResult] = useState(null);
 
   const [showPriceReportModal, setShowPriceReportModal] = useState(false);
   const [reportItem, setReportItem] = useState('Tamatar (Tomato)');
