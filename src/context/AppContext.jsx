@@ -1,13 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { GOVT_SCHEMES, MOCK_COMMUNITY_INTEL, MOCK_USER_QUERIES } from '../data/mockData';
 
 const AppContext = createContext();
-
-const INITIAL_INTEL = [
-  { id: '1', item: 'Tamatar (Tomato)', price: 28, unit: 'kg', location: 'Azamgarh Mandi', reporter: 'Ramesh Farmer', timestamp: '10 mins ago', verified: true, trend: 'up' },
-  { id: '2', item: 'Pyaaz (Onion)', price: 34, unit: 'kg', location: 'Gorakhpur Market', reporter: 'Sunil Vendor', timestamp: '25 mins ago', verified: true, trend: 'flat' },
-  { id: '3', item: 'Aloo (Potato)', price: 18, unit: 'kg', location: 'Varanasi Mandi', reporter: 'Vijay Vendor', timestamp: '1 hour ago', verified: true, trend: 'down' },
-  { id: '4', item: 'Gehun (Wheat)', price: 24, unit: 'kg', location: 'Jaunpur Mandi', reporter: 'Amit Farmer', timestamp: '2 hours ago', verified: true, trend: 'up' }
-];
 
 const INITIAL_QUERIES = [
   {
@@ -19,8 +13,8 @@ const INITIAL_QUERIES = [
     domain: 'GOVT_SCHEME',
     is_high_stakes: true,
     status: 'PENDING_TRUST_REVIEW', // PENDING_TRUST_REVIEW | VERIFIED_BY_TRUST_NODE | AUTO_VERIFIED
-    short_answer_hi: 'PM-Kisan yojana ke liye Aadhar card, bank account, aur zameen ka Khasra paper zaroori hai.',
-    short_answer_en: 'PM-Kisan scheme requires Aadhar card, bank account, and Khasra land paper.',
+    short_answer_hi: 'PM-Kisan yojana ke liye Aadhar card, bank account, aur zameen ka Khasra paper zaroori hai. Aaj Azamgarh Mandi me tamatar ₹28 kilo hai.',
+    short_answer_en: 'PM-Kisan scheme requires Aadhar card, bank account, and Khasra land paper. Today tomato rate at Azamgarh Mandi is ₹28/kg.',
     risk_category: 'FINANCIAL_ELIGIBILITY',
     trust_note: 'Requires Kirana operator to check local Khasra document format before submittal.',
     actionable_steps: [
@@ -55,8 +49,9 @@ export function AppProvider({ children }) {
   });
   const [communityIntel, setCommunityIntel] = useState(() => {
     const saved = localStorage.getItem('lokvani_intel');
-    return saved ? JSON.parse(saved) : INITIAL_INTEL;
+    return saved ? JSON.parse(saved) : MOCK_COMMUNITY_INTEL;
   });
+  const [govtSchemes] = useState(GOVT_SCHEMES);
   const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('lokvani_api_key') || '');
 
   useEffect(() => {
