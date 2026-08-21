@@ -60,30 +60,12 @@ export default function LandingPage() {
     <div style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
       {/* 1. HERO SECTION */}
       <section style={{
-        padding: '70px 20px 60px',
+        padding: '60px 20px 50px',
         maxWidth: '1100px',
         margin: '0 auto',
         textAlign: 'center',
         position: 'relative'
       }}>
-        {/* Top Announcement Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '6px 16px',
-          background: 'rgba(59, 130, 246, 0.12)',
-          border: '1px solid rgba(59, 130, 246, 0.3)',
-          borderRadius: '20px',
-          color: 'var(--accent-primary)',
-          fontSize: '0.84rem',
-          fontWeight: 600,
-          marginBottom: '28px'
-        }}>
-          <Sparkles size={15} />
-          <span>AI for Public Good • Bharat Multilingual Voice Intelligence</span>
-        </div>
-
         <h1 style={{
           fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
           lineHeight: 1.15,
@@ -146,10 +128,10 @@ export default function LandingPage() {
       }}>
         <div style={{
           background: 'var(--bg-surface)',
-          border: '1px solid var(--border-muted)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '8px',
           padding: '28px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          boxShadow: '0 10px 30px rgba(0,0,0,0.06)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

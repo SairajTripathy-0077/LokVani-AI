@@ -25,10 +25,10 @@ export default function AuthPage() {
         gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
         gap: '32px',
         background: 'var(--bg-surface)',
-        border: '1px solid var(--border-muted)',
+        border: '1px solid var(--border-subtle)',
         borderRadius: '8px',
         padding: '36px',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+        boxShadow: '0 10px 35px rgba(0,0,0,0.07)'
       }}>
         {/* Left Side: Brand & Benefits Summary */}
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

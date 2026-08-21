@@ -4,24 +4,24 @@
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Minimal Dark Slate & Charcoal Theme (Zero Gradients, Zero Light Green / Red / Purple) */
-  --bg-main: #0b0f17;
-  --bg-surface: #111827;
-  --bg-hover: #1f293d;
+  /* Premium Light Slate & Vibrant Blue Theme */
+  --bg-main: #f8fafc;         /* Clean Soft Off-White/Slate */
+  --bg-surface: #ffffff;      /* Crisp Pure White */
+  --bg-hover: #f1f5f9;        /* Soft Hover Slate */
 
-  --border-subtle: #1e293b;
-  --border-muted: #334155;
+  --border-subtle: #e2e8f0;   /* Light Slate Border */
+  --border-muted: #cbd5e1;    /* Muted Slate Border */
 
-  --accent-primary: #3b82f6; /* Clean Navy Blue */
-  --accent-gold: #f59e0b;    /* Warm Amber Gold */
-  --accent-cyan: #06b6d4;    /* Clean Steel Cyan */
+  --accent-primary: #2563eb;  /* Vibrant Royal Blue */
+  --accent-gold: #d97706;     /* Deep Warm Amber */
+  --accent-cyan: #0284c7;     /* Vibrant Steel Cyan */
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-main: #0f172a;       /* Dark Charcoal High Contrast Text */
+  --text-muted: #475569;      /* Medium Slate Muted Text */
+  --text-dim: #64748b;        /* Subtle Slate Dim Text */
 
   --radius-none: 0px;
-  --radius-sm: 4px;
+  --radius-sm: 6px;
 }
 
 * {
