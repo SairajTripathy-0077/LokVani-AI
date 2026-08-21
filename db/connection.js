@@ -1,0 +1,33 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+let isConnected = false;
+
+export async function connectDB() {
+  if (isConnected) {
+    return true;
+  }
+
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/lokvani_ai';
+
+  try {
+    // Attempt Mongoose connection with 3-second timeout
+    await mongoose.connect(mongoURI, {
+      serverSelectionTimeoutMS: 3000,
+    });
+
+    isConnected = true;
+    console.log(`[MongoDB] Connected successfully to ${mongoURI}`);
+    return true;
+  } catch (err) {
+    console.warn(`[MongoDB] Warning: Could not connect to MongoDB at ${mongoURI}. Operating in resilient In-Memory Fallback mode. (${err.message})`);
+    isConnected = false;
+    return false;
+  }
+}
+
+export function isMongoDBConnected() {
+  return isConnected && mongoose.connection.readyState === 1;
+}

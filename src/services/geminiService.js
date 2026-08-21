@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { geminiRotator } from './geminiKeyRotator.js';
 
 /**
  * Gemini AI Query Engine & Risk Classifier Service
@@ -30,30 +31,31 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-export async function processVoiceQuery(queryText, communityIntel = [], apiKey = null) {
-  const envKey = apiKey || import.meta.env.VITE_GEMINI_API_KEY;
-
+export async function processVoiceQuery(queryText, communityIntel = [], customApiKey = null) {
   // Build context string from community intelligence feed
-  const intelContext = communityIntel.length > 0
-    ? `Recent community reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit} at ${i.location}`).join(', ')}.`
+  const intelContext = Array.isArray(communityIntel) && communityIntel.length > 0
+    ? `Recent community reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} at ${i.location}`).join(', ')}.`
     : 'No recent community reports.';
 
-  if (envKey) {
+  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}`;
+
+  if (customApiKey) {
+    geminiRotator.setKeys([customApiKey]);
+  }
+
+  // Attempt processing with Rotator Pool
+  const rotatedResult = await geminiRotator.executeWithRotation(systemContext, queryText);
+
+  if (rotatedResult && rotatedResult.text) {
     try {
-      const genAI = new GoogleGenerativeAI(envKey);
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-      const fullPrompt = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}\n\nUser Query: "${queryText}"`;
-
-      const response = await model.generateContent(fullPrompt);
-      const text = response.response.text();
-      
-      // Clean JSON string if wrapped in markdown code blocks
-      const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const cleanJson = rotatedResult.text.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(cleanJson);
-      return parsed;
+      return {
+        ...parsed,
+        apiKeyIndexUsed: rotatedResult.keyIndexUsed
+      };
     } catch (err) {
-      console.warn('Gemini API call failed or rate limited, falling back to local reasoning engine:', err);
+      console.warn('[GeminiService] Failed to parse JSON response from Gemini, falling back to local engine:', err);
     }
   }
 

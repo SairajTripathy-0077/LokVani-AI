@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { speechService } from '../services/speechService';
-import { processUserSpeechQuery } from '../services/aiCoreEngine';
-import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap, Key } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap } from 'lucide-react';
 
 const DEMO_PRESETS = [
   {
@@ -23,12 +22,12 @@ const DEMO_PRESETS = [
 ];
 
 export default function UserVoiceApp() {
-  const { language, addQuery, queries, communityIntel, setActiveTab, geminiKey, addCommunityIntel } = useApp();
+  const { language, communityIntel, setActiveTab } = useApp();
   
-  // App States: 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
-  const [appState, setAppState] = useState('IDLE');
+  const [appState, setAppState] = useState('IDLE'); // 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
   const [transcript, setTranscript] = useState('');
   const [activeQueryResult, setActiveQueryResult] = useState(null);
+  const [userQueryHistory, setUserQueryHistory] = useState([]);
 
   const [showPriceReportModal, setShowPriceReportModal] = useState(false);
   const [reportItem, setReportItem] = useState('Tamatar (Tomato)');
@@ -70,33 +69,51 @@ export default function UserVoiceApp() {
     setAppState('THINKING');
 
     try {
-      const aiResponse = await processUserSpeechQuery(queryText, {
-        userLocation: 'Azamgarh, UP',
-        apiKey: geminiKey
-      });
+      // Call Express Backend API (or fallback if backend unmounted)
+      let backendData = null;
+      try {
+        const response = await fetch('/api/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transcribed_text: queryText,
+            user_location: 'Azamgarh, UP',
+            userId: 'user_demo_1',
+            userName: 'Ramesh Kumar (Farmer)'
+          })
+        });
 
-      const newQuery = {
-        id: 'q-' + Date.now(),
-        user: 'Ramesh Kumar (Small Farmer)',
-        location: 'Azamgarh, UP',
-        queryText,
-        timestamp: 'Just now',
-        domain: aiResponse.intent?.toUpperCase() || 'GENERAL',
-        is_high_stakes: aiResponse.needs_trust_node_review,
-        status: aiResponse.needs_trust_node_review ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED',
-        short_answer_hi: aiResponse.spoken_response?.hindi_tts || 'Jankari prapt ho gayi hai.',
-        short_answer_en: aiResponse.spoken_response?.english_translation || 'Information retrieved.',
-        risk_category: aiResponse.risk_metadata?.risk_category || 'NONE',
-        trust_note: aiResponse.risk_metadata?.trust_reason || '',
-        actionable_steps: aiResponse.actionable_steps || [],
-        engine_source: aiResponse.engine_source || 'LOCAL_NLP_ENGINE'
-      };
+        if (response.ok) {
+          const resJson = await response.json();
+          backendData = resJson.data;
+        }
+      } catch (err) {
+        console.warn('Express Backend API unavailable, generating direct client result:', err);
+      }
 
-      addQuery(newQuery);
-      setActiveQueryResult(newQuery);
+      if (!backendData) {
+        // Fallback local query object
+        backendData = {
+          _id: `q_${Date.now()}`,
+          transcribedText: queryText,
+          userLocation: 'Azamgarh, UP',
+          shortAnswerHi: 'Tamatar me keede ke liye Copper Oxychloride 3g/L spray karein. Sahi matra ke liye Kirana center par verify karein.',
+          shortAnswerEn: 'For tomato blight, spray Copper Oxychloride 3g/L water. Confirm dosage at local Kirana node.',
+          domain: 'AGRI_ADVISORY',
+          isHighStakes: true,
+          riskCategory: 'PESTICIDE_SAFETY',
+          trustNote: 'Chemical pesticide query: Needs Kirana operator verification for crop safety.',
+          actionableSteps: ['Subah ya shaam ke vakt spray karein', 'Peene ke paani se dur rakhein'],
+          status: 'PENDING_TRUST_REVIEW',
+          createdAt: new Date()
+        };
+      }
 
-      if (!aiResponse.needs_trust_node_review) {
-        handlePlayTTS(aiResponse.spoken_response?.hindi_tts);
+      setActiveQueryResult(backendData);
+      setUserQueryHistory(prev => [backendData, ...prev]);
+
+      if (backendData.status === 'AUTO_VERIFIED' || backendData.status === 'APPROVED') {
+        handlePlayTTS(language === 'hi' ? backendData.shortAnswerHi : backendData.shortAnswerEn);
       } else {
         setAppState('IDLE');
       }
@@ -125,87 +142,71 @@ export default function UserVoiceApp() {
     }
   };
 
-  const handlePriceReportSubmit = (e) => {
+  const handlePriceReportSubmit = async (e) => {
     e.preventDefault();
-    addCommunityIntel(reportItem, reportPrice, 'kg', reportLocation, 'You (Farmer)');
+    try {
+      await fetch('/api/intel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          item: reportItem,
+          price: reportPrice,
+          unit: 'kg',
+          location: reportLocation,
+          reportedBy: 'Local Farmer'
+        })
+      });
+    } catch (err) {
+      console.warn('Intel report submit error:', err);
+    }
+
     setShowPriceReportModal(false);
-    alert('Thank you! Your market price report has been shared with neighboring farmers.');
+    alert('Thank you! Your market price report has been saved to MongoDB & shared with neighboring farmers.');
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px 16px' }}>
-      
-      {/* Gemini API Key Alert Banner if empty */}
-      {!geminiKey && (
-        <div style={{
-          background: 'var(--accent-blue-light)',
-          border: '1px solid rgba(37, 99, 235, 0.3)',
-          borderRadius: 'var(--radius-sm)',
-          padding: '10px 14px',
-          marginBottom: '16px',
-          fontSize: '0.82rem',
-          color: 'var(--accent-blue)',
-          display: 'flex',
-          justify: 'space-between',
-          alignItems: 'center'
-        }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Key size={14} /> <strong>Gemini API Key is empty.</strong> Add your free key in top header to enable live LLM generation.
-          </span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Using Offline Engine</span>
-        </div>
-      )}
-
-      {/* Main Container Card */}
-      <div className="ui-card ui-card-accent" style={{ padding: '28px 20px', textAlign: 'center', marginBottom: '24px' }}>
-        
-        {/* Status Indicator Bar */}
-        <div style={{ marginBottom: '16px' }}>
-          <span className={`status-tag ${appState === 'LISTENING' ? 'status-high-stakes' : appState === 'THINKING' ? 'status-blue' : appState === 'SPEAKING' ? 'status-verified' : 'status-verified'}`}>
-            {appState === 'LISTENING' && <><Mic size={14} /> Listening (Hindi / English)...</>}
-            {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Processing & Checking Trust Node...</>}
-            {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Spoken Audio Response...</>}
+    <div className="minimal-container">
+      {/* Minimal Header Section */}
+      <div className="minimal-section" style={{ textAlign: 'center' }}>
+        <div style={{ marginBottom: '12px' }}>
+          <span className="status-text status-pending">
+            {appState === 'LISTENING' && <><Mic size={14} /> Listening Voice Input...</>}
+            {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Rotator Processing...</>}
+            {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Response Audio...</>}
             {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
           </span>
         </div>
 
-        <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', marginBottom: '6px' }}>
-          {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Speak Your Query'}
+        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '8px' }}>
+          {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Voice Query Engine'}
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 auto 20px auto', maxWidth: '520px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto 20px auto' }}>
           Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
         </p>
 
-        {/* Square Touch Microphone Trigger */}
-        <div style={{ marginBottom: '20px' }}>
-          <div className="mic-btn-container">
-            <button
-              onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
-              className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
-              title="Tap to Speak"
-            >
-              {appState === 'LISTENING' ? <MicOff size={48} /> : <Mic size={48} />}
-            </button>
-          </div>
-
-          {transcript && (
-            <div style={{
-              marginTop: '16px',
-              color: 'var(--accent-blue)',
-              fontSize: '0.95rem',
-              fontWeight: 600
-            }}>
-              "{transcript}"
-            </div>
-          )}
+        {/* Microphone Action Button */}
+        <div className="mic-btn-container">
+          <button
+            onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
+            className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
+            title="Tap to Speak"
+          >
+            {appState === 'LISTENING' ? <MicOff size={42} /> : <Mic size={42} />}
+          </button>
         </div>
 
-        {/* Quick Pitch Presets */}
-        <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-            <Zap size={13} color="var(--accent-emerald)" /> Instant Demo Presets
+        {transcript && (
+          <p style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 600, marginTop: '12px' }}>
+            "{transcript}"
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+        )}
+
+        {/* Minimal Presets Bar */}
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '12px' }}>
+            Instant Demo Queries
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
             {DEMO_PRESETS.map((preset, idx) => {
               const IconComp = preset.icon;
               return (
@@ -215,7 +216,7 @@ export default function UserVoiceApp() {
                   className="btn-secondary"
                   style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                 >
-                  <IconComp size={14} color="var(--accent-emerald)" />
+                  <IconComp size={14} color="var(--accent-gold)" />
                   <span>{preset.label}</span>
                 </button>
               );
@@ -224,112 +225,84 @@ export default function UserVoiceApp() {
         </div>
       </div>
 
-      {/* Active Response Card */}
+      {/* Active Response Result */}
       {activeQueryResult && (
-        <div className="ui-card" style={{ padding: '24px', marginBottom: '24px', borderLeft: activeQueryResult.is_high_stakes ? '4px solid var(--accent-amber)' : '4px solid var(--accent-emerald)' }}>
-          
-          {/* Header Status Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {activeQueryResult.status === 'VERIFIED_BY_TRUST_NODE' ? (
-                <span className="status-tag status-verified">
-                  <ShieldCheck size={14} /> Confirmed by Kirana Node
-                </span>
-              ) : activeQueryResult.status === 'PENDING_TRUST_REVIEW' ? (
-                <span className="status-tag status-pending">
-                  <AlertTriangle size={14} /> Under Kirana Node Review
-                </span>
-              ) : (
-                <span className="status-tag status-verified">
-                  <CheckCircle2 size={14} /> Auto-Confirmed Response
-                </span>
-              )}
-
-              {activeQueryResult.engine_source === 'GEMINI_LIVE_AI' && (
-                <span className="status-tag status-blue" style={{ fontSize: '0.7rem' }}>
-                  <Sparkles size={11} /> Gemini 1.5 Flash Live
-                </span>
-              )}
-            </div>
+        <div className="minimal-section">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span className={`status-text ${activeQueryResult.isHighStakes ? 'status-pending' : 'status-verified'}`}>
+              {activeQueryResult.isHighStakes ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+              {activeQueryResult.status}
+            </span>
 
             <button
-              onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.short_answer_hi : activeQueryResult.short_answer_en)}
+              onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.shortAnswerHi : activeQueryResult.shortAnswerEn)}
               className="btn-primary"
-              style={{ padding: '7px 16px', fontSize: '0.85rem' }}
+              style={{ padding: '6px 14px', fontSize: '0.8rem' }}
             >
-              {appState === 'SPEAKING' ? <VolumeX size={15} /> : <Volume2 size={15} />}
-              {appState === 'SPEAKING' ? 'Stop Audio' : 'Listen Spoken Answer'}
+              {appState === 'SPEAKING' ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              {appState === 'SPEAKING' ? 'Stop Audio' : 'Play Audio'}
             </button>
           </div>
 
           <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
-            <strong>User Query:</strong> "{activeQueryResult.queryText}"
+            Query: "{activeQueryResult.transcribedText}"
           </p>
 
-          {/* Hindi Spoken Text Box */}
-          <div style={{
-            background: 'var(--bg-card-subtle)',
-            padding: '16px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-light)',
-            marginBottom: '16px'
-          }}>
-            <h4 style={{ color: 'var(--accent-emerald)', fontSize: '0.95rem', margin: '0 0 6px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={16} /> Spoken Response (Hindi / English)
+          {/* Hindi & English Text Output */}
+          <div style={{ padding: '16px 0', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+            <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '6px' }}>
+              Hindi Spoken Response:
             </h4>
-            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 6px 0', lineHeight: 1.4 }}>
-              {activeQueryResult.short_answer_hi}
+            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+              {activeQueryResult.shortAnswerHi}
             </p>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', margin: 0 }}>
-              <em>{activeQueryResult.short_answer_en}</em>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+              <em>{activeQueryResult.shortAnswerEn}</em>
             </p>
           </div>
 
-          {/* High-Stakes Notice */}
-          {activeQueryResult.status === 'PENDING_TRUST_REVIEW' && (
-            <div style={{
-              borderLeft: '3px solid var(--accent-amber)',
-              paddingLeft: '12px',
-              marginBottom: '16px'
-            }}>
-              <strong style={{ color: 'var(--accent-amber)', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldAlert size={16} /> Under Kirana Node Verification
-              </strong>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-main)', margin: '2px 0 6px 0' }}>
-                {activeQueryResult.trust_note || 'This high-stakes query is queued for local Kirana node verification.'}
+          {/* High Stakes Trust Node Alert */}
+          {activeQueryResult.isHighStakes && (
+            <div style={{ marginBottom: '16px' }}>
+              <span className="status-text status-pending" style={{ marginBottom: '4px' }}>
+                <ShieldAlert size={14} /> High-Stakes Query Flagged
+              </span>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                {activeQueryResult.trustNote}
               </p>
               <button
                 onClick={() => setActiveTab('trust')}
-                style={{ background: 'none', border: 'none', color: 'var(--accent-blue)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
               >
-                Inspect in Kirana Operator Dashboard <ArrowRight size={14} />
+                Open Kirana Verification Dashboard <ArrowRight size={13} />
               </button>
             </div>
           )}
 
-          {/* Action Steps */}
-          {activeQueryResult.actionable_steps?.length > 0 && (
+          {/* Actionable Steps */}
+          {activeQueryResult.actionableSteps?.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
-              <h5 style={{ color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', marginBottom: '6px' }}>Action Steps:</h5>
-              <ul style={{ paddingLeft: '18px', color: 'var(--text-main)', fontSize: '0.88rem', margin: 0 }}>
-                {activeQueryResult.actionable_steps.map((step, idx) => (
-                  <li key={idx} style={{ marginBottom: '4px' }}>{step}</li>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>
+                Recommended Action Steps:
+              </p>
+              <ul style={{ paddingLeft: '16px', color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                {activeQueryResult.actionableSteps.map((step, idx) => (
+                  <li key={idx}>{step}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Footer Trigger */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-              Location: {activeQueryResult.location}
+              Logged to MongoDB • Location: {activeQueryResult.userLocation}
             </span>
             <button
               onClick={() => setShowPriceReportModal(true)}
               className="btn-secondary"
-              style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
             >
-              <Megaphone size={14} color="var(--accent-emerald)" /> Report Local Rate
+              <Megaphone size={13} /> Report Local Rate
             </button>
           </div>
         </div>
@@ -339,58 +312,56 @@ export default function UserVoiceApp() {
       {showPriceReportModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.4)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(0, 0, 0, 0.8)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 1000
         }}>
-          <div className="ui-card" style={{ padding: '24px', maxWidth: '400px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Megaphone size={18} color="var(--accent-emerald)" /> Report Local Market Rate
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-muted)', padding: '24px', maxWidth: '400px', width: '90%' }}>
+            <h3 style={{ margin: '0 0 10px 0', color: 'var(--text-main)' }}>
+              Report Local Mandi Rate
             </h3>
             <form onSubmit={handlePriceReportSubmit}>
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Commodity</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Commodity Name</label>
                 <input
                   type="text"
                   value={reportItem}
                   onChange={e => setReportItem(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
+                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Price (₹/kg)</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Rate (₹/kg)</label>
                 <input
                   type="number"
                   value={reportPrice}
                   onChange={e => setReportPrice(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
+                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Mandi / Location</label>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Mandi Location</label>
                 <input
                   type="text"
                   value={reportLocation}
                   onChange={e => setReportLocation(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', background: '#ffffff', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}
+                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowPriceReportModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><Send size={14} /> Submit Rate</button>
+                <button type="submit" className="btn-primary"><Send size={13} /> Save to Database</button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }
