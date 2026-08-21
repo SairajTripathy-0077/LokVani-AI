@@ -9,7 +9,7 @@ import { TrustReview } from './db/models/TrustReview.js';
 import { CommunityIntelModel } from './db/models/CommunityIntel.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
-import { fetchLiveWeatherData } from './src/services/realDataService.js';
+import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
 
 dotenv.config();
 
@@ -85,11 +85,25 @@ app.post('/api/query', async (req, res) => {
       return res.status(400).json({ error: 'Missing required field: transcribed_text string.' });
     }
 
-    // Fetch current intel for Gemini context
-    let intelList = memoryCommunityIntel;
+    // Fetch live Mandi prices from Govt API
+    let intelList = [];
+    try {
+      const apiPrices = await fetchLiveMandiPrices();
+      if (apiPrices && apiPrices.length > 0) {
+        intelList = apiPrices;
+      }
+    } catch (err) {
+      console.warn('Agmarknet Live API price fetch failed, using fallback database records:', err.message);
+    }
+
+    // Fetch crowdsourced Mandi prices from database
     if (isMongoDBConnected()) {
       const dbIntel = await CommunityIntelModel.find().sort({ createdAt: -1 }).limit(10);
-      if (dbIntel && dbIntel.length > 0) intelList = dbIntel;
+      if (dbIntel && dbIntel.length > 0) {
+        intelList = [...intelList, ...dbIntel];
+      }
+    } else {
+      intelList = [...intelList, ...memoryCommunityIntel];
     }
 
     // Fetch live weather context

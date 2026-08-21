@@ -22,7 +22,7 @@ const DEMO_PRESETS = [
 ];
 
 export default function UserVoiceApp() {
-  const { language, communityIntel, setActiveTab } = useApp();
+  const { language, setActiveTab } = useApp();
   
   const [appState, setAppState] = useState('IDLE'); // 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
   const [transcript, setTranscript] = useState('');
@@ -33,6 +33,22 @@ export default function UserVoiceApp() {
   const [reportItem, setReportItem] = useState('Tamatar (Tomato)');
   const [reportPrice, setReportPrice] = useState('30');
   const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
+
+  const fetchQueryHistory = async () => {
+    try {
+      const res = await fetch('/api/user/queries/user_demo_1');
+      if (res.ok) {
+        const json = await res.json();
+        setUserQueryHistory(json.data || []);
+      }
+    } catch (err) {
+      console.warn('Error fetching user query history:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchQueryHistory();
+  }, []);
 
   const handleStartListening = () => {
     setAppState('LISTENING');
@@ -69,7 +85,6 @@ export default function UserVoiceApp() {
     setAppState('THINKING');
 
     try {
-      // Call Express Backend API (or fallback if backend unmounted)
       let backendData = null;
       try {
         const response = await fetch('/api/query', {
@@ -88,35 +103,33 @@ export default function UserVoiceApp() {
           backendData = resJson.data;
         }
       } catch (err) {
-        console.warn('Express Backend API unavailable, generating direct client result:', err);
+        console.warn('Express Backend API unavailable, generating client fallback:', err);
       }
 
       if (!backendData) {
-        // Fallback local query object
         backendData = {
           _id: `q_${Date.now()}`,
           transcribedText: queryText,
           userLocation: 'Azamgarh, UP',
-          shortAnswerHi: 'Tamatar me keede ke liye Copper Oxychloride 3g/L spray karein. Sahi matra ke liye Kirana center par verify karein.',
-          shortAnswerEn: 'For tomato blight, spray Copper Oxychloride 3g/L water. Confirm dosage at local Kirana node.',
+          shortAnswerHi: 'Fasal aur mandi ke bhav ki live jaankari ke liye server se sampark karein.',
+          shortAnswerEn: 'For crop and live mandi prices, please consult the live API endpoint.',
           domain: 'AGRI_ADVISORY',
-          isHighStakes: true,
-          riskCategory: 'PESTICIDE_SAFETY',
-          trustNote: 'Chemical pesticide query: Needs Kirana operator verification for crop safety.',
-          actionableSteps: ['Subah ya shaam ke vakt spray karein', 'Peene ke paani se dur rakhein'],
-          status: 'PENDING_TRUST_REVIEW',
+          isHighStakes: false,
+          actionableSteps: ['Try adding your Gemini key', 'Verify connections'],
+          status: 'AUTO_VERIFIED',
           createdAt: new Date()
         };
       }
 
       setActiveQueryResult(backendData);
-      setUserQueryHistory(prev => [backendData, ...prev]);
+      setTranscript('');
+      setAppState('IDLE');
 
-      if (backendData.status === 'AUTO_VERIFIED' || backendData.status === 'APPROVED') {
-        handlePlayTTS(language === 'hi' ? backendData.shortAnswerHi : backendData.shortAnswerEn);
-      } else {
-        setAppState('IDLE');
-      }
+      // Refresh sidebar conversation list
+      fetchQueryHistory();
+
+      // Auto play TTS response
+      handlePlayTTS(language === 'hi' ? backendData.shortAnswerHi : backendData.shortAnswerEn);
     } catch (e) {
       console.error('Error processing query:', e);
       setAppState('IDLE');
@@ -165,148 +178,217 @@ export default function UserVoiceApp() {
   };
 
   return (
-    <div className="minimal-container">
-      {/* Minimal Header Section */}
-      <div className="minimal-section" style={{ textAlign: 'center' }}>
-        <div style={{ marginBottom: '12px' }}>
-          <span className="status-text status-pending">
-            {appState === 'LISTENING' && <><Mic size={14} /> Listening Voice Input...</>}
-            {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Rotator Processing...</>}
-            {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Response Audio...</>}
-            {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
-          </span>
-        </div>
+    <div className="minimal-container" style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      
+      {/* Sidebar conversation history (ChatGPT style) */}
+      <aside style={{
+        width: '260px',
+        borderRight: '1px solid var(--border-subtle)',
+        paddingRight: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        minWidth: '240px'
+      }}>
+        <button
+          onClick={() => {
+            setActiveQueryResult(null);
+            setTranscript('');
+          }}
+          className="btn-secondary"
+          style={{ width: '100%', justifyContent: 'center', fontSize: '0.82rem', padding: '10px' }}
+        >
+          + New Voice Query
+        </button>
 
-        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '8px' }}>
-          {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Voice Query Engine'}
-        </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto 20px auto' }}>
-          Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
-        </p>
-
-        {/* Microphone Action Button */}
-        <div className="mic-btn-container">
-          <button
-            onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
-            className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
-            title="Tap to Speak"
-          >
-            {appState === 'LISTENING' ? <MicOff size={42} /> : <Mic size={42} />}
-          </button>
-        </div>
-
-        {transcript && (
-          <p style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 600, marginTop: '12px' }}>
-            "{transcript}"
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' }}>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: '6px' }}>
+            Voice History logs
           </p>
-        )}
-
-        {/* Minimal Presets Bar */}
-        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '12px' }}>
-            Instant Demo Queries
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
-            {DEMO_PRESETS.map((preset, idx) => {
-              const IconComp = preset.icon;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handlePresetSelect(preset)}
-                  className="btn-secondary"
-                  style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                >
-                  <IconComp size={14} color="var(--accent-gold)" />
-                  <span>{preset.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          {userQueryHistory.length === 0 ? (
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>No past conversations</p>
+          ) : (
+            userQueryHistory.map((h) => (
+              <button
+                key={h._id}
+                onClick={() => {
+                  setActiveQueryResult(h);
+                  setTranscript('');
+                }}
+                style={{
+                  background: activeQueryResult?._id === h._id ? 'var(--bg-hover)' : 'transparent',
+                  border: 'none',
+                  textAlign: 'left',
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  borderRadius: 'var(--radius-sm)',
+                  color: activeQueryResult?._id === h._id ? 'var(--accent-primary)' : 'var(--text-main)',
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  width: '100%',
+                  transition: 'background-color 0.15s ease'
+                }}
+              >
+                <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
+                  {h.transcribedText}
+                </span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
+                  {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : 'Just now'}
+                </span>
+              </button>
+            ))
+          )}
         </div>
-      </div>
+      </aside>
 
-      {/* Active Response Result */}
-      {activeQueryResult && (
-        <div className="minimal-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span className={`status-text ${activeQueryResult.isHighStakes ? 'status-pending' : 'status-verified'}`}>
-              {activeQueryResult.isHighStakes ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
-              {activeQueryResult.status}
+      {/* Main panel */}
+      <div style={{ flex: 1, minWidth: '320px' }}>
+        
+        {/* Minimal Header Section */}
+        <div className="minimal-section" style={{ textAlign: 'center', paddingTop: 0 }}>
+          <div style={{ marginBottom: '12px' }}>
+            <span className="status-text status-pending">
+              {appState === 'LISTENING' && <><Mic size={14} /> Listening Voice Input...</>}
+              {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Rotator Processing...</>}
+              {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Response Audio...</>}
+              {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
             </span>
+          </div>
 
+          <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '8px' }}>
+            {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Voice Query Engine'}
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto 20px auto' }}>
+            Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
+          </p>
+
+          {/* Microphone Action Button */}
+          <div className="mic-btn-container">
             <button
-              onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.shortAnswerHi : activeQueryResult.shortAnswerEn)}
-              className="btn-primary"
-              style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+              onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
+              className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
+              title="Tap to Speak"
             >
-              {appState === 'SPEAKING' ? <VolumeX size={14} /> : <Volume2 size={14} />}
-              {appState === 'SPEAKING' ? 'Stop Audio' : 'Play Audio'}
+              {appState === 'LISTENING' ? <MicOff size={42} /> : <Mic size={42} />}
             </button>
           </div>
 
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
-            Query: "{activeQueryResult.transcribedText}"
-          </p>
+          {transcript && (
+            <p style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 600, marginTop: '12px' }}>
+              "{transcript}"
+            </p>
+          )}
 
-          {/* Hindi & English Text Output */}
-          <div style={{ padding: '16px 0', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-            <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '6px' }}>
-              Hindi Spoken Response:
-            </h4>
-            <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-              {activeQueryResult.shortAnswerHi}
+          {/* Minimal Presets Bar */}
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '12px' }}>
+              Instant Demo Queries
             </p>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-              <em>{activeQueryResult.shortAnswerEn}</em>
-            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+              {DEMO_PRESETS.map((preset, idx) => {
+                const IconComp = preset.icon;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handlePresetSelect(preset)}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                  >
+                    <IconComp size={14} color="var(--accent-gold)" />
+                    <span>{preset.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        </div>
 
-          {/* High Stakes Trust Node Alert */}
-          {activeQueryResult.isHighStakes && (
-            <div style={{ marginBottom: '16px' }}>
-              <span className="status-text status-pending" style={{ marginBottom: '4px' }}>
-                <ShieldAlert size={14} /> High-Stakes Query Flagged
+        {/* Active Response Result */}
+        {activeQueryResult && (
+          <div className="minimal-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span className={`status-text ${activeQueryResult.isHighStakes ? 'status-pending' : 'status-verified'}`}>
+                {activeQueryResult.isHighStakes ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+                {activeQueryResult.status}
               </span>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                {activeQueryResult.trustNote}
-              </p>
+
               <button
-                onClick={() => setActiveTab('trust')}
-                style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.shortAnswerHi : activeQueryResult.shortAnswerEn)}
+                className="btn-primary"
+                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
               >
-                Open Kirana Verification Dashboard <ArrowRight size={13} />
+                {appState === 'SPEAKING' ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                {appState === 'SPEAKING' ? 'Stop Audio' : 'Play Audio'}
               </button>
             </div>
-          )}
 
-          {/* Actionable Steps */}
-          {activeQueryResult.actionableSteps?.length > 0 && (
-            <div style={{ marginBottom: '16px' }}>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>
-                Recommended Action Steps:
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
+              Query: "{activeQueryResult.transcribedText}"
+            </p>
+
+            {/* Hindi & English Text Output */}
+            <div style={{ padding: '16px 0', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
+              <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '6px' }}>
+                Hindi Spoken Response:
+              </h4>
+              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+                {activeQueryResult.shortAnswerHi}
               </p>
-              <ul style={{ paddingLeft: '16px', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                {activeQueryResult.actionableSteps.map((step, idx) => (
-                  <li key={idx}>{step}</li>
-                ))}
-              </ul>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                <em>{activeQueryResult.shortAnswerEn}</em>
+              </p>
             </div>
-          )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-              Logged to MongoDB • Location: {activeQueryResult.userLocation}
-            </span>
-            <button
-              onClick={() => setShowPriceReportModal(true)}
-              className="btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-            >
-              <Megaphone size={13} /> Report Local Rate
-            </button>
+            {/* High Stakes Trust Node Alert */}
+            {activeQueryResult.isHighStakes && (
+              <div style={{ marginBottom: '16px' }}>
+                <span className="status-text status-pending" style={{ marginBottom: '4px' }}>
+                  <ShieldAlert size={14} /> High-Stakes Query Flagged
+                </span>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {activeQueryResult.trustNote}
+                </p>
+                <button
+                  onClick={() => setActiveTab('trust')}
+                  style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  Open Kirana Verification Dashboard <ArrowRight size={13} />
+                </button>
+              </div>
+            )}
+
+            {/* Actionable Steps */}
+            {activeQueryResult.actionableSteps?.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>
+                  Recommended Action Steps:
+                </p>
+                <ul style={{ paddingLeft: '16px', color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                  {activeQueryResult.actionableSteps.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+                Logged to MongoDB • Location: {activeQueryResult.userLocation}
+              </span>
+              <button
+                onClick={() => setShowPriceReportModal(true)}
+                className="btn-secondary"
+                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
+              >
+                <Megaphone size={13} /> Report Local Rate
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
 
       {/* Community Price Report Modal */}
       {showPriceReportModal && (
