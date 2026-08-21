@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Mic, ShieldCheck, Users, ArrowRight, Sparkles, CheckCircle2, Globe2, Zap, Award, HelpCircle, Volume2, Play } from 'lucide-react';
-import { SignedIn, SignedOut, SignUpButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignUpButton, useUser } from '@clerk/clerk-react';
 
 export default function LandingPage() {
   const { setActiveTab, language, setLanguage } = useApp();
+  const { isSignedIn } = useUser();
   const [demoQuery, setDemoQuery] = useState('');
   const [demoResult, setDemoResult] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
+  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+
+  const handleLaunchDashboard = () => {
+    if (isClerkAvailable && !isSignedIn) {
+      setActiveTab('auth');
+    } else {
+      setActiveTab('voice');
+    }
+  };
 
   const sampleQueries = [
     {
@@ -111,11 +121,11 @@ export default function LandingPage() {
           </SignedIn>
 
           <button
-            onClick={() => setActiveTab('voice')}
+            onClick={handleLaunchDashboard}
             className="btn-secondary"
             style={{ padding: '14px 26px', fontSize: '1.02rem', borderRadius: '6px' }}
           >
-            <Mic size={18} color="var(--accent-primary)" /> Try Guest Voice App
+            <Mic size={18} color="var(--accent-primary)" /> Launch Voice App
           </button>
         </div>
       </section>
@@ -379,11 +389,11 @@ export default function LandingPage() {
           </SignedOut>
 
           <button
-            onClick={() => setActiveTab('voice')}
+            onClick={handleLaunchDashboard}
             className="btn-secondary"
             style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '6px' }}
           >
-            Enter Dashboard Directly
+            Enter Dashboard
           </button>
         </div>
       </section>

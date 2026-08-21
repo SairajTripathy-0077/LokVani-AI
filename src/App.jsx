@@ -7,9 +7,18 @@ import UserVoiceApp from './components/UserVoiceApp';
 import TrustNodeDashboard from './components/TrustNodeDashboard';
 import CommunityIntel from './components/CommunityIntel';
 import { Heart, Github } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 
 function MainContent() {
   const { activeTab } = useApp();
+  const { isSignedIn } = useUser();
+  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+
+  // Enforce Sign-In for Voice App, Kirana Node, and Community Intel tabs
+  const isProtectedTab = ['voice', 'trust', 'intel'].includes(activeTab);
+  if (isProtectedTab && isClerkAvailable && !isSignedIn) {
+    return <AuthPage />;
+  }
 
   return (
     <main style={{ minHeight: 'calc(100vh - 140px)', paddingBottom: '40px' }}>
