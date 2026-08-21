@@ -9,6 +9,7 @@ import { TrustReview } from './db/models/TrustReview.js';
 import { CommunityIntelModel } from './db/models/CommunityIntel.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
+import { fetchLiveWeatherData } from './src/services/realDataService.js';
 
 dotenv.config();
 
@@ -91,8 +92,17 @@ app.post('/api/query', async (req, res) => {
       if (dbIntel && dbIntel.length > 0) intelList = dbIntel;
     }
 
+    // Fetch live weather context
+    let detectedCity = 'Azamgarh';
+    if (user_location) {
+      if (user_location.toLowerCase().includes('gorakhpur')) detectedCity = 'Gorakhpur';
+      else if (user_location.toLowerCase().includes('varanasi')) detectedCity = 'Varanasi';
+      else if (user_location.toLowerCase().includes('lucknow')) detectedCity = 'Lucknow';
+    }
+    const weatherData = await fetchLiveWeatherData(detectedCity);
+
     // Run AI Engine through Rotator
-    const aiResult = await processVoiceQuery(transcribed_text, intelList);
+    const aiResult = await processVoiceQuery(transcribed_text, intelList, weatherData);
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
 

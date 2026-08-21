@@ -31,13 +31,17 @@ Return ONLY valid JSON matching this schema:
 }
 `;
 
-export async function processVoiceQuery(queryText, communityIntel = [], customApiKey = null) {
+export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, customApiKey = null) {
   // Build context string from community intelligence feed
   const intelContext = Array.isArray(communityIntel) && communityIntel.length > 0
     ? `Recent community reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} at ${i.location}`).join(', ')}.`
     : 'No recent community reports.';
 
-  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}`;
+  const weatherContext = weatherData
+    ? `Current Live Weather for ${weatherData.city || 'Azamgarh'}: Temperature: ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation sum: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
+    : 'No live weather telemetry available.';
+
+  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}\n${weatherContext}`;
 
   if (customApiKey) {
     geminiRotator.setKeys([customApiKey]);
