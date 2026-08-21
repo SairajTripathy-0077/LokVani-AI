@@ -1,42 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
 :root {
   --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Premium Civic Light Theme */
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --bg-card-subtle: #f1f5f9;
-  --bg-hover: #e2e8f0;
+  /* Minimal Dark Slate & Charcoal Theme (Zero Gradients, Zero Light Green / Red / Purple) */
+  --bg-main: #0b0f17;
+  --bg-surface: #111827;
+  --bg-hover: #1f293d;
 
-  --border-light: #e2e8f0;
-  --border-subtle: #cbd5e1;
-  --border-accent: rgba(5, 150, 105, 0.3);
+  --border-subtle: #1e293b;
+  --border-muted: #334155;
 
-  --accent-emerald: #059669;
-  --accent-emerald-light: #ecfdf5;
-  --accent-blue: #2563eb;
-  --accent-blue-light: #eff6ff;
-  --accent-amber: #d97706;
-  --accent-amber-light: #fffbeb;
-  --accent-rose: #dc2626;
-  --accent-rose-light: #fef2f2;
-  --accent-indigo: #4f46e5;
+  --accent-primary: #3b82f6; /* Clean Navy Blue */
+  --accent-gold: #f59e0b;    /* Warm Amber Gold */
+  --accent-cyan: #06b6d4;    /* Clean Steel Cyan */
 
-  --text-main: #0f172a;
-  --text-muted: #475569;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
   --text-dim: #64748b;
-  --text-inverse: #ffffff;
 
-  --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-  --shadow-hover: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --shadow-button: 0 4px 12px rgba(5, 150, 105, 0.2);
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  --transition-fast: 0.15s ease;
-  --transition-smooth: 0.25s ease;
+  --radius-none: 0px;
+  --radius-sm: 4px;
 }
 
 * {
@@ -62,29 +47,26 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-/* Card Utility */
-.ui-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow var(--transition-smooth), border-color var(--transition-smooth);
+/* Minimal Flat Container (No Cards, No Box Shadows, No Rounded Capsules) */
+.minimal-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px;
 }
 
-.ui-card:hover {
-  border-color: var(--border-subtle);
-  box-shadow: var(--shadow-hover);
+.minimal-section {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.ui-card-accent {
-  background: linear-gradient(135deg, #ffffff, #f0fdf4);
-  border: 1px solid var(--border-accent);
+.minimal-section:last-child {
+  border-bottom: none;
 }
 
-/* Buttons */
+/* Buttons - Flat Minimal Solid Styling */
 .btn-primary {
-  background: var(--accent-emerald);
-  color: var(--text-inverse);
+  background: var(--accent-primary);
+  color: #ffffff;
   font-weight: 600;
   padding: 10px 20px;
   border-radius: var(--radius-sm);
@@ -94,110 +76,97 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 8px;
   font-size: 0.9rem;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-button);
+  transition: opacity 0.15s ease;
 }
 
 .btn-primary:hover {
-  background: #047857;
-  transform: translateY(-1px);
+  opacity: 0.9;
 }
 
 .btn-secondary {
-  background: var(--bg-card);
+  background: transparent;
   color: var(--text-main);
   font-weight: 600;
   padding: 9px 18px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-muted);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 0.88rem;
-  transition: all var(--transition-fast);
+  transition: background-color 0.15s ease;
 }
 
 .btn-secondary:hover {
-  background: var(--bg-card-subtle);
-  border-color: var(--border-subtle);
+  background: var(--bg-hover);
 }
 
-/* Microphone Trigger Button */
+/* Microphone Action Trigger */
 .mic-btn-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 32px 0;
 }
 
 .mic-btn {
-  width: 100px;
-  height: 100px;
-  border-radius: var(--radius-md);
-  background: var(--accent-emerald);
-  border: none;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--border-muted);
   color: #ffffff;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.3);
-  transition: all var(--transition-smooth);
+  transition: all 0.2s ease;
 }
 
 .mic-btn:hover {
-  background: #047857;
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(5, 150, 105, 0.4);
+  background: #2563eb;
 }
 
 .mic-btn.listening {
-  background: var(--accent-rose);
-  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
 }
 
-/* Status Indicators - Plain Text Only (Zero Background Boxes or Borders) */
-.status-tag {
+/* Plain Text Indicators (No Pill Capsules, No Boxes) */
+.status-text {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  font-size: 0.84rem;
+  gap: 6px;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .status-verified {
-  color: #059669;
+  color: var(--accent-cyan);
 }
 
 .status-pending {
-  color: #d97706;
+  color: var(--accent-gold);
 }
 
-.status-high-stakes {
-  color: #dc2626;
-}
-
-.status-blue {
-  color: #2563eb;
+.status-neutral {
+  color: var(--text-muted);
 }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: var(--border-muted);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-dim);
 }
