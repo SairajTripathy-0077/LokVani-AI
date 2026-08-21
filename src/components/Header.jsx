@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, ShieldCheck, Users, Globe, Key, LogIn, UserPlus } from 'lucide-react';
+import { Mic, ShieldCheck, Users, Globe, Key, LogIn, UserPlus, Home } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 
 export default function Header() {
@@ -35,7 +35,7 @@ export default function Header() {
         gap: '16px'
       }}>
         {/* Brand Logo & Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setActiveTab('voice')}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
           <div style={{
             width: '36px',
             height: '36px',
@@ -55,8 +55,27 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Minimal Nav Links (No Pill Capsules, No Heavy Boxes) */}
+        {/* Minimal Nav Links */}
         <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <button
+            onClick={() => setActiveTab('home')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: activeTab === 'home' ? 'var(--accent-primary)' : 'var(--text-muted)',
+              fontWeight: activeTab === 'home' ? 700 : 500,
+              fontSize: '0.88rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              paddingBottom: '2px',
+              borderBottom: activeTab === 'home' ? '2px solid var(--accent-primary)' : '2px solid transparent'
+            }}
+          >
+            <Home size={16} /> Home
+          </button>
+
           <button
             onClick={() => setActiveTab('voice')}
             style={{
@@ -144,16 +163,12 @@ export default function Header() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SignedOut>
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <SignInButton mode="modal">
-                    <button className="btn-secondary" style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
-                      <LogIn size={13} /> Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal">
-                    <button className="btn-primary" style={{ padding: '6px 10px', fontSize: '0.78rem' }}>
-                      <UserPlus size={13} /> Sign Up
-                    </button>
-                  </SignUpButton>
+                  <button className="btn-secondary" style={{ padding: '6px 10px', fontSize: '0.78rem' }} onClick={() => setActiveTab('auth')}>
+                    <LogIn size={13} /> Sign In
+                  </button>
+                  <button className="btn-primary" style={{ padding: '6px 10px', fontSize: '0.78rem' }} onClick={() => setActiveTab('auth')}>
+                    <UserPlus size={13} /> Sign Up
+                  </button>
                 </div>
               </SignedOut>
               <SignedIn>

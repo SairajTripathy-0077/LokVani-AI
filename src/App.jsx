@@ -1,6 +1,8 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import Header from './components/Header';
+import LandingPage from './components/LandingPage';
+import AuthPage from './components/AuthPage';
 import UserVoiceApp from './components/UserVoiceApp';
 import TrustNodeDashboard from './components/TrustNodeDashboard';
 import CommunityIntel from './components/CommunityIntel';
@@ -11,6 +13,8 @@ function MainContent() {
 
   return (
     <main style={{ minHeight: 'calc(100vh - 140px)', paddingBottom: '40px' }}>
+      {activeTab === 'home' && <LandingPage />}
+      {activeTab === 'auth' && <AuthPage />}
       {activeTab === 'voice' && <UserVoiceApp />}
       {activeTab === 'trust' && <TrustNodeDashboard />}
       {activeTab === 'intel' && <CommunityIntel />}
@@ -26,9 +30,9 @@ export default function App() {
         <MainContent />
         <footer style={{
           marginTop: 'auto',
-          padding: '16px 24px',
-          background: '#ffffff',
-          borderTop: '1px solid var(--border-light)',
+          padding: '18px 24px',
+          background: 'var(--bg-surface)',
+          borderTop: '1px solid var(--border-subtle)',
           textAlign: 'center',
           fontSize: '0.82rem',
           color: 'var(--text-muted)'
@@ -39,14 +43,14 @@ export default function App() {
             </span>
 
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              Crafted with <Heart size={14} color="var(--accent-rose)" fill="var(--accent-rose)" /> for Bharat’s Underserved Communities
+              Crafted with <Heart size={14} color="#ef4444" fill="#ef4444" /> for Bharat’s Underserved Communities
             </span>
 
             <a
               href="https://github.com/SairajTripathy-0077/OOSC-Hackathon.git"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--accent-blue)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+              style={{ color: 'var(--accent-primary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
             >
               <Github size={14} /> GitHub Repository
             </a>
