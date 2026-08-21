@@ -49,97 +49,94 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Minimal Nav Links with Auth Check */}
-        <nav style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
-          <button
-            onClick={() => setActiveTab('home')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: activeTab === 'home' ? 'var(--accent-primary)' : 'var(--text-muted)',
-              fontWeight: activeTab === 'home' ? 700 : 500,
-              fontSize: '0.88rem',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              paddingBottom: '2px',
-              borderBottom: activeTab === 'home' ? '2px solid var(--accent-primary)' : '2px solid transparent'
-            }}
-          >
-            <Home size={16} /> Home
-          </button>
+        {/* Nav Links - Shown ONLY when Signed In */}
+        {(!isClerkAvailable || isSignedIn) && (
+          <nav style={{ display: 'flex', gap: '18px', alignItems: 'center' }}>
+            <button
+              onClick={() => setActiveTab('home')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: activeTab === 'home' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontWeight: activeTab === 'home' ? 700 : 500,
+                fontSize: '0.88rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                paddingBottom: '2px',
+                borderBottom: activeTab === 'home' ? '2px solid var(--accent-primary)' : '2px solid transparent'
+              }}
+            >
+              <Home size={16} /> Home
+            </button>
 
-          {/* Render Dashboard Tabs ONLY when Signed In */}
-          {(!isClerkAvailable || isSignedIn) && (
-            <>
-              {/* Tab 1: Voice App */}
-              <button
-                onClick={() => setActiveTab('voice')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: activeTab === 'voice' ? 'var(--accent-primary)' : 'var(--text-muted)',
-                  fontWeight: activeTab === 'voice' ? 700 : 500,
-                  fontSize: '0.88rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  paddingBottom: '2px',
-                  borderBottom: activeTab === 'voice' ? '2px solid var(--accent-primary)' : '2px solid transparent'
-                }}
-              >
-                <Mic size={16} /> Voice App
-              </button>
+            {/* Tab 1: Voice App */}
+            <button
+              onClick={() => setActiveTab('voice')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: activeTab === 'voice' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontWeight: activeTab === 'voice' ? 700 : 500,
+                fontSize: '0.88rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                paddingBottom: '2px',
+                borderBottom: activeTab === 'voice' ? '2px solid var(--accent-primary)' : '2px solid transparent'
+              }}
+            >
+              <Mic size={16} /> Voice App
+            </button>
 
-              {/* Tab 2: Kirana Node */}
-              <button
-                onClick={() => setActiveTab('trust')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: activeTab === 'trust' ? 'var(--accent-primary)' : 'var(--text-muted)',
-                  fontWeight: activeTab === 'trust' ? 700 : 500,
-                  fontSize: '0.88rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  paddingBottom: '2px',
-                  borderBottom: activeTab === 'trust' ? '2px solid var(--accent-primary)' : '2px solid transparent'
-                }}
-              >
-                <ShieldCheck size={16} /> Kirana Node
-                {pendingReviewsCount > 0 && (
-                  <span style={{ color: 'var(--accent-gold)', fontSize: '0.75rem', fontWeight: 700 }}>
-                    [{pendingReviewsCount}]
-                  </span>
-                )}
-              </button>
+            {/* Tab 2: Kirana Node */}
+            <button
+              onClick={() => setActiveTab('trust')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: activeTab === 'trust' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontWeight: activeTab === 'trust' ? 700 : 500,
+                fontSize: '0.88rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                paddingBottom: '2px',
+                borderBottom: activeTab === 'trust' ? '2px solid var(--accent-primary)' : '2px solid transparent'
+              }}
+            >
+              <ShieldCheck size={16} /> Kirana Node
+              {pendingReviewsCount > 0 && (
+                <span style={{ color: 'var(--accent-gold)', fontSize: '0.75rem', fontWeight: 700 }}>
+                  [{pendingReviewsCount}]
+                </span>
+              )}
+            </button>
 
-              {/* Tab 3: Community Intel */}
-              <button
-                onClick={() => setActiveTab('intel')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: activeTab === 'intel' ? 'var(--accent-primary)' : 'var(--text-muted)',
-                  fontWeight: activeTab === 'intel' ? 700 : 500,
-                  fontSize: '0.88rem',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  paddingBottom: '2px',
-                  borderBottom: activeTab === 'intel' ? '2px solid var(--accent-primary)' : '2px solid transparent'
-                }}
-              >
-                <Users size={16} /> Community Intel
-              </button>
-            </>
-          )}
-        </nav>
+            {/* Tab 3: Community Intel */}
+            <button
+              onClick={() => setActiveTab('intel')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: activeTab === 'intel' ? 'var(--accent-primary)' : 'var(--text-muted)',
+                fontWeight: activeTab === 'intel' ? 700 : 500,
+                fontSize: '0.88rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                paddingBottom: '2px',
+                borderBottom: activeTab === 'intel' ? '2px solid var(--accent-primary)' : '2px solid transparent'
+              }}
+            >
+              <Users size={16} /> Community Intel
+            </button>
+          </nav>
+        )}
 
         {/* Right Action Bar: Language Selector & Clerk Auth */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
