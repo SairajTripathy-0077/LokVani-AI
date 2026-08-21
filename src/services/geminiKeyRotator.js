@@ -88,7 +88,7 @@ class GeminiKeyRotator {
     }
 
     if (this.keys.length === 0) {
-      console.log('[GeminiKeyRotator] No API keys configured. Returning null for offline fallback.');
+      console.log('[GeminiKeyRotator] No API keys configured. Returning null.');
       return null;
     }
 
@@ -100,27 +100,39 @@ class GeminiKeyRotator {
       if (!active || !active.key) break;
 
       const { key, index } = active;
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro'];
+      let lastError = null;
 
-      try {
-        const genAI = new GoogleGenerativeAI(key);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const fullPrompt = `${systemPrompt}\n\nUser Query: "${userPrompt}"`;
+      for (const modelName of modelsToTry) {
+        try {
+          const genAI = new GoogleGenerativeAI(key);
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const fullPrompt = `${systemPrompt}\n\nUser Query: "${userPrompt}"`;
 
-        const response = await model.generateContent(fullPrompt);
-        const text = response.response.text();
+          const response = await model.generateContent(fullPrompt);
+          const text = response.response.text();
 
-        return {
-          text,
-          keyIndexUsed: index,
-          totalKeys: this.keys.length
-        };
-      } catch (err) {
-        attempts++;
-        this.markKeyFailed(key, err.message || 'Unknown error');
+          return {
+            text,
+            keyIndexUsed: index,
+            totalKeys: this.keys.length,
+            modelUsed: modelName
+          };
+        } catch (err) {
+          lastError = err;
+          // If the error is 404 (model not found), try the next model immediately
+          if (err.message && (err.message.includes('404') || err.message.includes('not found'))) {
+            continue;
+          }
+          break; // Stop trying models if there's a different API error (e.g. rate limit, bad key)
+        }
       }
+
+      attempts++;
+      this.markKeyFailed(key, lastError ? lastError.message : 'Model generation failed');
     }
 
-    console.warn('[GeminiKeyRotator] All available keys failed or hit rate limits. Falling back to built-in offline engine.');
+    console.warn('[GeminiKeyRotator] All available keys or model endpoints failed.');
     return null;
   }
 }
