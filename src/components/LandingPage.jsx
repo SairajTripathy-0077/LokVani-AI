@@ -150,9 +150,6 @@ export default function LandingPage() {
               </div>
               <h3 style={{ fontSize: '1.15rem', margin: 0 }}>Interactive Live Voice Simulator</h3>
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>
-              ● Powered by Gemini Key-Rotator Engine
-            </span>
           </div>
 
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
