@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { SignIn, SignUp, SignedIn, UserButton } from '@clerk/clerk-react';
-import { ShieldCheck, CheckCircle2, Mic, ArrowLeft, Users, Lock } from 'lucide-react';
+import { Landmark, CheckCircle2, Mic, ArrowLeft, Users, Lock } from 'lucide-react';
 
 export default function AuthPage() {
   const { setActiveTab } = useApp();
@@ -10,174 +10,108 @@ export default function AuthPage() {
   const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 120px)',
-      background: 'var(--bg-main)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 20px'
-    }}>
-      <div style={{
-        maxWidth: '1000px',
-        width: '100%',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-        gap: '32px',
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-subtle)',
-        borderRadius: '8px',
-        padding: '36px',
-        boxShadow: '0 10px 35px rgba(0,0,0,0.07)'
-      }}>
+    <div className="min-h-[calc(100vh-140px)] bg-slate-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/50">
+        
         {/* Left Side: Brand & Benefits Summary */}
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="flex flex-col justify-between space-y-6">
           <div>
             <button
               onClick={() => setActiveTab('home')}
-              className="btn-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.8rem', marginBottom: '24px' }}
+              className="btn-secondary !py-1.5 !px-3 !text-xs mb-6"
             >
-              <ArrowLeft size={14} /> Back to Homepage
+              <ArrowLeft className="w-4 h-4" /> Back to Homepage
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <div style={{
-                width: '38px',
-                height: '38px',
-                background: 'var(--accent-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '4px',
-                color: '#fff'
-              }}>
-                <Mic size={22} />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                <Mic className="w-5 h-5" />
               </div>
-              <h2 style={{ fontSize: '1.4rem', margin: 0 }}>LokVani AI Account</h2>
+              <h2 className="text-2xl font-extrabold text-slate-900">LokVani AI Account</h2>
             </div>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '28px', lineHeight: 1.6 }}>
-              Join the community-driven voice intelligence network for rural India and Kirana trust verification.
+            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
+              Join the community-driven voice intelligence network for rural India and public government schemes matching.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <CheckCircle2 size={18} color="var(--accent-cyan)" style={{ marginTop: '2px', flexShrink: 0 }} />
+            <div className="space-y-4">
+              <div className="flex gap-3 items-start">
+                <CheckCircle2 className="w-5 h-5 text-sky-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 style={{ fontSize: '0.92rem', margin: 0 }}>Verified Community Status</h4>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>Submit local Mandi prices & voice queries with priority verification.</p>
+                  <h4 className="text-sm font-bold text-slate-900">Verified Community Status</h4>
+                  <p className="text-xs text-slate-500">Submit local Mandi prices & voice queries with priority verification.</p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <ShieldCheck size={18} color="var(--accent-gold)" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div className="flex gap-3 items-start">
+                <Landmark className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 style={{ fontSize: '0.92rem', margin: 0 }}>Kirana Node Operator Rights</h4>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>Review & validate high-stakes government scheme eligibility queries.</p>
+                  <h4 className="text-sm font-bold text-slate-900">Public Scheme Eligibility Dashboard</h4>
+                  <p className="text-xs text-slate-500">Discover all eligible government schemes (PM-Kisan, Ayushman Bharat, PM Awas) tailored to your personal details.</p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <Users size={18} color="var(--accent-primary)" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div className="flex gap-3 items-start">
+                <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 style={{ fontSize: '0.92rem', margin: 0 }}>Personalized Query History</h4>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>Access past advisory voice responses & Mandi alert history anywhere.</p>
+                  <h4 className="text-sm font-bold text-slate-900">Personalized Query History</h4>
+                  <p className="text-xs text-slate-500">Access past advisory voice responses & Mandi alert history anywhere.</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
+          <div className="pt-4 border-t border-slate-100">
             <button
-              onClick={() => setActiveTab('voice')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-dim)',
-                cursor: 'pointer',
-                fontSize: '0.84rem',
-                textDecoration: 'underline'
-              }}
+              onClick={() => setActiveTab('schemes')}
+              className="text-xs text-slate-500 hover:text-slate-800 underline font-medium inline-flex items-center gap-1"
             >
-              Skip for now and continue as Guest →
+              <span>Skip for now and continue as Guest</span>
+              <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
             </button>
           </div>
         </div>
 
-        {/* Right Side: Clerk Authentication Card / Controls */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--bg-main)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '6px',
-          padding: '24px'
-        }}>
+        {/* Right Side: Clerk Authentication Card */}
+        <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8">
           {isClerkAvailable ? (
-            <div>
+            <div className="w-full">
               {/* Toggle Mode Switcher */}
-              <div style={{
-                display: 'flex',
-                background: 'var(--bg-surface)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '4px',
-                padding: '4px',
-                width: '100%',
-                marginBottom: '20px'
-              }}>
+              <div className="flex bg-slate-200/80 p-1 rounded-xl w-full mb-6">
                 <button
                   onClick={() => setAuthMode('signup')}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: 'none',
-                    background: authMode === 'signup' ? 'var(--accent-primary)' : 'transparent',
-                    color: authMode === 'signup' ? '#ffffff' : 'var(--text-muted)',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    borderRadius: '3px',
-                    cursor: 'pointer'
-                  }}
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                    authMode === 'signup' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
                   Create Account (Sign Up)
                 </button>
                 <button
                   onClick={() => setAuthMode('signin')}
-                  style={{
-                    flex: 1,
-                    padding: '8px 12px',
-                    border: 'none',
-                    background: authMode === 'signin' ? 'var(--accent-primary)' : 'transparent',
-                    color: authMode === 'signin' ? '#ffffff' : 'var(--text-muted)',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    borderRadius: '3px',
-                    cursor: 'pointer'
-                  }}
+                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                    authMode === 'signin' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
                   Sign In
                 </button>
               </div>
 
-              {/* Clerk Sign Up / Sign In Render */}
+              {/* Clerk Render */}
               <SignedIn>
-                <div style={{ textAlign: 'center', padding: '20px' }}>
-                  <p style={{ color: 'var(--accent-cyan)', fontWeight: 600, marginBottom: '16px' }}>
-                    ✓ You are signed in!
+                <div className="text-center space-y-4 py-4">
+                  <p className="text-sm font-bold text-emerald-600 flex items-center justify-center gap-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>You are signed in!</span>
                   </p>
-                  <UserButton showName={true} />
-                  <div style={{ marginTop: '24px' }}>
-                    <button
-                      onClick={() => setActiveTab('voice')}
-                      className="btn-primary"
-                      style={{ width: '100%', justifyContent: 'center' }}
-                    >
-                      Go to Application Dashboard
-                    </button>
+                  <div className="flex justify-center">
+                    <UserButton showName={true} />
                   </div>
+                  <button
+                    onClick={() => setActiveTab('schemes')}
+                    className="btn-primary w-full justify-center !py-2.5 mt-4"
+                  >
+                    Go to Schemes Dashboard
+                  </button>
                 </div>
               </SignedIn>
 
@@ -188,18 +122,17 @@ export default function AuthPage() {
               )}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '20px' }}>
-              <div style={{ width: '48px', height: '48px', background: 'rgba(245, 158, 11, 0.15)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', marginBottom: '16px', color: 'var(--accent-gold)' }}>
-                <Lock size={24} />
+            <div className="text-center space-y-4 py-6">
+              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <Lock className="w-6 h-6" />
               </div>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '8px' }}>Guest Mode Enabled</h3>
-              <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+              <h3 className="text-lg font-bold text-slate-900">Guest Mode Enabled</h3>
+              <p className="text-xs text-slate-500 max-w-xs mx-auto">
                 Clerk publishable key has not been initialized in `.env`. You can explore all application features in Guest Mode.
               </p>
               <button
-                onClick={() => setActiveTab('voice')}
-                className="btn-primary"
-                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setActiveTab('schemes')}
+                className="btn-primary w-full justify-center !py-2.5"
               >
                 Launch Guest Dashboard
               </button>

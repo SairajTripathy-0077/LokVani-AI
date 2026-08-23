@@ -4,7 +4,7 @@ import { fetchLiveWeatherData, fetchLiveMandiPrices } from '../services/realData
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'trust' | 'intel'
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
   const [language, setLanguage] = useState('hi'); // 'hi' | 'en'
   
   // Real User Queries (Persisted in localStorage, empty on fresh start)

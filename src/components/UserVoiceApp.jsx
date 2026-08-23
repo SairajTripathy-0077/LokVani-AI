@@ -1,28 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { speechService } from '../services/speechService';
-import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap } from 'lucide-react';
+import { processUserSpeechQuery } from '../services/aiCoreEngine';
+import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Send, X } from 'lucide-react';
 
 const DEMO_PRESETS = [
   {
-    label: 'PM-Kisan & Mandi Rate',
-    query: 'Mujhe PM-Kisan scheme ke liye apply karna hai aur tamatar ka mandi bhav jan-na hai.',
+    label_en: 'PM-Kisan & Mandi Rate',
+    label_hi: 'पीएम-किसान व मंडी भाव',
+    query_en: 'How to apply for PM-Kisan scheme and what is tomato mandi rate?',
+    query_hi: 'Mujhe PM-Kisan scheme ke liye apply karna hai aur tamatar ka mandi bhav jan-na hai.',
     icon: Wheat
   },
   {
-    label: 'Crop Disease Advisory',
-    query: 'Tamatar me keede lag rahe hain, konsa pesticide spray karna chahiye?',
+    label_en: 'Crop Disease Advisory',
+    label_hi: 'फसल रोग सलाहकार',
+    query_en: 'Insects on tomatoes, which pesticide should I spray?',
+    query_hi: 'Tamatar me keede lag rahe hain, konsa pesticide spray karna chahiye?',
     icon: Bug
   },
   {
-    label: 'Onion Market Rate',
-    query: 'Aaj Gorakhpur Mandi me pyaaz ka thoke rate kya hai?',
+    label_en: 'Onion Market Rate',
+    label_hi: 'प्याज मंडी भाव',
+    query_en: 'What is today wholesale price of onion in Gorakhpur Mandi?',
+    query_hi: 'Aaj Gorakhpur Mandi me pyaaz ka thoke rate kya hai?',
     icon: TrendingUp
   }
 ];
 
 export default function UserVoiceApp() {
-  const { language, setActiveTab } = useApp();
+  const { language, setActiveTab, geminiKey } = useApp();
   
   const [appState, setAppState] = useState('IDLE'); // 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
   const [transcript, setTranscript] = useState('');
@@ -39,10 +46,13 @@ export default function UserVoiceApp() {
       const res = await fetch('/api/user/queries/user_demo_1');
       if (res.ok) {
         const json = await res.json();
-        setUserQueryHistory(json.data || []);
+        if (json.data && json.data.length > 0) {
+          setUserQueryHistory(json.data);
+          return;
+        }
       }
     } catch (err) {
-      console.warn('Error fetching user query history:', err);
+      console.warn('Error fetching query history from server, using local history:', err);
     }
   };
 
@@ -85,6 +95,7 @@ export default function UserVoiceApp() {
     setAppState('THINKING');
 
     try {
+      // 1. Attempt Express Server API processing
       let backendData = null;
       try {
         const response = await fetch('/api/query', {
@@ -103,33 +114,39 @@ export default function UserVoiceApp() {
           backendData = resJson.data;
         }
       } catch (err) {
-        console.warn('Express Backend API unavailable, generating client fallback:', err);
+        console.warn('Express Backend API offline, executing AI Voice Engine directly:', err);
       }
 
-      if (!backendData) {
+      // 2. Direct AI Intelligence Engine execution if server unavailable or returning generic text
+      if (!backendData || backendData.shortAnswerHi?.includes('server se sampark')) {
+        const aiOutput = await processUserSpeechQuery(queryText, {
+          apiKey: geminiKey,
+          userLocation: 'Azamgarh, UP'
+        });
+
         backendData = {
           _id: `q_${Date.now()}`,
           transcribedText: queryText,
           userLocation: 'Azamgarh, UP',
-          shortAnswerHi: 'Fasal aur mandi ke bhav ki live jaankari ke liye server se sampark karein.',
-          shortAnswerEn: 'For crop and live mandi prices, please consult the live API endpoint.',
-          domain: 'AGRI_ADVISORY',
-          isHighStakes: false,
-          actionableSteps: ['Try adding your Gemini key', 'Verify connections'],
-          status: 'AUTO_VERIFIED',
+          shortAnswerHi: aiOutput.spoken_response?.hindi_tts || 'Sawal par jaankari prapt hui.',
+          shortAnswerEn: aiOutput.spoken_response?.english_translation || 'Information fetched for query.',
+          domain: aiOutput.intent || 'AGRI_ADVISORY',
+          isHighStakes: aiOutput.needs_trust_node_review || false,
+          riskCategory: aiOutput.risk_metadata?.risk_category || 'NONE',
+          trustNote: aiOutput.risk_metadata?.trust_reason || 'Query processed.',
+          actionableSteps: aiOutput.actionable_steps || ['Check local Mandi rates', 'Consult local advisory'],
+          status: aiOutput.needs_trust_node_review ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED',
           createdAt: new Date()
         };
       }
 
       setActiveQueryResult(backendData);
+      setUserQueryHistory(prev => [backendData, ...prev.filter(h => h._id !== backendData._id)]);
       setTranscript('');
       setAppState('IDLE');
 
-      // Refresh sidebar conversation list
-      fetchQueryHistory();
-
-      // Auto play TTS response
-      handlePlayTTS(language === 'hi' ? backendData.shortAnswerHi : backendData.shortAnswerEn);
+      // Auto-play synthesized voice answer
+      handlePlayTTS(language === 'hi' ? (backendData.shortAnswerHi || backendData.shortAnswerEn) : (backendData.shortAnswerEn || backendData.shortAnswerHi));
     } catch (e) {
       console.error('Error processing query:', e);
       setAppState('IDLE');
@@ -137,8 +154,9 @@ export default function UserVoiceApp() {
   };
 
   const handlePresetSelect = (preset) => {
-    setTranscript(preset.query);
-    handleProcessQuery(preset.query);
+    const queryStr = language === 'hi' ? preset.query_hi : preset.query_en;
+    setTranscript(queryStr);
+    handleProcessQuery(queryStr);
   };
 
   const handlePlayTTS = (text) => {
@@ -174,94 +192,85 @@ export default function UserVoiceApp() {
     }
 
     setShowPriceReportModal(false);
-    alert('Thank you! Your market price report has been saved to MongoDB & shared with neighboring farmers.');
+    alert('Thank you! Your market price report has been saved & shared with neighboring farmers.');
   };
 
   return (
-    <div className="minimal-container" style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-8 items-start">
       
-      {/* Sidebar conversation history (ChatGPT style) */}
-      <aside style={{
-        width: '260px',
-        borderRight: '1px solid var(--border-subtle)',
-        paddingRight: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        minWidth: '240px'
-      }}>
+      {/* Sidebar conversation history */}
+      <aside className="w-full lg:w-72 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
         <button
           onClick={() => {
             setActiveQueryResult(null);
             setTranscript('');
           }}
-          className="btn-secondary"
-          style={{ width: '100%', justifyContent: 'center', fontSize: '0.82rem', padding: '10px' }}
+          className="btn-primary w-full justify-center !py-2.5"
         >
-          + New Voice Query
+          {language === 'hi' ? '+ नई आवाज़ पूछताछ' : '+ New Voice Query'}
         </button>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' }}>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: '6px' }}>
-            Voice History logs
+        <div className="flex flex-col gap-2 overflow-y-auto max-h-60 lg:max-h-[calc(100vh-280px)]">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            {language === 'hi' ? 'सहेजे गए परिणाम और इतिहास' : 'Voice History & Stored Results'}
           </p>
           {userQueryHistory.length === 0 ? (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>No past conversations</p>
+            <p className="text-xs text-slate-500 italic">
+              {language === 'hi' ? 'कोई पुरानी बातचीत नहीं' : 'No past conversations'}
+            </p>
           ) : (
-            userQueryHistory.map((h) => (
-              <button
-                key={h._id}
-                onClick={() => {
-                  setActiveQueryResult(h);
-                  setTranscript('');
-                }}
-                style={{
-                  background: activeQueryResult?._id === h._id ? 'var(--bg-hover)' : 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  borderRadius: 'var(--radius-sm)',
-                  color: activeQueryResult?._id === h._id ? 'var(--accent-primary)' : 'var(--text-main)',
-                  fontSize: '0.82rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  width: '100%',
-                  transition: 'background-color 0.15s ease'
-                }}
-              >
-                <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                  {h.transcribedText}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : 'Just now'}
-                </span>
-              </button>
-            ))
+            userQueryHistory.map((h) => {
+              const mainAnswerText = language === 'hi'
+                ? (h.shortAnswerHi || h.shortAnswerEn)
+                : (h.shortAnswerEn || h.shortAnswerHi);
+              return (
+                <button
+                  key={h._id}
+                  onClick={() => {
+                    setActiveQueryResult(h);
+                    setTranscript('');
+                  }}
+                  className={`text-left p-3 rounded-xl transition-colors flex flex-col gap-1 w-full text-xs font-medium ${
+                    activeQueryResult?._id === h._id
+                      ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="truncate w-full font-bold">{h.transcribedText}</span>
+                  <span className="text-[11px] text-slate-600 truncate w-full italic">
+                    {mainAnswerText}
+                  </span>
+                  <span className="text-[10px] text-slate-400">
+                    {h.createdAt ? new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                  </span>
+                </button>
+              );
+            })
           )}
         </div>
       </aside>
 
       {/* Main panel */}
-      <div style={{ flex: 1, minWidth: '320px' }}>
+      <div className="flex-1 w-full space-y-6">
         
-        {/* Minimal Header Section */}
-        <div className="minimal-section" style={{ textAlign: 'center', paddingTop: 0 }}>
-          <div style={{ marginBottom: '12px' }}>
-            <span className="status-text status-pending">
-              {appState === 'LISTENING' && <><Mic size={14} /> Listening Voice Input...</>}
-              {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Rotator Processing...</>}
-              {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Response Audio...</>}
-              {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
+        {/* Header & Microphone Trigger Section */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 text-center shadow-sm">
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-700">
+              {appState === 'LISTENING' && <><Mic className="w-3.5 h-3.5 text-amber-600 animate-pulse" /> {language === 'hi' ? 'आवाज सुन रहे हैं...' : 'Listening Voice Input...'}</>}
+              {appState === 'THINKING' && <><RefreshCw className="w-3.5 h-3.5 text-blue-600 animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है...' : 'Processing Query...'}</>}
+              {appState === 'SPEAKING' && <><Volume2 className="w-3.5 h-3.5 text-emerald-600 animate-bounce" /> {language === 'hi' ? 'ऑडियो प्ले हो रहा है...' : 'Playing Response Audio...'}</>}
+              {appState === 'IDLE' && <><Sparkles className="w-3.5 h-3.5 text-amber-500" /> {language === 'hi' ? 'वॉयस असिस्टेंट तैयार है' : 'Voice Assistant Ready'}</>}
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '8px' }}>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
             {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Voice Query Engine'}
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto 20px auto' }}>
-            Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
+          <p className="text-slate-600 text-sm max-w-md mx-auto mb-6">
+            {language === 'hi'
+              ? 'मंडी भाव, सरकारी योजनाएं और फसल सलाह हिंदी या अंग्रेजी में पूछें।'
+              : 'Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.'}
           </p>
 
           {/* Microphone Action Button */}
@@ -269,35 +278,35 @@ export default function UserVoiceApp() {
             <button
               onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
               className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
-              title="Tap to Speak"
+              title={language === 'hi' ? 'बोलने के लिए दबाएं' : 'Tap to Speak'}
             >
-              {appState === 'LISTENING' ? <MicOff size={42} /> : <Mic size={42} />}
+              {appState === 'LISTENING' ? <MicOff className="w-10 h-10" /> : <Mic className="w-10 h-10" />}
             </button>
           </div>
 
           {transcript && (
-            <p style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 600, marginTop: '12px' }}>
+            <p className="text-blue-600 text-base font-bold mt-3 animate-pulse">
               "{transcript}"
             </p>
           )}
 
-          {/* Minimal Presets Bar */}
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '12px' }}>
-              Instant Demo Queries
+          {/* Presets Bar */}
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">
+              {language === 'hi' ? 'त्वरित उदाहरण प्रश्न (Demo Queries)' : 'Instant Demo Queries'}
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+            <div className="flex flex-wrap gap-2 justify-center">
               {DEMO_PRESETS.map((preset, idx) => {
                 const IconComp = preset.icon;
+                const labelText = language === 'hi' ? preset.label_hi : preset.label_en;
                 return (
                   <button
                     key={idx}
                     onClick={() => handlePresetSelect(preset)}
-                    className="btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                    className="btn-secondary !py-1.5 !px-3 !text-xs !rounded-full"
                   >
-                    <IconComp size={14} color="var(--accent-gold)" />
-                    <span>{preset.label}</span>
+                    <IconComp className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{labelText}</span>
                   </button>
                 );
               })}
@@ -305,67 +314,83 @@ export default function UserVoiceApp() {
           </div>
         </div>
 
-        {/* Active Response Result */}
+        {/* Active Response Result Card */}
         {activeQueryResult && (
-          <div className="minimal-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className={`status-text ${activeQueryResult.isHighStakes ? 'status-pending' : 'status-verified'}`}>
-                {activeQueryResult.isHighStakes ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-md space-y-4">
+            <div className="flex flex-wrap justify-between items-center gap-3">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                activeQueryResult.isHighStakes ? 'text-amber-600' : 'text-emerald-600'
+              }`}>
+                {activeQueryResult.isHighStakes ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                 {activeQueryResult.status}
               </span>
 
               <button
-                onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.shortAnswerHi : activeQueryResult.shortAnswerEn)}
-                className="btn-primary"
-                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
+                onClick={() => handlePlayTTS(language === 'hi' ? (activeQueryResult.shortAnswerHi || activeQueryResult.shortAnswerEn) : (activeQueryResult.shortAnswerEn || activeQueryResult.shortAnswerHi))}
+                className="btn-primary !py-1.5 !px-3 !text-xs"
               >
-                {appState === 'SPEAKING' ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                {appState === 'SPEAKING' ? 'Stop Audio' : 'Play Audio'}
+                {appState === 'SPEAKING' ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                <span>
+                  {appState === 'SPEAKING'
+                    ? (language === 'hi' ? 'ऑडियो रोकें' : 'Stop Audio')
+                    : (language === 'hi' ? 'उत्तर सुनें' : 'Play Audio')}
+                </span>
               </button>
             </div>
 
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
-              Query: "{activeQueryResult.transcribedText}"
+            <p className="text-xs text-slate-500 font-medium">
+              {language === 'hi' ? 'सवाल (Query):' : 'Query:'} "{activeQueryResult.transcribedText}"
             </p>
 
-            {/* Hindi & English Text Output */}
-            <div style={{ padding: '16px 0', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-              <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '6px' }}>
-                Hindi Spoken Response:
+            {/* Response Output - Dynamically toggling primary language */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <h4 className="text-xs font-bold text-amber-600 uppercase tracking-wider flex items-center justify-between">
+                <span>
+                  {language === 'hi' ? 'उत्तर (Hindi Spoken Response):' : 'Answer (English Spoken Response):'}
+                </span>
+                <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                  {language === 'hi' ? 'भाषा: हिंदी' : 'Language: English'}
+                </span>
               </h4>
-              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                {activeQueryResult.shortAnswerHi}
+              <p className="text-lg font-bold text-slate-900 leading-snug">
+                {language === 'hi'
+                  ? (activeQueryResult.shortAnswerHi || activeQueryResult.shortAnswerEn)
+                  : (activeQueryResult.shortAnswerEn || activeQueryResult.shortAnswerHi)}
               </p>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                <em>{activeQueryResult.shortAnswerEn}</em>
+              <p className="text-sm text-slate-600 italic">
+                {language === 'hi'
+                  ? (activeQueryResult.shortAnswerEn ? `English: ${activeQueryResult.shortAnswerEn}` : '')
+                  : (activeQueryResult.shortAnswerHi ? `Hindi: ${activeQueryResult.shortAnswerHi}` : '')}
               </p>
             </div>
 
-            {/* High Stakes Trust Node Alert */}
+            {/* Scheme Link Alert */}
             {activeQueryResult.isHighStakes && (
-              <div style={{ marginBottom: '16px' }}>
-                <span className="status-text status-pending" style={{ marginBottom: '4px' }}>
-                  <ShieldAlert size={14} /> High-Stakes Query Flagged
-                </span>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  {activeQueryResult.trustNote}
-                </p>
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-xs text-amber-900 space-y-2">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <ShieldAlert className="w-4 h-4 text-amber-600" />
+                  {language === 'hi' ? 'उच्च जोखिम योजना समीक्षा की आवश्यकता है' : 'High-Stakes Query Flagged'}
+                </div>
+                <p>{activeQueryResult.trustNote}</p>
                 <button
-                  onClick={() => setActiveTab('trust')}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  onClick={() => setActiveTab('schemes')}
+                  className="text-blue-600 font-bold hover:underline inline-flex items-center gap-1"
                 >
-                  Open Kirana Verification Dashboard <ArrowRight size={13} />
+                  <span>
+                    {language === 'hi' ? 'सार्वजनिक सरकारी योजनाएं डैशबोर्ड खोलें' : 'Open Public Schemes Eligibility Dashboard'}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
 
             {/* Actionable Steps */}
             {activeQueryResult.actionableSteps?.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>
-                  Recommended Action Steps:
+              <div>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  {language === 'hi' ? 'अनुशंसित कार्यवाही कदम:' : 'Recommended Action Steps:'}
                 </p>
-                <ul style={{ paddingLeft: '16px', color: 'var(--text-main)', fontSize: '0.88rem' }}>
+                <ul className="list-disc list-inside text-sm text-slate-700 space-y-1">
                   {activeQueryResult.actionableSteps.map((step, idx) => (
                     <li key={idx}>{step}</li>
                   ))}
@@ -373,17 +398,8 @@ export default function UserVoiceApp() {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                Logged to MongoDB • Location: {activeQueryResult.userLocation}
-              </span>
-              <button
-                onClick={() => setShowPriceReportModal(true)}
-                className="btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                <Megaphone size={13} /> Report Local Rate
-              </button>
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+              <span>{language === 'hi' ? 'स्थान:' : 'Location:'} {activeQueryResult.userLocation}</span>
             </div>
           </div>
         )}
@@ -392,53 +408,54 @@ export default function UserVoiceApp() {
 
       {/* Community Price Report Modal */}
       {showPriceReportModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-muted)', padding: '24px', maxWidth: '400px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: 'var(--text-main)' }}>
-              Report Local Mandi Rate
-            </h3>
-            <form onSubmit={handlePriceReportSubmit}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Commodity Name</label>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900">
+                Report Local Mandi Rate
+              </h3>
+              <button onClick={() => setShowPriceReportModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handlePriceReportSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Commodity Name</label>
                 <input
                   type="text"
                   value={reportItem}
                   onChange={e => setReportItem(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Rate (₹/kg)</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Rate (₹/kg)</label>
                 <input
                   type="number"
                   value={reportPrice}
                   onChange={e => setReportPrice(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Mandi Location</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Mandi Location</label>
                 <input
                   type="text"
                   value={reportLocation}
                   onChange={e => setReportLocation(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <div className="flex gap-2 justify-end pt-2">
                 <button type="button" onClick={() => setShowPriceReportModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><Send size={13} /> Save to Database</button>
+                <button type="submit" className="btn-primary"><Send className="w-3.5 h-3.5" /> Save Rate</button>
               </div>
             </form>
           </div>

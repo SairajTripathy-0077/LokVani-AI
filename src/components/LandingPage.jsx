@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, ShieldCheck, Users, ArrowRight, Sparkles, CheckCircle2, Globe2, Zap, Award, HelpCircle, Volume2, Play } from 'lucide-react';
-import { SignedIn, SignedOut, SignUpButton, useUser } from '@clerk/clerk-react';
+import { Mic, Landmark, Users, ArrowRight, Sparkles, CheckCircle2, Volume2, Play } from 'lucide-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 
 export default function LandingPage() {
-  const { setActiveTab, language, setLanguage } = useApp();
+  const { setActiveTab, language } = useApp();
   const { isSignedIn } = useUser();
   const [demoQuery, setDemoQuery] = useState('');
   const [demoResult, setDemoResult] = useState(null);
@@ -55,7 +55,6 @@ export default function LandingPage() {
       setDemoResult(queryObj);
       setIsSimulating(false);
 
-      // Play synthesized audio demo if supported
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         const text = language === 'hi' ? queryObj.ans_hi : queryObj.ans_en;
@@ -67,118 +66,84 @@ export default function LandingPage() {
   };
 
   return (
-    <div style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+    <div className="bg-slate-50 text-slate-900 min-h-screen">
+      
       {/* 1. HERO SECTION */}
-      <section style={{
-        padding: '60px 20px 50px',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        textAlign: 'center',
-        position: 'relative'
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
-          lineHeight: 1.15,
-          fontWeight: 800,
-          marginBottom: '20px',
-          letterSpacing: '-0.03em',
-          maxWidth: '900px',
-          margin: '0 auto 20px'
-        }}>
-          Inclusive Voice Intelligence for <span style={{ color: 'var(--accent-primary)' }}>Bharat</span> & Underserved Communities
+      <section className="px-4 sm:px-6 py-12 sm:py-20 max-w-6xl mx-auto text-center relative">
+        <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-4 inline-flex items-center justify-center gap-1.5">
+          <Sparkles className="w-4 h-4 text-blue-600" />
+          <span>AI for Public Good Track</span>
+        </p>
+
+        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight sm:leading-none max-w-4xl mx-auto mb-6 tracking-tight">
+          Inclusive Voice Intelligence for <span className="text-blue-600">Bharat</span> & Underserved Communities
         </h1>
 
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-          color: 'var(--text-muted)',
-          maxWidth: '720px',
-          margin: '0 auto 36px',
-          lineHeight: 1.6
-        }}>
-          Speak naturally in your local dialect. LokVani AI connects rural citizens directly with verified Mandi prices, Government Scheme eligibility, and Kirana Trust Node human validation.
+        <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto mb-8 leading-relaxed">
+          Speak naturally in your local dialect. LokVani AI connects rural citizens directly with verified Mandi prices, instant Public Government Scheme eligibility matching, and community market intelligence.
         </p>
 
         {/* Dual Hero CTA Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="flex flex-wrap justify-center items-center gap-4">
           <SignedOut>
             <button
               onClick={() => setActiveTab('auth')}
-              className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '1.02rem', borderRadius: '6px' }}
+              className="btn-primary !px-6 !py-3.5 !text-base"
             >
-              Get Started / Sign Up <ArrowRight size={18} />
+              <span>Get Started / Sign Up</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
           </SignedOut>
 
           <SignedIn>
             <button
               onClick={() => setActiveTab('voice')}
-              className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '1.02rem', borderRadius: '6px' }}
+              className="btn-primary !px-6 !py-3.5 !text-base"
             >
-              Launch Dashboard <ArrowRight size={18} />
+              <span>Launch Dashboard</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
           </SignedIn>
 
           <button
             onClick={handleLaunchDashboard}
-            className="btn-secondary"
-            style={{ padding: '14px 26px', fontSize: '1.02rem', borderRadius: '6px' }}
+            className="btn-secondary !px-6 !py-3.5 !text-base"
           >
-            <Mic size={18} color="var(--accent-primary)" /> Launch Voice App
+            <Mic className="w-5 h-5 text-blue-600" />
+            <span>Launch Voice App</span>
           </button>
         </div>
       </section>
 
       {/* 2. LIVE INTERACTIVE VOICE DEMO SIMULATOR */}
-      <section style={{
-        maxWidth: '960px',
-        margin: '0 auto 60px',
-        padding: '0 20px'
-      }}>
-        <div style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '8px',
-          padding: '28px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.06)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '32px', height: '32px', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
-                <Mic size={18} color="#fff" />
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 mb-16">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/50">
+          <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                <Mic className="w-5 h-5" />
               </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0 }}>Interactive Live Voice Simulator</h3>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Interactive Live Voice Simulator</h3>
+                <p className="text-xs text-slate-500">Test AI speech transcription & response synthesis in real-time</p>
+              </div>
             </div>
           </div>
 
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+          <p className="text-sm text-slate-600 mb-4">
             Click any sample voice query below to simulate instant speech transcription & AI response synthesis:
           </p>
 
           {/* Sample Clickable Query Chips */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
+          <div className="flex flex-wrap gap-2.5 mb-6">
             {sampleQueries.map((q, idx) => (
               <button
                 key={idx}
                 onClick={() => handleRunDemo(q)}
                 disabled={isSimulating}
-                style={{
-                  background: 'var(--bg-main)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  padding: '10px 14px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  textAlign: 'left',
-                  transition: 'border-color 0.2s ease'
-                }}
+                className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left disabled:opacity-50"
               >
-                <Play size={13} color="var(--accent-primary)" />
+                <Play className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
                 <span>{language === 'hi' ? q.title_hi : q.title_en}</span>
               </button>
             ))}
@@ -186,44 +151,30 @@ export default function LandingPage() {
 
           {/* Simulation Output Area */}
           {isSimulating && (
-            <div style={{
-              padding: '20px',
-              background: 'var(--bg-main)',
-              border: '1px dashed var(--accent-primary)',
-              borderRadius: '6px',
-              textAlign: 'center'
-            }}>
-              <p style={{ color: 'var(--accent-gold)', fontWeight: 600, margin: 0, fontSize: '0.92rem' }}>
-                🎙️ Synthesizing Voice Query: "{demoQuery}"...
+            <div className="p-6 bg-amber-50/50 border border-dashed border-amber-400 rounded-xl text-center">
+              <p className="text-amber-800 font-semibold text-sm animate-pulse flex items-center justify-center gap-2">
+                <Mic className="w-4 h-4 text-amber-600 animate-bounce" />
+                <span>Synthesizing Voice Query: "{demoQuery}"...</span>
               </p>
             </div>
           )}
 
           {demoResult && !isSimulating && (
-            <div style={{
-              padding: '20px',
-              background: 'var(--bg-main)',
-              border: '1px solid var(--border-muted)',
-              borderRadius: '6px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+            <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Domain: {demoResult.domain}
                 </span>
-                <span style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  color: demoResult.trust === 'VERIFIED_BY_TRUST_NODE' ? 'var(--accent-cyan)' : 'var(--accent-gold)'
-                }}>
-                  ✓ {demoResult.trust === 'VERIFIED_BY_TRUST_NODE' ? 'Kirana Node Verified' : 'Auto Verified'}
+                <span className="text-xs font-bold text-sky-600 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Auto Verified
                 </span>
               </div>
-              <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>
+              <p className="text-base font-bold text-slate-900 mb-3">
                 {language === 'hi' ? demoResult.ans_hi : demoResult.ans_en}
               </p>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
-                <Volume2 size={16} color="var(--accent-primary)" />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Audio Response Playing...</span>
+              <div className="flex items-center gap-2 text-xs text-blue-600 font-semibold">
+                <Volume2 className="w-4 h-4 animate-bounce" />
+                <span>Audio Response Playing...</span>
               </div>
             </div>
           )}
@@ -231,164 +182,75 @@ export default function LandingPage() {
       </section>
 
       {/* 3. THREE CORE PLATFORM PILLARS */}
-      <section style={{
-        maxWidth: '1100px',
-        margin: '0 auto 70px',
-        padding: '0 20px'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '12px' }}>Built for Real Impact at Scale</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 mb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">
+            Built for Real Impact at Scale
+          </h2>
+          <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto">
             Combining state-of-the-art AI language models with ground-level community verification.
           </p>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Pillar 1 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(59, 130, 246, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-primary)'
-            }}>
-              <Mic size={24} />
+          <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-5">
+              <Mic className="w-6 h-6" />
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Multilingual Voice Engine</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Multilingual Voice Engine</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
               Supports spoken queries in Hindi, Hinglish, Bhojpuri, and regional dialects with instant speech-to-text and AI text-to-speech audio synthesis.
             </p>
           </div>
 
           {/* Pillar 2 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(245, 158, 11, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-gold)'
-            }}>
-              <ShieldCheck size={24} />
+          <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mb-5">
+              <Landmark className="w-6 h-6" />
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Kirana Trust Nodes</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              High-stakes queries (e.g. monetary schemes, land records) are routed to local Kirana store operators & CSC centers for human verification.
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Public Schemes Engine</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Input personal details (age, state, land holding, income) to get instant eligibility match scores and required document checklists for 25+ government schemes.
             </p>
           </div>
 
           {/* Pillar 3 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(6, 182, 212, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-cyan)'
-            }}>
-              <Users size={24} />
+          <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <div className="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center mb-5">
+              <Users className="w-6 h-6" />
             </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Community Intel Network</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Community Intel Network</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
               Live crowdsourced Mandi commodity price tracking combined with real-time Agmarknet government API feeds for transparent crop trading.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 4. IMPACT NUMBERS COUNTER */}
-      <section style={{
-        background: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-subtle)',
-        borderBottom: '1px solid var(--border-subtle)',
-        padding: '50px 20px'
-      }}>
-        <div style={{
-          maxWidth: '1100px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '30px',
-          textAlign: 'center'
-        }}>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-primary)' }}>50,000+</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Voice Queries Processed</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-gold)' }}>99.4%</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Trust Review Accuracy</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>12+</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Dialects & Languages</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--text-main)' }}>&lt; 1.2s</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Average Response Time</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. BOTTOM CALL TO ACTION */}
-      <section style={{
-        padding: '70px 20px',
-        textAlign: 'center',
-        maxWidth: '800px',
-        margin: '0 auto'
-      }}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '16px' }}>Ready to Experience LokVani AI?</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '32px' }}>
-          Sign up with your account or enter directly into the dashboard to test voice queries, review trust items, or check local Mandi prices.
+      {/* 4. BOTTOM CALL TO ACTION */}
+      <section className="px-4 sm:px-6 py-16 text-center max-w-3xl mx-auto">
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-4">
+          Ready to Experience LokVani AI?
+        </h2>
+        <p className="text-slate-600 text-base mb-8">
+          Sign up with your account or enter directly into the dashboard to test voice queries, check eligible schemes, or track local Mandi prices.
         </p>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div className="flex flex-wrap justify-center gap-4">
           <SignedOut>
             <button
               onClick={() => setActiveTab('auth')}
-              className="btn-primary"
-              style={{ padding: '14px 32px', fontSize: '1rem', borderRadius: '6px' }}
+              className="btn-primary !px-8 !py-3.5 !text-base"
             >
-              Sign Up / Sign In <ArrowRight size={18} />
+              <span>Sign Up / Sign In</span>
+              <ArrowRight className="w-5 h-5" />
             </button>
           </SignedOut>
 
           <button
             onClick={handleLaunchDashboard}
-            className="btn-secondary"
-            style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '6px' }}
+            className="btn-secondary !px-7 !py-3.5 !text-base"
           >
             Enter Dashboard
           </button>

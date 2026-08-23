@@ -6,7 +6,7 @@ import { processUserSpeechQuery } from './aiCoreEngine.js';
 
 async function runTests() {
   console.log("================================================================================");
-  console.log("🎙️ LOKVANI AI CORE INTELLIGENCE MODULE - EXECUTION TEST SUITE");
+  console.log("[LOKVANI AI] CORE INTELLIGENCE MODULE - EXECUTION TEST SUITE");
   console.log("================================================================================\n");
 
   const sampleInputs = [
@@ -29,7 +29,7 @@ async function runTests() {
   ];
 
   for (const item of sampleInputs) {
-    console.log(`📌 ${item.title}`);
+    console.log(`[TEST] ${item.title}`);
     console.log(`Input Speech Transcript: "${item.query}"`);
     
     const result = await processUserSpeechQuery(item.query, { userLocation: "Azamgarh, UP" });
