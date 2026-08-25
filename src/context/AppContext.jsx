@@ -1,11 +1,28 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from '../services/realDataService';
+import { speechService } from '../services/speechService';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
   const [language, setLanguage] = useState('hi'); // 'hi' | 'en'
+
+  // Global Speech Output State
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Subscribe to SpeechService speaking state changes
+  useEffect(() => {
+    const unsubscribe = speechService.onSpeakingStateChange((speaking) => {
+      setIsSpeaking(speaking);
+    });
+    return unsubscribe;
+  }, []);
+
+  const stopSpeaking = useCallback(() => {
+    speechService.stopSpeaking();
+    setIsSpeaking(false);
+  }, []);
 
   // Dialect selection — persisted to localStorage
   const [dialect, setDialect] = useState(() =>
@@ -107,6 +124,8 @@ export function AppProvider({ children }) {
       setLanguage,
       dialect,
       setDialect,
+      isSpeaking,
+      stopSpeaking,
       queries,
       addQuery,
       approveQuery,

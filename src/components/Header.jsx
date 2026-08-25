@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap } from 'lucide-react';
+import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap, VolumeX, Volume2 } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Header() {
-  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount } = useApp();
+  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount, isSpeaking, stopSpeaking } = useApp();
   const { isSignedIn } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -87,6 +87,23 @@ export default function Header() {
 
           {/* ── Right Actions ─────────────────────────────── */}
           <div className="flex items-center gap-2">
+            {/* STOP VOICE OUTPUT BUTTON (Visible when AI is speaking) */}
+            {isSpeaking && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={stopSpeaking}
+                className="h-8 px-3 text-xs font-bold gap-1.5 animate-pulse shadow-md shadow-red-500/20"
+                title="Stop AI voice output"
+              >
+                <VolumeX size={14} />
+                <span className="hidden sm:inline">
+                  {language === 'hi' ? 'आवाज़ रोकें' : 'Stop AI Voice'}
+                </span>
+                <span className="sm:hidden">Stop</span>
+              </Button>
+            )}
+
             {/* Language toggle */}
             <Button
               variant="ghost"
@@ -168,10 +185,15 @@ export default function Header() {
               );
             })}
             <Separator className="my-1" />
-            <div className="flex items-center gap-2 px-2">
+            <div className="flex items-center justify-between gap-2 px-2">
               <Button variant="ghost" size="sm" onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')} className="gap-1.5 text-xs">
                 <Globe size={13} /> {language === 'hi' ? 'English' : 'हिंदी'}
               </Button>
+              {isSpeaking && (
+                <Button size="sm" variant="destructive" onClick={stopSpeaking} className="gap-1.5 text-xs font-bold">
+                  <VolumeX size={13} /> {language === 'hi' ? 'आवाज़ रोकें' : 'Stop Voice'}
+                </Button>
+              )}
             </div>
           </div>
         )}

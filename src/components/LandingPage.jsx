@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, Landmark, Users, ArrowRight, Sparkles, CheckCircle2, Volume2, Play, ShieldCheck, TrendingUp, Zap } from 'lucide-react';
+import { speechService } from '../services/speechService';
+import { Mic, Landmark, Users, ArrowRight, Sparkles, CheckCircle2, Volume2, VolumeX, Play, ShieldCheck, TrendingUp, Zap } from 'lucide-react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,27 +75,31 @@ const STATS = [
 ];
 
 export default function LandingPage() {
-  const { setActiveTab, language } = useApp();
+  const { setActiveTab, language, isSpeaking, stopSpeaking } = useApp();
   const { isSignedIn } = useUser();
   const [activeDemo, setActiveDemo] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const isClerkAvailable = typeof window !== 'undefined' &&
     import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
-  const handleLaunch = () => setActiveTab(isClerkAvailable && !isSignedIn ? 'auth' : 'voice');
+  const handleLaunch = () => {
+    if (isSpeaking) stopSpeaking();
+    setActiveTab(isClerkAvailable && !isSignedIn ? 'auth' : 'voice');
+  };
 
   const handleDemo = (q) => {
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
     setIsSimulating(true);
     setActiveDemo(null);
     setTimeout(() => {
       setActiveDemo(q);
       setIsSimulating(false);
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(language === 'hi' ? q.ans_hi : q.ans_en);
-        u.lang = language === 'hi' ? 'hi-IN' : 'en-IN';
-        window.speechSynthesis.speak(u);
-      }
+      const text = language === 'hi' ? q.ans_hi : q.ans_en;
+      const lang = language === 'hi' ? 'hi-IN' : 'en-IN';
+      speechService.speakText(text, lang);
     }, 1100);
   };
 
@@ -134,7 +139,7 @@ export default function LandingPage() {
             <SignedOut>
               <Button
                 size="lg"
-                onClick={() => setActiveTab('auth')}
+                onClick={() => { if (isSpeaking) stopSpeaking(); setActiveTab('auth'); }}
                 className="gap-2 text-base px-7 bg-white text-indigo-700 hover:bg-white/90 shadow-xl shadow-black/20 font-bold"
               >
                 Get Started Free <ArrowRight size={18} />
@@ -143,7 +148,7 @@ export default function LandingPage() {
             <SignedIn>
               <Button
                 size="lg"
-                onClick={() => setActiveTab('voice')}
+                onClick={() => { if (isSpeaking) stopSpeaking(); setActiveTab('voice'); }}
                 className="gap-2 text-base px-7 bg-white text-indigo-700 hover:bg-white/90 shadow-xl shadow-black/20 font-bold"
               >
                 Launch Dashboard <ArrowRight size={18} />
@@ -175,17 +180,32 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-4 sm:px-6 -mt-8 relative z-20 mb-20">
         <Card className="shadow-2xl shadow-black/10 border-0 overflow-hidden">
           {/* Card header strip */}
-          <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-500 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-              <Zap size={16} className="text-white" />
+          <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-500 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                <Zap size={16} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-sm">Interactive Live Demo</h3>
+                <p className="text-indigo-200 text-xs">Click any query to simulate AI response</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-white font-bold text-sm">Interactive Live Demo</h3>
-              <p className="text-indigo-200 text-xs">Click any query to simulate AI response</p>
-            </div>
-            <div className="ml-auto flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-indigo-200 text-xs font-medium">Live</span>
+            <div className="flex items-center gap-2">
+              {isSpeaking && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={stopSpeaking}
+                  className="h-7 text-xs font-bold gap-1 px-3 animate-pulse shadow-md"
+                >
+                  <VolumeX size={13} />
+                  {language === 'hi' ? 'आवाज़ रोकें' : 'Stop Audio'}
+                </Button>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-indigo-200 text-xs font-medium">Live</span>
+              </div>
             </div>
           </div>
 
@@ -229,9 +249,22 @@ export default function LandingPage() {
                 <p className="text-base font-semibold text-foreground leading-snug">
                   {language === 'hi' ? activeDemo.ans_hi : activeDemo.ans_en}
                 </p>
-                <div className="flex items-center gap-1.5 text-xs text-indigo-600 font-semibold">
-                  <Volume2 size={13} className="animate-bounce" />
-                  Audio response playing…
+                <div className="flex items-center justify-between gap-2 text-xs font-semibold">
+                  <div className="flex items-center gap-1.5 text-indigo-600">
+                    <Volume2 size={13} className={cn(isSpeaking && 'animate-bounce')} />
+                    <span>{isSpeaking ? 'Audio response playing...' : 'Audio complete'}</span>
+                  </div>
+                  {isSpeaking && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={stopSpeaking}
+                      className="h-6 text-[11px] font-bold gap-1 px-2.5"
+                    >
+                      <VolumeX size={12} />
+                      {language === 'hi' ? 'रोकें' : 'Stop'}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -304,7 +337,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <SignedOut>
-                <Button size="lg" onClick={() => setActiveTab('auth')} className="gap-2 text-base px-8 bg-white text-indigo-700 hover:bg-white/90 font-bold shadow-xl">
+                <Button size="lg" onClick={() => { if (isSpeaking) stopSpeaking(); setActiveTab('auth'); }} className="gap-2 text-base px-8 bg-white text-indigo-700 hover:bg-white/90 font-bold shadow-xl">
                   Sign Up Free <ArrowRight size={18} />
                 </Button>
               </SignedOut>

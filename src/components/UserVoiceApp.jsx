@@ -6,7 +6,7 @@ import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
   ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Zap, Clock, MapPin,
-  ThumbsUp, ThumbsDown
+  ThumbsUp, ThumbsDown, Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,7 @@ const DIALECT_MAP = {
   te:  { label: 'తెలుగు',     locale: 'te-IN',  promptName: 'Telugu' },
   pa:  { label: 'ਪੰਜਾਬੀ',     locale: 'pa-IN',  promptName: 'Punjabi' },
   gu:  { label: 'ગુજરાતી',    locale: 'gu-IN',  promptName: 'Gujarati' },
-  kn:  { label: 'ಕನ್ನಡ',       locale: 'kn-IN',  promptName: 'Kannada' },
+  kn:  { label: '<ctrl42>कन्नड',       locale: 'kn-IN',  promptName: 'Kannada' },
   or:  { label: 'ଓଡ଼ିଆ',       locale: 'or-IN',  promptName: 'Odia' },
 };
 
@@ -93,7 +93,7 @@ function SkeletonCard() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UserVoiceApp() {
-  const { language, setActiveTab, dialect, setDialect } = useApp();
+  const { language, setActiveTab, dialect, setDialect, isSpeaking, stopSpeaking } = useApp();
 
   const [appState, setAppState]             = useState('IDLE');
   const [transcript, setTranscript]         = useState('');
@@ -108,6 +108,26 @@ export default function UserVoiceApp() {
   const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
 
   const abortRef = useRef(null);
+
+  // Sync appState with global speaking status
+  useEffect(() => {
+    if (isSpeaking) {
+      setAppState('SPEAKING');
+    } else if (appState === 'SPEAKING') {
+      setAppState('IDLE');
+    }
+  }, [isSpeaking, appState]);
+
+  // Keyboard shortcut: Press Escape to stop AI voice output anytime
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isSpeaking) {
+        stopSpeaking();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSpeaking, stopSpeaking]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('large-text', largeText);
@@ -207,6 +227,7 @@ export default function UserVoiceApp() {
 
   const handleStartListening = useCallback(() => {
     if (isProcessing) return;
+    if (isSpeaking) stopSpeaking();
     setAppState('LISTENING');
     setTranscript('');
     speechService.startListening(
@@ -214,7 +235,7 @@ export default function UserVoiceApp() {
       (e) => { console.error(e); setAppState('IDLE'); },
       sttLocale
     );
-  }, [isProcessing, sttLocale, handleProcessQuery]);
+  }, [isProcessing, isSpeaking, stopSpeaking, sttLocale, handleProcessQuery]);
 
   const handleStopListening = useCallback(() => {
     speechService.stopListening();
@@ -223,18 +244,22 @@ export default function UserVoiceApp() {
   }, [transcript, handleProcessQuery]);
 
   const handlePlayTTS = useCallback((text) => {
-    if (appState === 'SPEAKING') { speechService.stopSpeaking(); setAppState('IDLE'); return; }
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
     if (!text) return;
     setAppState('SPEAKING');
     speechService.speakText(text, ttsLocale, () => setAppState('IDLE'), ttsRate);
-  }, [appState, ttsLocale, ttsRate]);
+  }, [isSpeaking, stopSpeaking, ttsLocale, ttsRate]);
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;
+    if (isSpeaking) stopSpeaking();
     const q = language === 'hi' ? p.query_hi : p.query_en;
     setTranscript(q);
     handleProcessQuery(q);
-  }, [isProcessing, language, handleProcessQuery]);
+  }, [isProcessing, isSpeaking, stopSpeaking, language, handleProcessQuery]);
 
   const handlePriceReport = async (e) => {
     e.preventDefault();
@@ -250,13 +275,46 @@ export default function UserVoiceApp() {
     <TooltipProvider>
     <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-5 items-start', largeText && 'large-text')}>
 
+      {/* ── Floating Sticky Stop Voice Banner (when AI is speaking) ──────────────── */}
+      {isSpeaking && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-3.5 px-5 py-3 rounded-full bg-slate-900/95 text-white shadow-2xl backdrop-blur-md border border-white/20">
+            <div className="waveform text-emerald-400">
+              {[...Array(5)].map((_, i) => <div key={i} className="waveform-bar" />)}
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-xs font-bold text-white leading-none">
+                {language === 'hi' ? 'एआई आवाज़ चालू है' : 'AI Speaking...'}
+              </span>
+              <span className="text-[10px] text-slate-300">
+                {language === 'hi' ? 'रोकने के लिए दबाएं (या Esc दबाएं)' : 'Press to stop (or Esc key)'}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={stopSpeaking}
+              className="h-8 text-xs font-extrabold gap-1.5 rounded-full px-4 shadow-md shadow-red-500/30"
+            >
+              <VolumeX size={14} />
+              {language === 'hi' ? 'आवाज़ रोकें' : 'Stop Audio'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3">
         {/* New query */}
         <Button
           className="w-full gap-2 font-bold"
           disabled={isProcessing}
-          onClick={() => { setActiveResult(null); setTranscript(''); setShowDetailed(false); }}
+          onClick={() => {
+            if (isSpeaking) stopSpeaking();
+            setActiveResult(null);
+            setTranscript('');
+            setShowDetailed(false);
+          }}
         >
           <Mic size={15} />
           {language === 'hi' ? '+ नई पूछताछ' : '+ New Voice Query'}
@@ -333,7 +391,12 @@ export default function UserVoiceApp() {
               ) : queryHistory.map((h) => (
                 <button
                   key={h._id}
-                  onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
+                  onClick={() => {
+                    if (isSpeaking) stopSpeaking();
+                    setActiveResult(h);
+                    setTranscript('');
+                    setShowDetailed(false);
+                  }}
                   className={cn(
                     'text-left p-3 rounded-xl transition-all flex flex-col gap-1 w-full text-xs border',
                     activeResult?._id === h._id
@@ -368,10 +431,10 @@ export default function UserVoiceApp() {
           <div className="relative z-10 text-center p-6 sm:p-10">
             {/* Status pill */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-semibold mb-5 backdrop-blur-sm">
-              {appState === 'IDLE'      && <><Sparkles size={12} className="text-amber-300" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
+              {appState === 'IDLE'      && !isSpeaking && <><Sparkles size={12} className="text-amber-300" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
               {appState === 'LISTENING' && <><Mic size={12} className="text-orange-300 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
               {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
-              {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
+              {isSpeaking               && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tight">
@@ -383,8 +446,8 @@ export default function UserVoiceApp() {
                 : 'Mandi rates, schemes, crop advisory — in your own dialect'}
             </p>
 
-            {/* Mic Button */}
-            <div className="flex justify-center mb-6">
+            {/* Mic Button & Quick Action Controls */}
+            <div className="flex flex-col items-center justify-center gap-3 mb-6">
               <div className={cn('mic-wrap', appState === 'LISTENING' && 'listening')}>
                 {(appState === 'LISTENING') && (
                   <>
@@ -399,12 +462,12 @@ export default function UserVoiceApp() {
                   className={cn(
                     'mic-btn',
                     appState === 'LISTENING'  && 'listening',
-                    appState === 'SPEAKING'   && 'speaking',
+                    isSpeaking                && 'speaking',
                     isProcessing              && 'processing'
                   )}
                   aria-label={appState === 'LISTENING' ? 'Stop listening' : 'Start listening'}
                 >
-                  {appState === 'SPEAKING' ? (
+                  {isSpeaking ? (
                     <div className="waveform text-white">
                       {[...Array(5)].map((_, i) => <div key={i} className="waveform-bar" />)}
                     </div>
@@ -417,6 +480,19 @@ export default function UserVoiceApp() {
                   )}
                 </button>
               </div>
+
+              {/* Dedicated Stop AI Voice Button under Mic when speaking */}
+              {isSpeaking && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={stopSpeaking}
+                  className="gap-2 font-bold rounded-full px-5 text-xs animate-bounce shadow-lg shadow-red-500/30"
+                >
+                  <VolumeX size={15} />
+                  {language === 'hi' ? 'आवाज़ बंद करें (Stop Voice)' : 'Stop AI Voice Output'}
+                </Button>
+              )}
             </div>
 
             {/* Live transcript */}
@@ -505,13 +581,13 @@ export default function UserVoiceApp() {
                   <Button
                     id="play-answer-btn"
                     size="sm"
-                    variant={appState === 'SPEAKING' ? 'destructive' : 'default'}
+                    variant={isSpeaking ? 'destructive' : 'default'}
                     className="h-7 text-xs gap-1.5 px-3"
                     onClick={() => handlePlayTTS(primaryAnswer(activeResult))}
                   >
-                    {appState === 'SPEAKING'
-                      ? <><VolumeX size={12} /> {language === 'hi' ? 'रोकें' : 'Stop'}</>
-                      : <><Volume2 size={12} /> {language === 'hi' ? 'सुनें' : 'Play'}</>}
+                    {isSpeaking
+                      ? <><VolumeX size={12} /> {language === 'hi' ? 'आवाज़ रोकें (Stop)' : 'Stop Audio'}</>
+                      : <><Volume2 size={12} /> {language === 'hi' ? 'सुनें (Play)' : 'Play Voice'}</>}
                   </Button>
                 </div>
                 <p className="text-lg sm:text-xl font-bold text-foreground leading-snug">
@@ -544,12 +620,15 @@ export default function UserVoiceApp() {
                         {detailedAnswer(activeResult)}
                       </p>
                       <Button
-                        size="sm" variant="outline"
+                        size="sm"
+                        variant={isSpeaking ? 'destructive' : 'outline'}
                         className="h-7 text-xs gap-1.5 px-3"
                         onClick={() => handlePlayTTS(detailedAnswer(activeResult))}
                       >
-                        <Volume2 size={12} />
-                        {language === 'hi' ? 'विस्तृत सुनें' : 'Play Detailed'}
+                        {isSpeaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                        {isSpeaking
+                          ? (language === 'hi' ? 'आवाज़ रोकें' : 'Stop Voice')
+                          : (language === 'hi' ? 'विस्तृत सुनें' : 'Play Detailed')}
                       </Button>
                     </div>
                   )}
