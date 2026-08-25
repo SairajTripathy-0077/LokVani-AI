@@ -1,143 +1,172 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { SignIn, SignUp, SignedIn, UserButton } from '@clerk/clerk-react';
-import { Landmark, CheckCircle2, Mic, ArrowLeft, Users, Lock } from 'lucide-react';
+import {
+  Landmark, CheckCircle2, Mic, ArrowLeft, Users, Lock,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const BENEFITS = [
+  {
+    icon: CheckCircle2,
+    title: 'Verified community status',
+    desc: 'Submit local mandi prices and voice queries with priority verification.',
+  },
+  {
+    icon: Landmark,
+    title: 'Scheme eligibility dashboard',
+    desc: 'Every government scheme you qualify for — PM-Kisan, Ayushman Bharat, PM Awas.',
+  },
+  {
+    icon: Users,
+    title: 'Personal query history',
+    desc: 'Past advisory responses and mandi alerts, available anywhere.',
+  },
+];
+
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#18181b',
+    colorBackground: '#ffffff',
+    borderRadius: '0.75rem',
+    fontFamily: "'Instrument Sans', ui-sans-serif, sans-serif",
+  },
+  elements: {
+    card: 'shadow-none border border-black/[0.06]',
+    socialButtonsBlockButton: 'border-black/[0.08] text-[13px]',
+    formButtonPrimary: 'bg-zinc-900',
+  },
+};
 
 export default function AuthPage() {
   const { setActiveTab } = useApp();
-  const [authMode, setAuthMode] = useState('signup'); // 'signup' | 'signin'
+  const [authMode, setAuthMode] = useState('signup');
 
-  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const isClerkAvailable =
+    typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
   return (
-    <div className="min-h-[calc(100vh-140px)] bg-slate-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/50">
-        
-        {/* Left Side: Brand & Benefits Summary */}
-        <div className="flex flex-col justify-between space-y-6">
-          <div>
+    <div className="flex min-h-[80dvh] items-center justify-center px-4 py-16 sm:px-6 sm:py-24">
+      <div className="w-full max-w-4xl rounded-[2rem] bg-zinc-200/50 p-1.5 ring-1 ring-black/[0.06] shadow-[0_40px_100px_-48px_rgba(24,24,27,0.25)]">
+        <div className="grid grid-cols-1 overflow-hidden rounded-[calc(2rem-6px)] bg-white lg:grid-cols-2">
+
+          {/* ── Left: brand & benefits ─────────────────────── */}
+          <div className="flex flex-col p-8 sm:p-12">
             <button
               onClick={() => setActiveTab('home')}
-              className="btn-secondary !py-1.5 !px-3 !text-xs mb-6"
+              className="group inline-flex w-max cursor-pointer items-center gap-1.5 text-xs font-medium text-zinc-400 transition-colors duration-500 ease-premium hover:text-zinc-700"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Homepage
+              <ArrowLeft size={13} strokeWidth={1.5} className="transition-transform duration-500 ease-premium group-hover:-translate-x-0.5" />
+              Back to home
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                <Mic className="w-5 h-5" />
-              </div>
-              <h2 className="text-2xl font-extrabold text-slate-900">LokVani AI Account</h2>
-            </div>
+            <span className="mt-10 flex h-10 w-10 items-center justify-center rounded-full border border-black/[0.07] bg-zinc-50 text-zinc-800">
+              <Mic size={16} strokeWidth={1.25} />
+            </span>
 
-            <p className="text-slate-600 text-sm mb-6 leading-relaxed">
-              Join the community-driven voice intelligence network for rural India and public government schemes matching.
+            <h1 className="mt-7 text-3xl font-semibold tracking-[-0.02em] text-zinc-900">
+              Join LokVani<span className="text-zinc-400">.</span>
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-500">
+              The community-driven voice intelligence network for rural India.
             </p>
 
-            <div className="space-y-4">
-              <div className="flex gap-3 items-start">
-                <CheckCircle2 className="w-5 h-5 text-sky-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Verified Community Status</h4>
-                  <p className="text-xs text-slate-500">Submit local Mandi prices & voice queries with priority verification.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start">
-                <Landmark className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Public Scheme Eligibility Dashboard</h4>
-                  <p className="text-xs text-slate-500">Discover all eligible government schemes (PM-Kisan, Ayushman Bharat, PM Awas) tailored to your personal details.</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 items-start">
-                <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Personalized Query History</h4>
-                  <p className="text-xs text-slate-500">Access past advisory voice responses & Mandi alert history anywhere.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100">
-            <button
-              onClick={() => setActiveTab('schemes')}
-              className="text-xs text-slate-500 hover:text-slate-800 underline font-medium inline-flex items-center gap-1"
-            >
-              <span>Skip for now and continue as Guest</span>
-              <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
-            </button>
-          </div>
-        </div>
-
-        {/* Right Side: Clerk Authentication Card */}
-        <div className="flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8">
-          {isClerkAvailable ? (
-            <div className="w-full">
-              {/* Toggle Mode Switcher */}
-              <div className="flex bg-slate-200/80 p-1 rounded-xl w-full mb-6">
-                <button
-                  onClick={() => setAuthMode('signup')}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
-                    authMode === 'signup' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Create Account (Sign Up)
-                </button>
-                <button
-                  onClick={() => setAuthMode('signin')}
-                  className={`flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
-                    authMode === 'signin' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Sign In
-                </button>
-              </div>
-
-              {/* Clerk Render */}
-              <SignedIn>
-                <div className="text-center space-y-4 py-4">
-                  <p className="text-sm font-bold text-emerald-600 flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>You are signed in!</span>
-                  </p>
-                  <div className="flex justify-center">
-                    <UserButton showName={true} />
+            <div className="mt-10 space-y-7">
+              {BENEFITS.map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="flex items-start gap-4">
+                  <Icon size={17} strokeWidth={1.25} className="mt-0.5 shrink-0 text-indigo-500" />
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
+                    <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">{desc}</p>
                   </div>
-                  <button
-                    onClick={() => setActiveTab('schemes')}
-                    className="btn-primary w-full justify-center !py-2.5 mt-4"
-                  >
-                    Go to Schemes Dashboard
-                  </button>
                 </div>
-              </SignedIn>
-
-              {authMode === 'signup' ? (
-                <SignUp routing="hash" signInUrl="#/signin" redirectUrl="/" />
-              ) : (
-                <SignIn routing="hash" signUpUrl="#/signup" redirectUrl="/" />
-              )}
+              ))}
             </div>
-          ) : (
-            <div className="text-center space-y-4 py-6">
-              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-                <Lock className="w-6 h-6" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900">Guest Mode Enabled</h3>
-              <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                Clerk publishable key has not been initialized in `.env`. You can explore all application features in Guest Mode.
-              </p>
+
+            <div className="mt-auto pt-10">
               <button
                 onClick={() => setActiveTab('schemes')}
-                className="btn-primary w-full justify-center !py-2.5"
+                className="group inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-zinc-400 underline decoration-black/[0.15] underline-offset-4 transition-colors duration-500 ease-premium hover:text-zinc-700"
               >
-                Launch Guest Dashboard
+                Continue as guest
+                <ArrowLeft size={12} strokeWidth={1.5} className="rotate-180 transition-transform duration-500 ease-premium group-hover:translate-x-0.5" />
               </button>
             </div>
-          )}
+          </div>
+
+          {/* ── Right: auth panel ──────────────────────────── */}
+          <div className="flex flex-col justify-center border-t border-black/[0.05] bg-zinc-50/60 p-8 sm:p-12 lg:border-l lg:border-t-0">
+            {isClerkAvailable ? (
+              <>
+                {/* Segmented toggle */}
+                <div className="mb-8 flex rounded-full border border-black/[0.06] bg-white p-1">
+                  {[
+                    ['signup', 'Create account'],
+                    ['signin', 'Sign in'],
+                  ].map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setAuthMode(mode)}
+                      className={cn(
+                        'flex-1 cursor-pointer rounded-full py-2 text-xs font-medium transition-all duration-500 ease-premium active:scale-[0.98]',
+                        authMode === mode
+                          ? 'bg-zinc-900 text-white shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-800'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <SignedIn>
+                  <div className="py-6 text-center">
+                    <p className="flex items-center justify-center gap-1.5 text-sm font-medium text-emerald-600">
+                      <CheckCircle2 size={14} strokeWidth={1.5} />
+                      You're signed in
+                    </p>
+                    <div className="mt-5 flex justify-center">
+                      <UserButton showName />
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('schemes')}
+                      className="group mt-8 inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-zinc-900 py-2 pl-6 pr-2 text-sm font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.98]"
+                    >
+                      Go to dashboard
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
+                        <ArrowLeft size={14} strokeWidth={1.5} className="rotate-180" />
+                      </span>
+                    </button>
+                  </div>
+                </SignedIn>
+
+                {authMode === 'signup' ? (
+                  <SignUp routing="hash" signInUrl="#/signin" redirectUrl="/" appearance={clerkAppearance} />
+                ) : (
+                  <SignIn routing="hash" signUpUrl="#/signup" redirectUrl="/" appearance={clerkAppearance} />
+                )}
+              </>
+            ) : (
+              <div className="py-6 text-center">
+                <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-black/[0.07] bg-white text-zinc-600">
+                  <Lock size={16} strokeWidth={1.25} />
+                </span>
+                <h3 className="mt-6 text-lg font-semibold tracking-tight text-zinc-900">Guest mode enabled</h3>
+                <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-zinc-500">
+                  Authentication isn't configured yet — explore every feature as a guest.
+                </p>
+                <button
+                  onClick={() => setActiveTab('schemes')}
+                  className="group mt-8 inline-flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-zinc-900 py-2 pl-6 pr-2 text-sm font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.98]"
+                >
+                  Launch guest dashboard
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
+                    <ArrowLeft size={14} strokeWidth={1.5} className="rotate-180" />
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

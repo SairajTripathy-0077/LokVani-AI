@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap } from 'lucide-react';
+import { Mic, FileText, Users, Globe, Home, LogIn } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { id: 'home',    label: 'Home',           icon: Home    },
-  { id: 'voice',   label: 'Voice AI',       icon: Mic     },
-  { id: 'schemes', label: 'Gov Schemes',    icon: FileText },
-  { id: 'intel',   label: 'Market Intel',   icon: Users   },
+  { id: 'home',    label: 'Home',         icon: Home     },
+  { id: 'voice',   label: 'Voice AI',     icon: Mic      },
+  { id: 'schemes', label: 'Schemes',      icon: FileText },
+  { id: 'intel',   label: 'Market Intel', icon: Users    },
 ];
 
 export default function Header() {
@@ -19,162 +16,204 @@ export default function Header() {
   const { isSignedIn } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isClerkAvailable = typeof window !== 'undefined' &&
-    import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const isClerkAvailable =
+    typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
   const showNav = !isClerkAvailable || isSignedIn;
 
+  const go = (tab) => {
+    setActiveTab(tab);
+    setMobileOpen(false);
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 px-3 pt-4 sm:px-4">
+      {/* ── Floating glass island ─────────────────────────── */}
+      <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between gap-2 rounded-full border border-black/[0.06] bg-white/75 pl-5 pr-2 shadow-[0_20px_50px_-28px_rgba(24,24,27,0.3)] backdrop-blur-xl">
 
-          {/* ── Brand ─────────────────────────────────────── */}
-          <button
-            onClick={() => { setActiveTab('home'); setMobileOpen(false); }}
-            className="flex items-center gap-3 group shrink-0"
-          >
-            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700" />
-              <Mic className="relative w-4.5 h-4.5 z-10" size={18} />
-            </div>
-            <div className="text-left hidden sm:block">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-black tracking-tight text-foreground leading-none">
-                  LokVani
-                </span>
-                <span className="text-base font-black tracking-tight text-primary leading-none">
-                  AI
-                </span>
-                <Badge variant="secondary" className="text-[9px] font-bold px-1.5 py-0 h-4 tracking-wide uppercase hidden sm:flex">
-                  Bharat
-                </Badge>
-              </div>
-              <p className="text-[10px] text-muted-foreground font-medium leading-none mt-0.5">
-                Inclusive Voice Intelligence
-              </p>
-            </div>
-          </button>
+        {/* Brand */}
+        <button
+          onClick={() => go('home')}
+          className="group flex shrink-0 cursor-pointer items-center gap-2.5"
+          aria-label="LokVani home"
+        >
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white transition-transform duration-500 ease-premium group-hover:scale-105">
+            <Mic size={13} strokeWidth={1.5} />
+          </span>
+          <span className="hidden font-heading text-lg font-semibold tracking-[-0.01em] text-zinc-900 sm:block">
+            LokVani
+            <span className="ml-1.5 align-middle font-body text-[10px] font-medium uppercase tracking-[0.18em] text-emerald-700/80">Bharat</span>
+          </span>
+        </button>
 
-          {/* ── Desktop Nav ───────────────────────────────── */}
-          {showNav && (
-            <nav className="hidden md:flex items-center gap-0.5 p-1 rounded-xl bg-muted/60 border border-border/40">
-              {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-                const active = activeTab === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    className={cn(
-                      'relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200',
-                      active
-                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
-                    )}
-                  >
-                    <Icon size={14} />
-                    <span>{label}</span>
-                    {id === 'schemes' && pendingReviewsCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                        {pendingReviewsCount}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          )}
-
-          {/* ── Right Actions ─────────────────────────────── */}
-          <div className="flex items-center gap-2">
-            {/* Language toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
-              className="hidden sm:flex gap-1.5 text-xs font-semibold rounded-lg h-8 px-3"
-            >
-              <Globe size={13} className="text-primary" />
-              {language === 'hi' ? 'हिं' : 'EN'}
-            </Button>
-
-            <Separator orientation="vertical" className="h-6 hidden sm:block" />
-
-            {/* Auth */}
-            {isClerkAvailable ? (
-              <>
-                <SignedOut>
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs">
-                      <LogIn size={13} /> Sign In
-                    </Button>
-                    <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
-                      <UserPlus size={13} /> Sign Up
-                    </Button>
-                  </div>
-                </SignedOut>
-                <SignedIn>
-                  <div className="flex items-center gap-2">
-                    <div className="p-0.5 rounded-full ring-2 ring-primary/20">
-                      <UserButton showName={false} />
-                    </div>
-                  </div>
-                </SignedIn>
-              </>
-            ) : (
-              <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
-                <Zap size={13} /> Guest Mode
-              </Button>
-            )}
-
-            {/* Mobile hamburger */}
-            {showNav && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden h-8 w-8"
-                onClick={() => setMobileOpen(o => !o)}
-              >
-                {mobileOpen ? <X size={17} /> : <Menu size={17} />}
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Mobile Menu ───────────────────────────────── */}
-        {mobileOpen && showNav && (
-          <div className="md:hidden border-t border-border/40 py-3 flex flex-col gap-1">
+        {/* Desktop nav */}
+        {showNav && (
+          <nav className="hidden items-center gap-0.5 md:flex" aria-label="Primary">
             {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
               const active = activeTab === id;
               return (
                 <button
                   key={id}
-                  onClick={() => { setActiveTab(id); setMobileOpen(false); }}
+                  onClick={() => go(id)}
                   className={cn(
-                    'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all',
+                    'relative flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium',
+                    'transition-all duration-500 ease-premium active:scale-[0.97]',
                     active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                      ? 'bg-zinc-900 text-white'
+                      : 'text-zinc-500 hover:bg-black/[0.04] hover:text-zinc-900'
                   )}
                 >
-                  <Icon size={15} />
-                  {label}
+                  <Icon size={13} strokeWidth={1.5} />
+                  <span>{label}</span>
                   {id === 'schemes' && pendingReviewsCount > 0 && (
-                    <Badge variant="destructive" className="ml-auto text-[9px] h-4 px-1.5">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-semibold text-white leading-none ring-2 ring-white">
                       {pendingReviewsCount}
-                    </Badge>
+                    </span>
                   )}
                 </button>
               );
             })}
-            <Separator className="my-1" />
-            <div className="flex items-center gap-2 px-2">
-              <Button variant="ghost" size="sm" onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')} className="gap-1.5 text-xs">
-                <Globe size={13} /> {language === 'hi' ? 'English' : 'हिंदी'}
-              </Button>
-            </div>
-          </div>
+          </nav>
         )}
+
+        {/* Right actions */}
+        <div className="flex items-center gap-1.5">
+          {/* Language toggle */}
+          <button
+            onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
+            className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-medium text-zinc-500 transition-all duration-500 ease-premium hover:bg-black/[0.04] hover:text-zinc-900 sm:flex"
+            aria-label="Toggle language"
+          >
+            <Globe size={12} strokeWidth={1.5} />
+            {language === 'hi' ? 'हिं' : 'EN'}
+          </button>
+
+          {/* Auth */}
+          {isClerkAvailable ? (
+            <>
+              <SignedOut>
+                <button
+                  onClick={() => go('auth')}
+                  className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-medium text-zinc-600 transition-all duration-500 ease-premium hover:bg-black/[0.04] hover:text-zinc-900 sm:flex"
+                >
+                  <LogIn size={12} strokeWidth={1.5} /> Sign in
+                </button>
+                <button
+                  onClick={() => go('auth')}
+                  className="flex h-9 cursor-pointer items-center rounded-full bg-zinc-900 px-4 text-xs font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.96]"
+                >
+                  Get started
+                </button>
+              </SignedOut>
+              <SignedIn>
+                <div className="rounded-full p-0.5 ring-1 ring-black/[0.08]">
+                  <UserButton showName={false} />
+                </div>
+              </SignedIn>
+            </>
+          ) : (
+            <button
+              onClick={() => go('auth')}
+              className="flex h-9 cursor-pointer items-center rounded-full bg-zinc-900 px-4 text-xs font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.96]"
+            >
+              Guest mode
+            </button>
+          )}
+
+          {/* Hamburger — morphs to X */}
+          {showNav && (
+            <button
+              onClick={() => setMobileOpen(o => !o)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors duration-500 hover:bg-black/[0.04] md:hidden"
+            >
+              <span
+                className={cn(
+                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                  'transition-all duration-500 ease-premium',
+                  mobileOpen ? 'rotate-45' : '-translate-y-[3px]'
+                )}
+              />
+              <span
+                className={cn(
+                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                  'transition-all duration-500 ease-premium',
+                  mobileOpen ? '-rotate-45' : 'translate-y-[3px]'
+                )}
+              />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Full-screen mobile overlay ────────────────────── */}
+      <div
+        className={cn(
+          'fixed inset-0 z-40 flex flex-col justify-center bg-[#fbfbfa]/90 px-8 backdrop-blur-2xl md:hidden',
+          'transition-opacity duration-500 ease-premium',
+          mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        )}
+        aria-hidden={!mobileOpen}
+      >
+        {showNav && (
+          <nav className="flex flex-col gap-7" aria-label="Mobile">
+            {NAV_ITEMS.map(({ id, label, icon: Icon }, i) => {
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => go(id)}
+                  tabIndex={mobileOpen ? 0 : -1}
+                  style={{ transitionDelay: mobileOpen ? `${120 + i * 70}ms` : '0ms' }}
+                  className={cn(
+                    'group flex w-max cursor-pointer items-center gap-4 text-left',
+                    'transition-all duration-700 ease-premium',
+                    mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-500',
+                      active
+                        ? 'border-zinc-900 bg-zinc-900 text-white'
+                        : 'border-black/[0.08] bg-white text-zinc-500 group-hover:border-emerald-200 group-hover:text-emerald-800'
+                    )}
+                  >
+                    <Icon size={17} strokeWidth={1.25} />
+                  </span>
+                  <span
+                    className={cn(
+                      'text-2xl font-medium tracking-tight',
+                      active ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'
+                    )}
+                  >
+                    {label}
+                  </span>
+                  {id === 'schemes' && pendingReviewsCount > 0 && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      {pendingReviewsCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+
+        <button
+          onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
+          tabIndex={mobileOpen ? 0 : -1}
+          style={{ transitionDelay: mobileOpen ? '420ms' : '0ms' }}
+          className={cn(
+            'mt-14 flex w-max cursor-pointer items-center gap-2 rounded-full border border-black/[0.08] bg-white px-5 py-2.5 text-sm font-medium text-zinc-700',
+            'transition-all duration-700 ease-premium',
+            mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          )}
+        >
+          <Globe size={14} strokeWidth={1.5} />
+          {language === 'hi' ? 'Switch to English' : 'हिंदी में देखें'}
+        </button>
       </div>
     </header>
   );

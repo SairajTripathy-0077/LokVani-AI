@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "high-end-visual-design": {
+      "source": "nexu-io/open-design",
+      "sourceType": "github",
+      "skillPath": "skills/soft-skill/SKILL.md",
+      "computedHash": "684b74e4d64162227792129c0875e5319ff55eea491fd3224ada43b61e1f2e03"
+    }
+  }
+}

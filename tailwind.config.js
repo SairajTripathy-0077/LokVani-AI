@@ -57,8 +57,8 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        heading: ['Outfit', 'Geist', '-apple-system', 'sans-serif'],
-        body:    ['Inter', 'Plus Jakarta Sans', '-apple-system', 'sans-serif'],
+        heading: ['Fraunces', 'Georgia', 'serif'],
+        body:    ['Instrument Sans', 'ui-sans-serif', '-apple-system', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
