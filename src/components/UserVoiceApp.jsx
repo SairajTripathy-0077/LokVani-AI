@@ -5,8 +5,8 @@ import { processUserSpeechQuery } from '../services/aiCoreEngine';
 import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
-  ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Zap, Clock, MapPin,
-  ThumbsUp, ThumbsDown
+  ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Clock, MapPin,
+  ThumbsUp, ThumbsDown, Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -266,7 +266,7 @@ export default function UserVoiceApp() {
         <Card className="p-0 overflow-hidden">
           <div className="px-4 pt-3 pb-1">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span>🌐</span> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
+              <Globe size={11} /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
             </p>
           </div>
           <div className="px-3 pb-3">
@@ -296,7 +296,7 @@ export default function UserVoiceApp() {
                   size="sm"
                   variant={ttsRate === r ? 'default' : 'outline'}
                   onClick={() => setTtsRate(r)}
-                  className="h-8 text-xs font-bold"
+                  className="h-8 text-xs font-semibold tabular-nums"
                 >
                   {r}×
                 </Button>
@@ -360,24 +360,24 @@ export default function UserVoiceApp() {
       <div className="flex-1 w-full min-w-0 space-y-4">
 
         {/* Hero / Mic section */}
-        <div className="relative overflow-hidden rounded-2xl hero-bg shadow-xl shadow-indigo-900/20">
+        <div className="relative overflow-hidden rounded-3xl hero-bg shadow-[0_32px_80px_-40px_rgba(24,24,27,0.4)]">
           {/* Bg blobs */}
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
-          <div className="absolute -bottom-20 -left-16 w-72 h-72 rounded-full bg-indigo-400/10 pointer-events-none" />
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/[0.04] pointer-events-none" />
+          <div className="absolute -bottom-20 -left-16 w-72 h-72 rounded-full bg-[#a3b86b]/[0.06] pointer-events-none" />
 
           <div className="relative z-10 text-center p-6 sm:p-10">
             {/* Status pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-semibold mb-5 backdrop-blur-sm">
-              {appState === 'IDLE'      && <><Sparkles size={12} className="text-amber-300" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/[0.12] text-white/90 text-xs font-medium mb-5">
+              {appState === 'IDLE'      && <><Sparkles size={12} className="text-[#d6a83a]" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
               {appState === 'LISTENING' && <><Mic size={12} className="text-orange-300 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
               {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
               {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tight">
+            <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-[-0.01em] text-white mb-2">
               {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
             </h2>
-            <p className="text-indigo-200 text-sm max-w-sm mx-auto mb-8">
+            <p className="text-zinc-400 text-sm max-w-sm mx-auto mb-8 leading-relaxed">
               {language === 'hi'
                 ? 'मंडी भाव, सरकारी योजनाएं, फसल सलाह — अपनी भाषा में'
                 : 'Mandi rates, schemes, crop advisory — in your own dialect'}
@@ -427,8 +427,8 @@ export default function UserVoiceApp() {
             )}
 
             {/* Demo Presets */}
-            <div className="border-t border-white/15 pt-5">
-              <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-3">
+            <div className="border-t border-white/[0.1] pt-5">
+              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
                 {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Examples'}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -440,9 +440,9 @@ export default function UserVoiceApp() {
                       id={`preset-${i}`}
                       onClick={() => handlePresetSelect(p)}
                       disabled={isProcessing}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 transition-all disabled:opacity-40 backdrop-blur-sm"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.07] hover:bg-white/[0.14] text-white text-xs font-medium border border-white/[0.12] transition-all duration-500 ease-premium active:scale-[0.97] disabled:opacity-40"
                     >
-                      <Icon size={12} className="text-amber-300" />
+                      <Icon size={12} className="text-[#d6a83a]" />
                       {language === 'hi' ? p.label_hi : p.label_en}
                     </button>
                   );
@@ -496,10 +496,10 @@ export default function UserVoiceApp() {
               </p>
 
               {/* Short Answer */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 space-y-3">
+              <div className="p-5 sm:p-6 rounded-2xl bg-[#f4f8f2] border border-[#c8dcc4] space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
-                    <Zap size={11} />
+                  <p className="text-[10px] font-bold text-[#48734f] uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles size={11} />
                     {language === 'hi' ? 'त्वरित उत्तर' : 'Quick Answer'}
                   </p>
                   <Button
@@ -567,7 +567,7 @@ export default function UserVoiceApp() {
                   <Button
                     variant="link"
                     size="sm"
-                    className="h-auto p-0 text-xs font-bold text-indigo-600 gap-1"
+                    className="h-auto p-0 text-xs font-bold text-[#48734f] gap-1"
                     onClick={() => setActiveTab('schemes')}
                   >
                     {language === 'hi' ? 'योजनाएं डैशबोर्ड खोलें' : 'Open Schemes Dashboard'}

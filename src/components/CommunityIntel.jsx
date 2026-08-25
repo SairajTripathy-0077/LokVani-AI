@@ -71,6 +71,7 @@ import {
   CloudSun,
   Users,
   BarChart2,
+  Inbox,
 } from 'lucide-react';
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -381,7 +382,7 @@ export default function CommunityIntel() {
             ))
           ) : (
             <div className="community-int__empty" role="status">
-              <div className="community-int__empty-icon" aria-hidden="true">📭</div>
+              <Inbox size={30} strokeWidth={1.25} style={{ color: 'var(--text-dim)', marginBottom: 12 }} aria-hidden="true" />
               <h4 className="community-int__empty-title">{t('emptyTitle', lang)}</h4>
               <p className="community-int__empty-sub">
                 {searchQuery || activeCategory !== 'All'

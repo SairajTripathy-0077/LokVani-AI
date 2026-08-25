@@ -11,34 +11,34 @@
 /* ─── 1. Module-scoped Design Tokens ──────────────────────────────────────── */
 :root {
   /* Trend Colors */
-  --ci-trend-up:      #16a34a;   /* Green — price rising  */
-  --ci-trend-down:    #dc2626;   /* Red   — price falling */
-  --ci-trend-stable:  #d97706;   /* Amber — stable (echoes --accent-gold) */
+  --ci-trend-up:      #3d6544;   /* Sage-green — price rising  */
+  --ci-trend-down:    #b91c1c;   /* Red   — price falling */
+  --ci-trend-stable:  #a07a1e;   /* Wheat — stable */
 
   /* Category Chip */
-  --ci-tag-bg:        #eff6ff;
-  --ci-tag-text:      #1d4ed8;
+  --ci-tag-bg:        #f4f8f2;
+  --ci-tag-text:      #3d6544;
 
   /* Skeleton Loader */
-  --ci-skeleton:      #e2e8f0;
-  --ci-skeleton-shine:#f8fafc;
+  --ci-skeleton:      #e8e8e4;
+  --ci-skeleton-shine:#f7f7f5;
 
   /* Toast Notification */
-  --ci-toast-bg:      #0f172a;
-  --ci-toast-text:    #f8fafc;
+  --ci-toast-bg:      #1c2419;
+  --ci-toast-text:    #f2f4ec;
 
   /* MSP Warning */
-  --ci-msp-bg:        #fef2f2;
-  --ci-msp-border:    #fca5a5;
+  --ci-msp-bg:        #fdf6f5;
+  --ci-msp-border:    #f0cfc9;
   --ci-msp-text:      #b91c1c;
 
   /* Sale Window Banner */
-  --ci-banner-bg:     linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-  --ci-banner-border: #bfdbfe;
+  --ci-banner-bg:     linear-gradient(135deg, #f7faf4 0%, #fbf7ec 100%);
+  --ci-banner-border: #dbe7d4;
 
   /* Buyer Card */
-  --ci-buyer-badge-bg:   #f0fdf4;
-  --ci-buyer-badge-text: #15803d;
+  --ci-buyer-badge-bg:   #f4f8f2;
+  --ci-buyer-badge-text: #3d6544;
 }
 
 /* ─── 2. Page Layout ──────────────────────────────────────────────────────── */
@@ -276,12 +276,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.5s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s cubic-bezier(0.32, 0.72, 0, 1), transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .community-int__price-card:hover {
   border-color: var(--border-muted);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 44px -28px rgba(24, 24, 27, 0.25);
+  transform: translateY(-2px);
 }
 
 .community-int__price-card__top {

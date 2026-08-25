@@ -103,7 +103,7 @@ class GeminiKeyRotator {
       if (!active || !active.key) break;
 
       const { key, index } = active;
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro'];
+      const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
       let lastError = null;
 
       for (const modelName of modelsToTry) {

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
@@ -184,6 +184,8 @@ function Contours({ className = '' }) {
   );
 }
 
+
+
 /* ── Decorative: birds in flight ───────────────────────────── */
 function Birds({ className = '' }) {
   return (
@@ -193,6 +195,110 @@ function Birds({ className = '' }) {
       <path d="M118 34 C122 29 126 29 129 33 C132 29 136 29 140 34" opacity="0.28" />
     </svg>
   );
+}
+
+/* ── Deterministic PRNG — same quiet scatter on every visit ── */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ── Farming motifs — single-colour line art ───────────────── */
+function MotifSvg({ type }) {
+  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' };
+  switch (type) {
+    case 'sprout':
+      return (
+        <svg viewBox="0 0 24 26" width="26" height="28" {...p}>
+          <path d="M12 24 V12" />
+          <path d="M12 12 C12 8 9 5 4 5 C4 10 8 12 12 12 Z" />
+          <path d="M12 12 C12 8 15 5 20 5 C20 10 16 12 12 12 Z" />
+        </svg>
+      );
+    case 'leaf':
+      return (
+        <svg viewBox="0 0 24 24" width="24" height="24" {...p}>
+          <path d="M4 20 C4 10 10 4 20 4 C20 14 14 20 4 20 Z" />
+          <path d="M6 18 C10 13 14 9 18 6" />
+        </svg>
+      );
+    case 'furrow':
+      return (
+        <svg viewBox="0 0 48 32" width="44" height="30" {...p}>
+          <path d="M2 29 C14 21 34 21 46 29" />
+          <path d="M6 22 C16 15 32 15 42 22" />
+          <path d="M13 15 C20 11 28 11 35 15" />
+        </svg>
+      );
+    case 'seeds':
+      return (
+        <svg viewBox="0 0 32 24" width="30" height="22" {...p}>
+          <ellipse cx="8" cy="9" rx="3" ry="1.8" transform="rotate(-25 8 9)" />
+          <ellipse cx="21" cy="6" rx="3" ry="1.8" transform="rotate(18 21 6)" />
+          <ellipse cx="14" cy="17" rx="3" ry="1.8" transform="rotate(-42 14 17)" />
+          <ellipse cx="27" cy="16" rx="3" ry="1.8" transform="rotate(30 27 16)" />
+        </svg>
+      );
+    case 'wheat':
+      return (
+        <svg viewBox="0 0 20 34" width="20" height="34" {...p}>
+          <path d="M10 33 V14" />
+          <path d="M10 20 C6 18 4.5 15 5 12 C8.5 13.5 10 16 10 20 Z" />
+          <path d="M10 20 C14 18 15.5 15 15 12 C11.5 13.5 10 16 10 20 Z" />
+          <path d="M10 13 C6.5 11 5.5 8.5 6 6 C9 7.5 10 9.5 10 13 Z" />
+          <path d="M10 13 C13.5 11 14.5 8.5 14 6 C11 7.5 10 9.5 10 13 Z" />
+          <path d="M10 7 C8 5.5 7.5 3.5 8 1.5" />
+          <path d="M10 7 C12 5.5 12.5 3.5 12 1.5" />
+        </svg>
+      );
+    case 'bubble':
+      return (
+        <svg viewBox="0 0 28 24" width="26" height="22" {...p}>
+          <path d="M3 4 H21 A3 3 0 0 1 24 7 V13 A3 3 0 0 1 21 16 H11 L6 21 V16 H3 A1 1 0 0 1 2 15 V7 A3 3 0 0 1 3 4 Z" transform="translate(1,0)" />
+          <circle cx="9" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
+          <circle cx="13.5" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
+          <circle cx="18" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
+        </svg>
+      );
+    case 'mic':
+      return (
+        <svg viewBox="0 0 20 30" width="17" height="26" {...p}>
+          <rect x="6.5" y="2" width="7" height="13" rx="3.5" />
+          <path d="M3 12 C3 17 6 20 10 20 C14 20 17 17 17 12" />
+          <path d="M10 20 V25 M6 27 H14" />
+        </svg>
+      );
+    case 'coin':
+      return (
+        <svg viewBox="0 0 24 24" width="22" height="22" {...p}>
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M9 7.5 H14 M9 10.5 H14 M13.5 7.5 C11.5 8 10.5 9 10.5 10.5 C10.5 12.5 12 13.5 14 13.5 L9 17.5" />
+        </svg>
+      );
+    case 'doc':
+      return (
+        <svg viewBox="0 0 22 26" width="19" height="23" {...p}>
+          <path d="M3 1 H14 L19 6 V25 H3 Z" />
+          <path d="M14 1 V6 H19" />
+          <path d="M6.5 11 H15.5 M6.5 14.5 H15.5 M6.5 18 H12.5" />
+        </svg>
+      );
+    case 'waves':
+      return (
+        <svg viewBox="0 0 30 24" width="27" height="21" {...p}>
+          <circle cx="4" cy="12" r="1.2" fill="currentColor" strokeWidth="0" />
+          <path d="M9 7 C11.5 9.5 11.5 14.5 9 17" />
+          <path d="M14 4 C18 8 18 16 14 20" />
+          <path d="M19 1.5 C24.5 7 24.5 17 19 22.5" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }
 
 const PILLARS = [
@@ -227,6 +333,31 @@ export default function LandingPage() {
 
   const handleLaunch = () => setActiveTab(isClerkAvailable && !isSignedIn ? 'auth' : 'voice');
 
+  /* Quiet scatter of farm + product motifs — jittered grid so it
+     spreads evenly across every screen, seeded to stay put */
+  const scatter = useMemo(() => {
+    const rnd = mulberry32(11);
+    const types = [
+      'sprout', 'leaf', 'furrow', 'seeds', 'wheat',
+      'bubble', 'mic', 'coin', 'doc', 'waves',
+    ];
+    const cols = 4, rows = 3;
+    return Array.from({ length: cols * rows }, (_, i) => {
+      const cx = i % cols;
+      const cy = Math.floor(i / cols);
+      return {
+        type: types[Math.floor(rnd() * types.length)],
+        left: ((cx + 0.18 + rnd() * 0.64) / cols) * 100,
+        top: ((cy + 0.18 + rnd() * 0.64) / rows) * 100,
+        rot: (rnd() - 0.5) * 64,
+        scale: (1.2 + rnd() * 1.1).toFixed(2),
+        opacity: (0.14 + rnd() * 0.12).toFixed(3),
+        dur: (9 + rnd() * 9).toFixed(1),
+        delay: (-rnd() * 12).toFixed(1),
+      };
+    });
+  }, []);
+
   return (
     <div className="relative overflow-x-clip">
 
@@ -259,10 +390,7 @@ export default function LandingPage() {
           <div className="h-full w-full rounded-full bg-white/45 blur-2xl" />
         </Parallax>
 
-        {/* birds crossing the sun */}
-        <Parallax speed={0.07} className="absolute right-[22%] top-[9%] w-40">
-          <Birds className="w-full" />
-        </Parallax>
+
 
         {/* sage field glow, mid left */}
         <div
@@ -318,6 +446,27 @@ export default function LandingPage() {
           />
         ))}
       </div>
+
+      {/* ══ Fixed doodle layer — evenly spread across the screen ══ */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 hidden md:block">
+        <div className="absolute inset-0 text-[#48734f]">
+          {scatter.map((m, i) => (
+            <span key={i} className="absolute block" style={{ left: `${m.left}%`, top: `${m.top}%` }}>
+              <span
+                className="block"
+                style={{ opacity: m.opacity, animation: `floatBlob ${m.dur}s ease-in-out ${m.delay}s infinite` }}
+              >
+                <span className="block" style={{ transform: `rotate(${m.rot}deg) scale(${m.scale})` }}>
+                  <MotifSvg type={m.type} />
+                </span>
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ══ Content — above the doodle layer ══════════════════ */}
+      <div className="relative z-10">
 
       {/* ══ Hero — dawn over the fields ═══════════════════════ */}
       <section className="relative">
@@ -499,7 +648,18 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* ══ End of content ═══════════════════════════════════ */}
+      {/* ══ Valley floor — grass line into the footer ════════ */}
+      <div aria-hidden className="relative -mb-px pb-2">
+        <Grass className="block h-16 w-full" />
+      </div>
+
+      <Reveal delay={100} className="relative pb-16">
+        <p className="text-center font-heading text-xl italic text-zinc-400">
+          Kisan ka apna saathi<span className="not-italic text-[#c49a2a]">.</span>
+        </p>
+      </Reveal>
+      </div>
     </div>
   );
 }
+
