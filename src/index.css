@@ -1,172 +1,248 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  /* Premium Light Slate & Vibrant Blue Theme */
-  --bg-main: #f8fafc;         /* Clean Soft Off-White/Slate */
-  --bg-surface: #ffffff;      /* Crisp Pure White */
-  --bg-hover: #f1f5f9;        /* Soft Hover Slate */
+@layer base {
+  :root {
+    /* shadcn design tokens (hex/hsl for Tailwind v3 compatibility) */
+    --background:            255 255 255;
+    --foreground:            15  23  42;
+    --card:                  255 255 255;
+    --card-foreground:       15  23  42;
+    --popover:               255 255 255;
+    --popover-foreground:    15  23  42;
+    --primary:               79  70  229;
+    --primary-foreground:    255 255 255;
+    --secondary:             238 242 255;
+    --secondary-foreground:  55  48  163;
+    --muted:                 241 245 249;
+    --muted-foreground:      100 116 139;
+    --accent:                238 242 255;
+    --accent-foreground:     55  48  163;
+    --destructive:           239 68  68;
+    --border:                226 232 240;
+    --input:                 226 232 240;
+    --ring:                  79  70  229;
+    --radius:                0.75rem;
+    --sidebar:               248 250 252;
+    --sidebar-foreground:    15  23  42;
+    --sidebar-primary:       79  70  229;
+    --sidebar-primary-foreground: 255 255 255;
+    --sidebar-accent:        238 242 255;
+    --sidebar-accent-foreground: 55 48 163;
+    --sidebar-border:        226 232 240;
+    --sidebar-ring:          79  70  229;
+  }
 
-  --border-subtle: #e2e8f0;   /* Light Slate Border */
-  --border-muted: #cbd5e1;    /* Muted Slate Border */
+  .dark {
+    --background:            15  23  42;
+    --foreground:            248 250 252;
+    --card:                  30  41  59;
+    --card-foreground:       248 250 252;
+    --popover:               30  41  59;
+    --popover-foreground:    248 250 252;
+    --primary:               129 140 248;
+    --primary-foreground:    15  23  42;
+    --secondary:             30  27  75;
+    --secondary-foreground:  224 231 255;
+    --muted:                 30  41  59;
+    --muted-foreground:      148 163 184;
+    --accent:                49  46  129;
+    --accent-foreground:     224 231 255;
+    --destructive:           248 113 113;
+    --border:                51  65  85;
+    --input:                 51  65  85;
+    --ring:                  129 140 248;
+    --sidebar:               23  37  57;
+    --sidebar-foreground:    226 232 240;
+    --sidebar-primary:       129 140 248;
+    --sidebar-primary-foreground: 15 23 42;
+    --sidebar-accent:        49  46  129;
+    --sidebar-accent-foreground: 224 231 255;
+    --sidebar-border:        51  65  85;
+    --sidebar-ring:          129 140 248;
+  }
 
-  --accent-primary: #2563eb;  /* Vibrant Royal Blue */
-  --accent-gold: #d97706;     /* Deep Warm Amber */
-  --accent-cyan: #0284c7;     /* Vibrant Steel Cyan */
+  * { box-sizing: border-box; }
 
-  --text-main: #0f172a;       /* Dark Charcoal High Contrast Text */
-  --text-muted: #475569;      /* Medium Slate Muted Text */
-  --text-dim: #64748b;        /* Subtle Slate Dim Text */
+  html { scroll-behavior: smooth; }
 
-  --radius-none: 0px;
-  --radius-sm: 6px;
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen;
+    font-family: 'Instrument Sans', ui-sans-serif, -apple-system, sans-serif;
+    background-color: #fbfbfa;
+    letter-spacing: -0.006em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+    font-variation-settings: 'opsz' 72, 'SOFT' 40;
+    @apply tracking-[-0.01em] font-semibold;
+  }
+
+  ::selection { background: rgba(79,70,229,.12); }
+
+  .large-text { font-size: 1.15rem !important; }
+  .large-text h2 { font-size: 2rem !important; }
+  .large-text p, .large-text span, .large-text li, .large-text button { font-size: 1.05rem !important; }
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ── Keyframe Animations ─────────────────────────────────────── */
+@keyframes mic-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  70%  { transform: scale(1.7); opacity: 0;   }
+  100% { transform: scale(1.7); opacity: 0;   }
+}
+@keyframes mic-ring-2 {
+  0%   { transform: scale(1);   opacity: 0.35; }
+  70%  { transform: scale(2.2); opacity: 0;    }
+  100% { transform: scale(2.2); opacity: 0;    }
+}
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.3); }
+  50%       { transform: scaleY(1);   }
+}
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes floatBlob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-18px) scale(1.04); }
+}
+@keyframes gradShift {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9;  }
 }
 
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: var(--font-body);
-  line-height: 1.6;
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+/* ── Components ──────────────────────────────────────────────── */
+@layer components {
+  /* ── Mic Button System ─────────────────────────────────── */
+  .mic-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    height: 112px;
+  }
+  .mic-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(99,102,241,.3);
+    animation: mic-ring 1.8s ease-out infinite;
+    pointer-events: none;
+  }
+  .mic-ring-2 {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(99,102,241,.15);
+    animation: mic-ring-2 1.8s ease-out .5s infinite;
+    pointer-events: none;
+  }
+  .listening .mic-ring   { background: rgba(239,68,68,.3); }
+  .listening .mic-ring-2 { background: rgba(239,68,68,.15); }
+
+  .mic-btn {
+    position: relative; z-index: 2;
+    width: 88px; height: 88px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.55);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    box-shadow: 0 8px 32px rgba(99,102,241,.45), 0 2px 8px rgba(99,102,241,.25);
+    color: white;
+  }
+  .mic-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 12px 40px rgba(99,102,241,.55); }
+  .mic-btn:active:not(:disabled) { transform: scale(.95); }
+  .mic-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .mic-btn.listening { background: linear-gradient(135deg,#ef4444,#dc2626); box-shadow: 0 8px 32px rgba(239,68,68,.5); border-color: rgba(254,202,202,.6); }
+  .mic-btn.speaking  { background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 8px 32px rgba(16,185,129,.5); border-color: rgba(167,243,208,.6); }
+  .mic-btn.processing{ background: linear-gradient(135deg,#8b5cf6,#7c3aed); cursor: not-allowed; }
+
+  /* ── Waveform ─────────────────────────────────────────── */
+  .waveform { display:flex; align-items:center; gap:3px; height:30px; }
+  .waveform-bar { width:4px; height:100%; border-radius:2px; background:currentColor; transform-origin:bottom; }
+  .waveform-bar:nth-child(1){ animation: waveBar .85s ease-in-out 0.00s infinite; }
+  .waveform-bar:nth-child(2){ animation: waveBar .85s ease-in-out 0.12s infinite; }
+  .waveform-bar:nth-child(3){ animation: waveBar .85s ease-in-out 0.24s infinite; }
+  .waveform-bar:nth-child(4){ animation: waveBar .85s ease-in-out 0.36s infinite; }
+  .waveform-bar:nth-child(5){ animation: waveBar .85s ease-in-out 0.48s infinite; }
+
+  /* ── Skeleton ─────────────────────────────────────────── */
+  .skeleton {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.4s infinite linear;
+    border-radius: 8px;
+  }
+
+  /* ── Response card ────────────────────────────────────── */
+  .response-card { animation: fadeUp .35s ease both; }
+
+  /* ── Hero gradient ────────────────────────────────────── */
+  .hero-bg {
+    background: linear-gradient(135deg, #312e81 0%, #4338ca 35%, #4f46e5 60%, #3730a3 100%);
+    background-size: 300% 300%;
+    animation: gradShift 10s ease infinite;
+  }
+
+  .hero-blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); pointer-events: none;
+    animation: floatBlob 7s ease-in-out infinite;
+  }
+
+  /* ── Confidence badges ────────────────────────────────── */
+  .badge-high   { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-200; }
+  .badge-medium { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-amber-100   text-amber-800   border border-amber-200;   }
+  .badge-low    { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-red-100     text-red-800     border border-red-200;     }
+
+  /* ── Premium motion ───────────────────────────────────── */
+  .ease-premium { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ── Film grain (fixed overlay only) ──────────────────── */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: -0.02em;
-}
-
-/* Minimal Flat Container (No Cards, No Box Shadows, No Rounded Capsules) */
-.minimal-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 20px;
-}
-
-.minimal-section {
-  padding: 28px 0;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.minimal-section:last-child {
-  border-bottom: none;
-}
-
-/* Buttons - Flat Minimal Solid Styling */
-.btn-primary {
-  background: var(--accent-primary);
-  color: #ffffff;
-  font-weight: 600;
-  padding: 10px 20px;
-  border-radius: var(--radius-sm);
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  transition: opacity 0.15s ease;
-}
-
-.btn-primary:hover {
-  opacity: 0.9;
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--text-main);
-  font-weight: 600;
-  padding: 9px 18px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
-  transition: background-color 0.15s ease;
-}
-
-.btn-secondary:hover {
-  background: var(--bg-hover);
-}
-
-/* Microphone Action Trigger */
-.mic-btn-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 32px 0;
-}
-
-.mic-btn {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  border: 2px solid var(--border-muted);
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.mic-btn:hover {
-  background: #2563eb;
-}
-
-.mic-btn.listening {
-  background: var(--accent-gold);
-  border-color: var(--accent-gold);
-}
-
-/* Plain Text Indicators (No Pill Capsules, No Boxes) */
-.status-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.status-verified {
-  color: var(--accent-cyan);
-}
-
-.status-pending {
-  color: var(--accent-gold);
-}
-
-.status-neutral {
-  color: var(--text-muted);
-}
-
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-main);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border-muted);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-dim);
-}
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }

@@ -1,29 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Users, TrendingUp, MapPin, PlusCircle, CheckCircle, CloudSun, Megaphone, Globe, Send, RefreshCw } from 'lucide-react';
+import { fetchLiveMandiRates } from '../services/mandiService';
+import { fetchLiveWeatherData } from '../services/realDataService';
+import { TrendingUp, MapPin, PlusCircle, CheckCircle, CloudSun, Megaphone, Globe, Send, RefreshCw, X, Search, Filter } from 'lucide-react';
+
+const REGIONS = ['Azamgarh', 'Gorakhpur', 'Varanasi', 'Lucknow'];
 
 export default function CommunityIntel() {
-  const { liveWeather } = useApp();
+  const { liveWeather: contextWeather } = useApp();
   const [intelList, setIntelList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('Azamgarh');
+  const [regionWeather, setRegionWeather] = useState(contextWeather);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [item, setItem] = useState('');
   const [price, setPrice] = useState('');
   const [unit, setUnit] = useState('kg');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState('Azamgarh Mandi');
   const [reporter, setReporter] = useState('');
 
   const fetchIntel = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/intel');
-      if (res.ok) {
-        const json = await res.json();
-        setIntelList(json.data || []);
+      let data = [];
+      try {
+        const res = await fetch('/api/intel');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.length > 0) {
+            data = json.data;
+          }
+        }
+      } catch (err) {
+        console.warn('API endpoint unavailable, loading public mandi data:', err);
       }
+
+      if (!data || data.length === 0) {
+        data = await fetchLiveMandiRates();
+      }
+
+      setIntelList(data);
     } catch (err) {
-      console.warn('Error fetching intel from API:', err);
+      console.error('Error loading intel dataset:', err);
     } finally {
       setLoading(false);
     }
@@ -33,99 +53,171 @@ export default function CommunityIntel() {
     fetchIntel();
   }, []);
 
+  const handleRegionChange = async (city) => {
+    setSelectedRegion(city);
+    const w = await fetchLiveWeatherData(city);
+    setRegionWeather(w);
+  };
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!item || !price || !location) return;
 
+    const newReport = {
+      _id: `intel_${Date.now()}`,
+      id: `intel_${Date.now()}`,
+      item,
+      price: Number(price),
+      unit,
+      location,
+      reportedBy: reporter || 'Local Farmer',
+      createdAt: new Date().toISOString(),
+      trend: 'stable'
+    };
+
     try {
-      const res = await fetch('/api/intel', {
+      await fetch('/api/intel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          item,
-          price: Number(price),
-          unit,
-          location,
-          reportedBy: reporter || 'Local Farmer'
-        })
+        body: JSON.stringify(newReport)
       });
-
-      if (res.ok) {
-        const json = await res.json();
-        setIntelList(prev => [json.data, ...prev]);
-      }
     } catch (err) {
-      console.error('Error submitting intel:', err);
+      console.warn('Report submitted locally:', err);
     }
+
+    setIntelList(prev => [newReport, ...prev]);
 
     setItem('');
     setPrice('');
-    setLocation('');
+    setLocation('Azamgarh Mandi');
     setReporter('');
     setShowAddModal(false);
   };
 
+  const filteredIntel = intelList.filter(ci => {
+    const itemMatch = ci.item.toLowerCase().includes(searchQuery.toLowerCase());
+    const locMatch = ci.location.toLowerCase().includes(searchQuery.toLowerCase());
+    return itemMatch || locMatch;
+  });
+
+  const activeWeather = regionWeather || contextWeather;
+
   return (
-    <div className="minimal-container">
-      {/* Minimal Header Section */}
-      <div className="minimal-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+      
+      {/* Header Banner */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
         <div>
-          <span className="status-text status-verified" style={{ marginBottom: '4px' }}>
-            <Globe size={13} /> Real-Time Crowdsourced Data
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-sky-600 mb-1">
+            <Globe className="w-3.5 h-3.5" /> Real-Time Crowdsourced Data
           </span>
-          <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', margin: '4px 0' }}>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
             Community Mandi Intelligence Network
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '600px' }}>
-            Crowdsourced commodity prices, localized weather alerts, and crop availability logged into MongoDB.
+          <p className="text-slate-600 text-sm mt-1 max-w-xl">
+            Crowdsourced commodity prices, localized weather alerts, and crop availability logged into database.
           </p>
         </div>
-
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="btn-primary"
-          style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-        >
-          <PlusCircle size={16} /> Report Local Rate
-        </button>
       </div>
 
-      {/* Commodity Grid */}
-      <div className="minimal-section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '1.15rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <TrendingUp size={18} color="var(--accent-cyan)" /> Live Mandi Commodity Prices ({intelList.length})
+      {/* Weather Forecast Banner */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <CloudSun className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">
+                Live Regional Weather Forecast (Open-Meteo Public API)
+              </h3>
+              <p className="text-xs text-slate-500 font-medium">
+                District: {selectedRegion} | Live Temp: {activeWeather?.temp || activeWeather?.temperature || 31}°C
+              </p>
+            </div>
+          </div>
+
+          {/* Region Switcher */}
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-amber-200">
+            {REGIONS.map(reg => (
+              <button
+                key={reg}
+                onClick={() => handleRegionChange(reg)}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                  selectedRegion === reg ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {reg}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-sm text-slate-700 leading-relaxed font-medium bg-white/80 p-4 rounded-xl border border-amber-200/60">
+          {activeWeather ? activeWeather.advisory_en : 'Weather is clear. Temperature is 31°C. Suitable for crop irrigation and harvesting.'}
+        </p>
+      </div>
+
+      {/* Commodity Prices Section */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-sky-600" /> Live Mandi Commodity Prices ({filteredIntel.length})
           </h3>
-          <button onClick={fetchIntel} className="btn-secondary" style={{ padding: '4px 10px', fontSize: '0.78rem' }}>
-            <RefreshCw size={12} /> Refresh
-          </button>
+
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Live Filter Search input */}
+            <div className="relative flex-1 sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Filter crop or Mandi..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              />
+            </div>
+
+            <button onClick={fetchIntel} className="btn-secondary !py-1.5 !px-3 !text-xs flex-shrink-0">
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading Mandi rates from MongoDB...</p>
+          <p className="text-sm text-slate-500 animate-pulse">Loading Mandi rates from database & public feed...</p>
+        ) : filteredIntel.length === 0 ? (
+          <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200">
+            <p className="text-sm text-slate-500 font-medium">No Mandi prices found matching "{searchQuery}"</p>
+            <button onClick={() => setSearchQuery('')} className="text-xs font-bold text-blue-600 underline mt-2">
+              Clear Search Filter
+            </button>
+          </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-            {intelList.map((ci) => (
-              <div key={ci._id || ci.id} style={{ padding: '14px 0', borderBottom: '1px solid var(--border-subtle)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                  <div>
-                    <h4 style={{ color: 'var(--text-main)', fontSize: '1.05rem', margin: 0 }}>{ci.item}</h4>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={12} color="var(--accent-primary)" /> {ci.location}
-                    </span>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-cyan)', lineHeight: 1 }}>
-                      ₹{ci.price}
-                    </span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', display: 'block' }}>/{ci.unit || 'kg'}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredIntel.map((ci) => (
+              <div key={ci._id || ci.id} className="bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-colors flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="text-base font-bold text-slate-900">{ci.item}</h4>
+                      <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-blue-600" /> {ci.location}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-sky-600 leading-none block">
+                        ₹{ci.price}
+                      </span>
+                      <span className="text-[10px] font-medium text-slate-400">/{ci.unit || 'kg'}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                <div className="flex justify-between items-center text-xs text-slate-500 pt-3 border-t border-slate-200/80 mt-3">
                   <span>Reported by: {ci.reportedBy || 'Farmer'}</span>
-                  <span className="status-text status-verified" style={{ fontSize: '0.75rem' }}>
-                    <CheckCircle size={11} /> Verified
+                  <span className="inline-flex items-center gap-1 text-sky-600 font-bold text-[11px]">
+                    <CheckCircle className="w-3.5 h-3.5" /> Verified
                   </span>
                 </div>
               </div>
@@ -134,60 +226,50 @@ export default function CommunityIntel() {
         )}
       </div>
 
-      {/* Live Regional Weather */}
-      <div className="minimal-section">
-        <h3 style={{ fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <CloudSun size={18} color="var(--accent-gold)" /> Live Regional Weather Forecast (Open-Meteo API)
-        </h3>
-        <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-          {liveWeather ? liveWeather.advisory_en : 'Weather is clear. Temperature is 31°C. Suitable for crop irrigation and harvesting.'}
-        </p>
-      </div>
-
       {/* Add Intel Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-muted)', padding: '24px', maxWidth: '420px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Megaphone size={18} color="var(--accent-cyan)" /> Submit Mandi Price
-            </h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-sky-600" /> Submit Mandi Price
+              </h3>
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <form onSubmit={handleFormSubmit}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Crop / Commodity Name</label>
+            <form onSubmit={handleFormSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Crop / Commodity Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Tamatar, Pyaaz, Aloo"
                   value={item}
                   onChange={e => setItem(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Price (₹)</label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Price (₹)</label>
                   <input
                     type="number"
                     placeholder="28"
                     value={price}
                     onChange={e => setPrice(e.target.value)}
                     required
-                    style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Unit</label>
+                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Unit</label>
                   <select
                     value={unit}
                     onChange={e => setUnit(e.target.value)}
-                    style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="kg">kg</option>
                     <option value="quintal">quintal</option>
@@ -195,32 +277,32 @@ export default function CommunityIntel() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Mandi / Location</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Mandi / Location</label>
                 <input
                   type="text"
                   placeholder="e.g. Azamgarh Mandi"
                   value={location}
                   onChange={e => setLocation(e.target.value)}
                   required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Reporter Name</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Reporter Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Ramesh (Farmer)"
                   value={reporter}
                   onChange={e => setReporter(e.target.value)}
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <div className="flex gap-2 justify-end pt-2">
                 <button type="button" onClick={() => setShowAddModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><Send size={14} /> Save Report</button>
+                <button type="submit" className="btn-primary"><Send className="w-4 h-4" /> Save Report</button>
               </div>
             </form>
           </div>
