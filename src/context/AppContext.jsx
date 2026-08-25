@@ -136,6 +136,33 @@ export function AppProvider({ children }) {
     });
   }, [activeConvId, language]);
 
+  // Delete a single message from the active conversation thread
+  const deleteMessageFromActiveConv = useCallback((msgId) => {
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === activeConvId) {
+        return {
+          ...conv,
+          messages: conv.messages.filter(m => (m._id || m.id) !== msgId),
+          updatedAt: Date.now()
+        };
+      }
+      return conv;
+    }));
+  }, [activeConvId]);
+
+  // Clear all conversations at once
+  const clearAllConversations = useCallback(() => {
+    const fresh = {
+      id: `conv_${Date.now()}`,
+      title: language === 'hi' ? 'नई बातचीत' : 'New Chat',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    setConversations([fresh]);
+    setActiveConvId(fresh.id);
+  }, [language]);
+
   // Rename conversation thread
   const renameConversation = useCallback((id, newTitle) => {
     if (!newTitle || !newTitle.trim()) return;
@@ -152,7 +179,6 @@ export function AppProvider({ children }) {
     setConversations(prev => prev.map(conv => {
       if (conv.id === activeConvId) {
         const updatedMessages = [...conv.messages, messageData];
-        // Auto-set title from first user query if title is default
         const isFirstMessage = conv.messages.length === 0;
         const autoTitle = isFirstMessage
           ? (messageData.transcribedText ? messageData.transcribedText.slice(0, 32) + (messageData.transcribedText.length > 32 ? '…' : '') : conv.title)
@@ -169,7 +195,7 @@ export function AppProvider({ children }) {
     }));
   }, [activeConvId]);
 
-  // Legacy Queries state (for backward compatibility)
+  // Legacy Queries state
   const [queries, setQueries] = useState(() => {
     const saved = localStorage.getItem('lokvani_real_queries');
     return saved ? JSON.parse(saved) : [];
@@ -271,6 +297,8 @@ export function AppProvider({ children }) {
       createConversation,
       selectConversation,
       deleteConversation,
+      deleteMessageFromActiveConv,
+      clearAllConversations,
       renameConversation,
       addMessageToActiveConv,
       // Legacy queries

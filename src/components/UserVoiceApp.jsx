@@ -6,7 +6,8 @@ import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
   ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Zap, Clock, MapPin,
-  ThumbsUp, ThumbsDown, MessageSquarePlus, Trash2, Edit2, Check, User
+  ThumbsUp, ThumbsDown, MessageSquarePlus, Trash2, Edit2, Check, User,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,7 +91,8 @@ export default function UserVoiceApp() {
   const {
     language, setActiveTab, dialect, setDialect, isSpeaking, stopSpeaking,
     conversations, activeConvId, activeConversation, createConversation,
-    selectConversation, deleteConversation, renameConversation, addMessageToActiveConv
+    selectConversation, deleteConversation, deleteMessageFromActiveConv, clearAllConversations,
+    renameConversation, addMessageToActiveConv
   } = useApp();
 
   const [appState, setAppState]             = useState('IDLE');
@@ -206,9 +208,7 @@ export default function UserVoiceApp() {
         };
       }
 
-      // Add query & response turn to active conversation session
       addMessageToActiveConv(data);
-
       setTranscript('');
       setAppState('IDLE');
 
@@ -396,7 +396,7 @@ export default function UserVoiceApp() {
             </Badge>
           </div>
 
-          <ScrollArea className="max-h-60 lg:max-h-[calc(100vh-560px)]">
+          <ScrollArea className="max-h-60 lg:max-h-[calc(100vh-620px)]">
             <div className="flex flex-col gap-1.5 pr-2">
               {conversations.map((conv) => {
                 const isActive = conv.id === activeConvId;
@@ -423,7 +423,7 @@ export default function UserVoiceApp() {
                         <span className="truncate font-semibold text-foreground">{conv.title}</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground truncate italic">
-                        {lastMsg ? primaryAnswer(lastMsg)?.slice(0, 45) + '…' : (language === 'hi' ? 'कोई संदेश नहीं' : 'Empty conversation')}
+                        {lastMsg ? primaryAnswer(lastMsg)?.slice(0, 45) + '…' : (language === 'hi' ? 'खाली बातचीत' : 'Empty conversation')}
                       </span>
                     </div>
 
@@ -436,7 +436,7 @@ export default function UserVoiceApp() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-6 w-6 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 text-muted-foreground hover:text-red-500 opacity-70 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (isSpeaking) stopSpeaking();
@@ -452,6 +452,24 @@ export default function UserVoiceApp() {
               })}
             </div>
           </ScrollArea>
+
+          {/* Clear All Chats convenience button */}
+          {conversations.length > 1 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full mt-2 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 justify-center gap-1.5 h-7"
+              onClick={() => {
+                if (window.confirm(language === 'hi' ? 'क्या आप सभी बातचीत मिटाना चाहते हैं?' : 'Clear all conversation history?')) {
+                  if (isSpeaking) stopSpeaking();
+                  clearAllConversations();
+                }
+              }}
+            >
+              <RotateCcw size={11} />
+              {language === 'hi' ? 'सभी बातचीत मिटाएं' : 'Clear All Conversations'}
+            </Button>
+          )}
         </div>
       </aside>
 
@@ -522,7 +540,7 @@ export default function UserVoiceApp() {
         {activeConversation?.messages?.length > 0 && (
           <div className="space-y-4">
             {activeConversation.messages.map((msg, idx) => {
-              const msgId = msg._id || idx;
+              const msgId = msg._id || msg.id || idx;
               const isDetailedOpen = !!showDetailedMap[msgId];
 
               return (
@@ -572,6 +590,22 @@ export default function UserVoiceApp() {
                             {msg.domain.replace('_', ' ')}
                           </Badge>
                         )}
+                        {/* Convenience: Delete single message turn button */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon" variant="ghost"
+                              className="h-6 w-6 text-muted-foreground hover:text-red-500 ml-1"
+                              onClick={() => {
+                                if (isSpeaking) stopSpeaking();
+                                deleteMessageFromActiveConv(msgId);
+                              }}
+                            >
+                              <Trash2 size={12} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent><p>{language === 'hi' ? 'यह संदेश हटाएं' : 'Delete message'}</p></TooltipContent>
+                        </Tooltip>
                       </div>
                     </div>
 
