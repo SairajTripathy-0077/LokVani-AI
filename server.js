@@ -302,6 +302,26 @@ app.get('/api/user/queries/:userId', async (req, res) => {
   }
 });
 
+// ─── 7. Verified Buyer Network (GET /api/buyers) ──────────────────────────────
+// STATUS: Stub — returns static demo data.
+// TODO (Team Lead): Create a Buyer mongoose model in db/models/Buyer.js and
+//   replace the static array below with a real DB query:
+//   const buyers = await BuyerModel.find({ region: req.query.region }).limit(20);
+//
+// The response shape intentionally matches the BuyerCard.jsx props interface
+// so the frontend can swap to live data without any component changes.
+app.get('/api/buyers', (req, res) => {
+  const DEMO_BUYERS = [
+    { id: 'buyer_001', name: 'FreshKart Foods Pvt. Ltd.', location: 'Lucknow, UP', distance: '62 km', commodities: ['Tomato', 'Onion', 'Potato', 'Garlic'], offerPrice: 2400, offerUnit: 'quintal', badge: 'FPO Partner', contactInfo: '***-***-7890' },
+    { id: 'buyer_002', name: 'Azamgarh APMC Warehouse', location: 'Azamgarh, UP', distance: '5 km', commodities: ['Wheat', 'Paddy', 'Maize', 'Bajra'], offerPrice: 2310, offerUnit: 'quintal', badge: 'APMC Registered', contactInfo: '***-***-4421' },
+    { id: 'buyer_003', name: 'Kisaan Connect Cooperative', location: 'Varanasi, UP', distance: '88 km', commodities: ['Arhar', 'Moong', 'Urad', 'Chana'], offerPrice: 7600, offerUnit: 'quintal', badge: 'FPO Partner', contactInfo: '***-***-3312' },
+    { id: 'buyer_004', name: 'Spice Route Exports', location: 'Gorakhpur, UP', distance: '110 km', commodities: ['Turmeric', 'Chili', 'Coriander', 'Sesame'], offerPrice: null, offerUnit: 'quintal', badge: 'Export Certified', contactInfo: '***-***-0065' },
+    { id: 'buyer_005', name: 'Agro-Nutrient Foods', location: 'Allahabad, UP', distance: '145 km', commodities: ['Soybean', 'Mustard', 'Sunflower'], offerPrice: 4950, offerUnit: 'quintal', badge: 'Verified Buyer', contactInfo: '***-***-6677' },
+    { id: 'buyer_006', name: 'GrainMart Direct', location: 'Mau, UP', distance: '28 km', commodities: ['Wheat', 'Paddy', 'Barley'], offerPrice: 2290, offerUnit: 'quintal', badge: 'Verified Buyer', contactInfo: '***-***-9801' },
+  ];
+  return res.json({ success: true, data: DEMO_BUYERS, isStub: true });
+});
+
 // Start Express Server
 app.listen(PORT, () => {
   console.log(`===================================================`);
