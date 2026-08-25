@@ -195,29 +195,6 @@ function Birds({ className = '' }) {
   );
 }
 
-/* ── Decorative: grass blades along the valley floor ───────── */
-function Grass({ className = '' }) {
-  return (
-    <svg aria-hidden viewBox="0 0 1440 64" preserveAspectRatio="none" fill="none" className={className}>
-      {[...Array(52)].map((_, i) => {
-        const x = i * 28 + ((i * 37) % 17);
-        const h = 16 + (i % 4) * 9;
-        const lean = (i % 2 ? 1 : -1) * (3 + (i % 3) * 3);
-        return (
-          <path
-            key={i}
-            d={`M${x} 64 Q ${x + lean / 2} ${64 - h * 0.6} ${x + lean} ${64 - h}`}
-            stroke="#3f5d3b"
-            strokeOpacity={0.16 + (i % 3) * 0.04}
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
 const PILLARS = [
   {
     icon: Mic,
@@ -345,12 +322,8 @@ export default function LandingPage() {
       {/* ══ Hero — dawn over the fields ═══════════════════════ */}
       <section className="relative">
         <div className="relative mx-auto max-w-4xl px-4 pb-24 pt-28 text-center sm:px-6 sm:pt-36 lg:pt-44">
-          <Reveal>
-            <Eyebrow>AI for Public Good</Eyebrow>
-          </Reveal>
-
           <Reveal delay={90}>
-            <h1 className="mx-auto mt-8 max-w-3xl text-balance text-[2.75rem] font-semibold leading-[1.06] tracking-[-0.01em] text-zinc-900 sm:text-6xl lg:text-[4.5rem]">
+            <h1 className="mx-auto max-w-3xl text-balance text-[2.75rem] font-semibold leading-[1.06] tracking-[-0.01em] text-zinc-900 sm:text-6xl lg:text-[4.5rem]">
               Answers for rural India,{' '}
               <span className="italic text-[#48734f]">in its own voice.</span>
             </h1>
@@ -526,16 +499,7 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* ══ Valley floor — grass line into the footer ════════ */}
-      <div aria-hidden className="relative -mb-px pb-2">
-        <Grass className="block h-16 w-full" />
-      </div>
-
-      <Reveal delay={100} className="relative pb-16">
-        <p className="text-center font-heading text-xl italic text-zinc-400">
-          Kisan ka apna saathi<span className="not-italic text-[#c49a2a]">.</span>
-        </p>
-      </Reveal>
+      {/* ══ End of content ═══════════════════════════════════ */}
     </div>
   );
 }
