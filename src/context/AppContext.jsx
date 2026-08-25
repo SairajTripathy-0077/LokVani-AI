@@ -6,7 +6,38 @@ const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
-  const [language, setLanguage] = useState('hi'); // 'hi' | 'en'
+
+  // Global Language state — persisted in localStorage
+  const [language, setLanguageState] = useState(() =>
+    localStorage.getItem('lokvani_language') || 'hi'
+  );
+
+  // Dialect selection — persisted in localStorage
+  const [dialect, setDialect] = useState(() =>
+    localStorage.getItem('lokvani_dialect') || 'hi'
+  );
+
+  // Global Language switcher helper — syncs language and dialect
+  const changeLanguage = useCallback((newLang) => {
+    setLanguageState(newLang);
+    localStorage.setItem('lokvani_language', newLang);
+    // Sync dialect to language if matching
+    if (newLang === 'en') {
+      setDialect('en');
+    } else if (newLang === 'hi' && dialect === 'en') {
+      setDialect('hi');
+    }
+  }, [dialect]);
+
+  const setLanguage = useCallback((langOrFn) => {
+    setLanguageState(prev => {
+      const next = typeof langOrFn === 'function' ? langOrFn(prev) : langOrFn;
+      localStorage.setItem('lokvani_language', next);
+      if (next === 'en') setDialect('en');
+      else if (next === 'hi' && dialect === 'en') setDialect('hi');
+      return next;
+    });
+  }, [dialect]);
 
   // Global Speech Output State
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -23,11 +54,6 @@ export function AppProvider({ children }) {
     speechService.stopSpeaking();
     setIsSpeaking(false);
   }, []);
-
-  // Dialect selection — persisted to localStorage
-  const [dialect, setDialect] = useState(() =>
-    localStorage.getItem('lokvani_dialect') || 'hi'
-  );
 
   // Real User Queries (Persisted in localStorage, empty on fresh start)
   const [queries, setQueries] = useState(() => {
@@ -122,6 +148,7 @@ export function AppProvider({ children }) {
       setActiveTab,
       language,
       setLanguage,
+      changeLanguage,
       dialect,
       setDialect,
       isSpeaking,

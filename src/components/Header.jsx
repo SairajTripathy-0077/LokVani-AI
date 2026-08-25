@@ -1,21 +1,14 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap, VolumeX, Volume2 } from 'lucide-react';
+import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap, VolumeX } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-const NAV_ITEMS = [
-  { id: 'home',    label: 'Home',           icon: Home    },
-  { id: 'voice',   label: 'Voice AI',       icon: Mic     },
-  { id: 'schemes', label: 'Gov Schemes',    icon: FileText },
-  { id: 'intel',   label: 'Market Intel',   icon: Users   },
-];
-
 export default function Header() {
-  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount, isSpeaking, stopSpeaking } = useApp();
+  const { activeTab, setActiveTab, language, changeLanguage, pendingReviewsCount, isSpeaking, stopSpeaking } = useApp();
   const { isSignedIn } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -23,6 +16,13 @@ export default function Header() {
     import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
   const showNav = !isClerkAvailable || isSignedIn;
+
+  const NAV_ITEMS = [
+    { id: 'home',    label: language === 'hi' ? 'होम' : 'Home',           icon: Home    },
+    { id: 'voice',   label: language === 'hi' ? 'आवाज़ AI' : 'Voice AI',    icon: Mic     },
+    { id: 'schemes', label: language === 'hi' ? 'सरकारी योजनाएं' : 'Gov Schemes', icon: FileText },
+    { id: 'intel',   label: language === 'hi' ? 'मंडी भाव' : 'Market Intel', icon: Users   },
+  ];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
@@ -51,7 +51,7 @@ export default function Header() {
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground font-medium leading-none mt-0.5">
-                Inclusive Voice Intelligence
+                {language === 'hi' ? 'समावेशी आवाज बुद्धिमत्ता' : 'Inclusive Voice Intelligence'}
               </p>
             </div>
           </button>
@@ -104,16 +104,37 @@ export default function Header() {
               </Button>
             )}
 
-            {/* Language toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
-              className="hidden sm:flex gap-1.5 text-xs font-semibold rounded-lg h-8 px-3"
-            >
-              <Globe size={13} className="text-primary" />
-              {language === 'hi' ? 'हिं' : 'EN'}
-            </Button>
+            {/* ── Language Switcher Segmented Control ──────────────── */}
+            <div className="flex items-center p-0.5 rounded-lg bg-muted border border-border text-xs font-bold shadow-inner">
+              <button
+                type="button"
+                onClick={() => changeLanguage('hi')}
+                className={cn(
+                  'px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer',
+                  language === 'hi'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Switch to Hindi"
+              >
+                <span>🇮🇳</span>
+                <span>हिंदी</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => changeLanguage('en')}
+                className={cn(
+                  'px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer',
+                  language === 'en'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Switch to English"
+              >
+                <span>🌐</span>
+                <span>English</span>
+              </button>
+            </div>
 
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
 
@@ -123,10 +144,10 @@ export default function Header() {
                 <SignedOut>
                   <div className="hidden sm:flex items-center gap-1.5">
                     <Button variant="ghost" size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs">
-                      <LogIn size={13} /> Sign In
+                      <LogIn size={13} /> {language === 'hi' ? 'साइन इन' : 'Sign In'}
                     </Button>
                     <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
-                      <UserPlus size={13} /> Sign Up
+                      <UserPlus size={13} /> {language === 'hi' ? 'साइन अप' : 'Sign Up'}
                     </Button>
                   </div>
                 </SignedOut>
@@ -140,7 +161,7 @@ export default function Header() {
               </>
             ) : (
               <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
-                <Zap size={13} /> Guest Mode
+                <Zap size={13} /> {language === 'hi' ? 'गेस्ट मोड' : 'Guest Mode'}
               </Button>
             )}
 
@@ -185,15 +206,24 @@ export default function Header() {
               );
             })}
             <Separator className="my-1" />
-            <div className="flex items-center justify-between gap-2 px-2">
-              <Button variant="ghost" size="sm" onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')} className="gap-1.5 text-xs">
-                <Globe size={13} /> {language === 'hi' ? 'English' : 'हिंदी'}
-              </Button>
-              {isSpeaking && (
-                <Button size="sm" variant="destructive" onClick={stopSpeaking} className="gap-1.5 text-xs font-bold">
-                  <VolumeX size={13} /> {language === 'hi' ? 'आवाज़ रोकें' : 'Stop Voice'}
-                </Button>
-              )}
+            <div className="flex items-center justify-between gap-2 px-2 py-1">
+              <span className="text-xs text-muted-foreground font-semibold">
+                {language === 'hi' ? 'भाषा (Language):' : 'Language:'}
+              </span>
+              <div className="flex items-center p-0.5 rounded-lg bg-muted border border-border text-xs font-bold">
+                <button
+                  onClick={() => changeLanguage('hi')}
+                  className={cn('px-2 py-1 rounded-md', language === 'hi' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+                >
+                  🇮🇳 हिंदी
+                </button>
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={cn('px-2 py-1 rounded-md', language === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+                >
+                  🌐 English
+                </button>
+              </div>
             </div>
           </div>
         )}
