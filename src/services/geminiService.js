@@ -2,82 +2,80 @@ import { geminiRotator } from './geminiKeyRotator.js';
 
 /**
  * Gemini AI Query Engine — SERVER-SIDE ONLY.
- * Evaluates queries, returns expanded response schema, and tags high-stakes responses.
- * Input is sanitized before building the prompt.
+ * Evaluates voice queries with optimized token context & concise prompt engineering.
  */
 
-/**
- * Sanitize input: trim, strip control characters, cap length.
- * @param {string} text
- * @returns {string}
- */
 function sanitizeInput(text) {
   if (typeof text !== 'string') return '';
-  // Strip ASCII control characters (0x00-0x1F, 0x7F) except newline/tab
   // eslint-disable-next-line no-control-regex
-  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, 500);
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, 350);
 }
 
+// Compact, token-optimized system prompt
 const SYSTEM_PROMPT = `
-You are LokVani AI, an inclusive voice AI assistant for small farmers, street vendors, and artisans in India.
-Analyze the user's voice query and provide accurate, helpful responses in the user's preferred dialect.
+You are LokVani AI for Indian farmers, street vendors & artisans.
+Respond in valid JSON only (no markdown fences, no extra text):
 
-Rules:
-1. short_answer_hi: 35-50 words, written for TTS playback, must FULLY answer the question — not just acknowledge it. Use simple Hindi in Devanagari script.
-2. short_answer_en: Equivalent English translation (35-50 words).
-3. detailed_answer_hi: 90-160 words with reasoning, context, and practical detail. This is shown as expandable text.
-4. detailed_answer_en: Equivalent English translation (90-160 words).
-5. confidence: "HIGH" if you have reliable data, "MEDIUM" if approximate, "LOW" if uncertain or needs verification.
-6. follow_up_questions: Array of exactly 2 short, natural follow-up questions in the same language as the query.
-7. domain: "GOVT_SCHEME" | "MARKET_PRICE" | "AGRI_ADVISORY" | "WEATHER"
-8. is_high_stakes (boolean): TRUE only for government scheme eligibility, document applications, pesticide/chemical dosage, or loan/financial commitments. FALSE for market prices, weather, general crop tips.
-9. risk_category: "FINANCIAL_ELIGIBILITY" | "PESTICIDE_SAFETY" | "FINANCIAL_LOAN" | "NONE"
-10. trust_note: Explain clearly why human/Kirana node review is needed (or say "Auto-verified" if not high stakes).
-11. actionable_steps: Array of 2-3 short, practical bullet points.
-
-IMPORTANT: If a dialect is specified in the query context, respond in that dialect/script wherever possible.
-For market price queries: use the provided community price data if available.
-For weather: use the provided weather context if available.
-
-Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
+Schema:
 {
-  "short_answer_hi": "string (35-50 words)",
-  "short_answer_en": "string (35-50 words)",
-  "detailed_answer_hi": "string (90-160 words)",
-  "detailed_answer_en": "string (90-160 words)",
+  "short_answer_hi": "35-50 words TTS Hindi in Devanagari",
+  "short_answer_en": "35-50 words English translation",
+  "detailed_answer_hi": "80-140 words detailed Hindi",
+  "detailed_answer_en": "80-140 words detailed English",
   "confidence": "HIGH | MEDIUM | LOW",
-  "follow_up_questions": ["question 1", "question 2"],
+  "follow_up_questions": ["q1", "q2"],
   "domain": "GOVT_SCHEME | MARKET_PRICE | AGRI_ADVISORY | WEATHER",
-  "is_high_stakes": false,
+  "is_high_stakes": boolean (true for loans, scheme apps, chemical pesticides, medical/legal),
   "risk_category": "FINANCIAL_ELIGIBILITY | PESTICIDE_SAFETY | FINANCIAL_LOAN | NONE",
-  "trust_note": "string",
+  "trust_note": "string explaining trust/verification need",
   "actionable_steps": ["step 1", "step 2"]
 }
+If a dialect is requested, use that dialect/script where possible.
 `;
 
+/**
+ * Filter intel context to only relevant or top 4 entries to minimize token consumption.
+ */
+function buildTokenOptimizedIntelContext(query, communityIntel) {
+  if (!Array.isArray(communityIntel) || communityIntel.length === 0) {
+    return '';
+  }
+
+  const lowerQuery = query.toLowerCase();
+
+  // 1. Filter items matching query words
+  const relevant = communityIntel.filter(i =>
+    i.item && lowerQuery.includes(i.item.toLowerCase().split(' ')[0])
+  );
+
+  // 2. If relevant items found, use them (max 4); otherwise take top 3 overall
+  const selected = relevant.length > 0 ? relevant.slice(0, 4) : communityIntel.slice(0, 3);
+
+  const formatted = selected.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} (${i.location || 'Mandi'})`).join('; ');
+  return `Market Data: ${formatted}`;
+}
+
 export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null) {
-  // Server-side input sanitization
   const safeQuery = sanitizeInput(queryText);
   if (!safeQuery) {
     throw new Error('Invalid or empty query after sanitization.');
   }
 
-  // Build community intel context
-  const intelContext = Array.isArray(communityIntel) && communityIntel.length > 0
-    ? `Recent community market reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} at ${i.location}`).join(', ')}.`
-    : 'No recent community market reports available.';
+  // Token-optimized context generation
+  const intelContext = buildTokenOptimizedIntelContext(safeQuery, communityIntel);
 
   const weatherContext = weatherData
-    ? `Live Weather for ${weatherData.city || 'Azamgarh'}: Temp ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
-    : 'No live weather telemetry available.';
-
-  const dialectContext = dialect && dialect !== 'hi' && dialect !== 'en'
-    ? `User's preferred dialect: ${dialect}. Respond in that dialect/script as closely as possible.`
+    ? `Weather (${weatherData.city || 'Azamgarh'}): ${weatherData.temp}°C, ${weatherData.condition}, Rain: ${weatherData.precipitation}mm.`
     : '';
 
-  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}\n${weatherContext}${dialectContext ? '\n' + dialectContext : ''}`;
+  const dialectContext = dialect && dialect !== 'hi' && dialect !== 'en'
+    ? `Dialect: ${dialect}.`
+    : '';
 
-  const rotatedResult = await geminiRotator.executeWithRotation(systemContext, safeQuery);
+  const contextBlocks = [intelContext, weatherContext, dialectContext].filter(Boolean).join(' ');
+  const fullSystemContext = `${SYSTEM_PROMPT.trim()}\n${contextBlocks ? 'Context: ' + contextBlocks : ''}`;
+
+  const rotatedResult = await geminiRotator.executeWithRotation(fullSystemContext, safeQuery);
 
   if (rotatedResult && rotatedResult.text) {
     try {
@@ -88,11 +86,10 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
         apiKeyIndexUsed: rotatedResult.keyIndexUsed,
         modelUsed: rotatedResult.modelUsed
       };
-    } catch (err) {
-      // Don't leak parse details to API response — just rethrow a clean message
-      throw new Error('AI response could not be parsed. Please try again.');
+    } catch (_) {
+      throw new Error('AI response formatting error. Please try again.');
     }
   }
 
-  throw new Error('AI service temporarily unavailable. Please try again in a moment.');
+  throw new Error('AI service temporarily unavailable.');
 }
