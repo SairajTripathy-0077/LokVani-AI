@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,33 +8,66 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          blue: '#2563eb',
-          darkblue: '#1d4ed8',
-          lightblue: '#3b82f6',
-          gold: '#d97706',
-          amber: '#f59e0b',
-          cyan: '#0284c7',
+        background:  'rgb(var(--background) / <alpha-value>)',
+        foreground:  'rgb(var(--foreground) / <alpha-value>)',
+        card: {
+          DEFAULT:    'rgb(var(--card) / <alpha-value>)',
+          foreground: 'rgb(var(--card-foreground) / <alpha-value>)',
         },
-        slate: {
-          main: '#f8fafc',
-          surface: '#ffffff',
-          border: '#e2e8f0',
-          hover: '#f1f5f9',
-          text: '#0f172a',
-          muted: '#475569',
-          dim: '#64748b',
-        }
+        popover: {
+          DEFAULT:    'rgb(var(--popover) / <alpha-value>)',
+          foreground: 'rgb(var(--popover-foreground) / <alpha-value>)',
+        },
+        primary: {
+          DEFAULT:    'rgb(var(--primary) / <alpha-value>)',
+          foreground: 'rgb(var(--primary-foreground) / <alpha-value>)',
+        },
+        secondary: {
+          DEFAULT:    'rgb(var(--secondary) / <alpha-value>)',
+          foreground: 'rgb(var(--secondary-foreground) / <alpha-value>)',
+        },
+        muted: {
+          DEFAULT:    'rgb(var(--muted) / <alpha-value>)',
+          foreground: 'rgb(var(--muted-foreground) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT:    'rgb(var(--accent) / <alpha-value>)',
+          foreground: 'rgb(var(--accent-foreground) / <alpha-value>)',
+        },
+        destructive: {
+          DEFAULT:    'rgb(var(--destructive) / <alpha-value>)',
+        },
+        border:  'rgb(var(--border) / <alpha-value>)',
+        input:   'rgb(var(--input) / <alpha-value>)',
+        ring:    'rgb(var(--ring) / <alpha-value>)',
+        sidebar: {
+          DEFAULT:               'rgb(var(--sidebar) / <alpha-value>)',
+          foreground:            'rgb(var(--sidebar-foreground) / <alpha-value>)',
+          primary:               'rgb(var(--sidebar-primary) / <alpha-value>)',
+          'primary-foreground':  'rgb(var(--sidebar-primary-foreground) / <alpha-value>)',
+          accent:                'rgb(var(--sidebar-accent) / <alpha-value>)',
+          'accent-foreground':   'rgb(var(--sidebar-accent-foreground) / <alpha-value>)',
+          border:                'rgb(var(--sidebar-border) / <alpha-value>)',
+          ring:                  'rgb(var(--sidebar-ring) / <alpha-value>)',
+        },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        heading: ['Outfit', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        body: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        heading: ['Outfit', 'Geist', '-apple-system', 'sans-serif'],
+        body:    ['Inter', 'Plus Jakarta Sans', '-apple-system', 'sans-serif'],
       },
-      boxShadow: {
-        subtle: '0 1px 3px rgba(0,0,0,0.04)',
-        card: '0 10px 30px rgba(0,0,0,0.06)',
-        glow: '0 4px 20px rgba(37, 99, 235, 0.25)',
-      }
+      keyframes: {
+        'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
+        'accordion-up':   { from: { height: 'var(--radix-accordion-content-height)' }, to: { height: '0' } },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up':   'accordion-up 0.2s ease-out',
+      },
     },
   },
   plugins: [],

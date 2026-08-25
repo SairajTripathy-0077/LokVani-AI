@@ -1,39 +1,17 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GOVT_SCHEMES } from '../data/mockData.js';
 
 /**
- * LokVani AI High-Precision Voice Engine
- * Connects to Google Gemini API for live natural language query synthesis,
- * with fallback to local dynamic NLP engine.
+ * LokVani AI Client-Side Local NLP Engine
+ *
+ * SECURITY NOTE: This file does NOT import @google/generative-ai and does NOT use any API keys.
+ * All live Gemini API calls happen ONLY on the Express server (server.js / geminiService.js).
+ *
+ * This module provides a deterministic, keyword-based local fallback engine that runs entirely
+ * in the browser with no network calls. It activates when the backend is unreachable,
+ * so the app degrades gracefully instead of breaking.
  */
 
-const SYSTEM_PROMPT = `
-You are LokVani AI, an intelligent voice AI assistant for farmers and micro-vendors in India.
-Analyze the user's voice query and provide an accurate, helpful response.
-
-Requirements:
-1. spoken_response.hindi_tts: Clear, natural Hindi answer in Devanagari script (max 25-30 words, suitable for voice speech playback).
-2. spoken_response.english_translation: Accurate English translation.
-3. intent: "scheme_query | price_query | general_advice | weather_advisory"
-4. needs_trust_node_review: Set to TRUE if query involves government scheme eligibility, bank loans, legal paperwork, or chemical pesticide dosage. Set to FALSE for simple price lookups or weather alerts.
-
-Return ONLY valid JSON matching this schema:
-{
-  "intent": "scheme_query | price_query | general_advice | weather_advisory",
-  "spoken_response": {
-    "hindi_tts": "string",
-    "english_translation": "string"
-  },
-  "needs_trust_node_review": boolean,
-  "risk_metadata": {
-    "risk_category": "FINANCIAL_ELIGIBILITY | PESTICIDE_SAFETY | FINANCIAL_LOAN | AGRICULTURAL_DOSAGE | NONE",
-    "trust_reason": "string"
-  },
-  "actionable_steps": ["step 1", "step 2"]
-}
-`;
-
-// Extensive Commodity Database with Real Benchmark Prices (₹/kg or unit)
+// Commodity price database (local benchmark prices for offline fallback)
 const COMMODITY_DATABASE = [
   { keywords: ['tamatar', 'tomato', 'टमाटर'], name: 'Tamatar (Tomato)', price: 28, unit: 'kg' },
   { keywords: ['pyaaz', 'onion', 'प्याज़', 'प्याज'], name: 'Pyaaz (Onion)', price: 34, unit: 'kg' },
@@ -52,114 +30,95 @@ const COMMODITY_DATABASE = [
   { keywords: ['aam', 'mango', 'आम'], name: 'Aam (Mango)', price: 45, unit: 'kg' },
   { keywords: ['kela', 'banana', 'केला'], name: 'Kela (Banana)', price: 30, unit: 'doz' },
   { keywords: ['doodh', 'milk', 'दूध'], name: 'Doodh (Milk)', price: 52, unit: 'liter' },
-  { keywords: ['makaa', 'maize', 'corn', 'मक्का'], name: 'Makka (Maize)', price: 21, unit: 'kg' },
+  { keywords: ['makka', 'maize', 'corn', 'मक्का'], name: 'Makka (Maize)', price: 21, unit: 'kg' },
   { keywords: ['chana', 'gram', 'चना'], name: 'Chana (Gram)', price: 62, unit: 'kg' }
 ];
 
-export async function processUserSpeechQuery(transcribedText, options = {}) {
-  const apiKey = options.apiKey || (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : process.env.VITE_GEMINI_API_KEY);
+/**
+ * Process a user speech query using the local NLP engine (no API key, no network).
+ * This is the browser-side fallback used when the Express backend is unreachable.
+ *
+ * Returns a response in the same shape expected by UserVoiceApp so the UI
+ * can display it without any special-casing.
+ *
+ * @param {string} transcribedText
+ * @param {{ userLocation?: string }} options
+ */
+export function processUserSpeechQuery(transcribedText, options = {}) {
   const userLocation = options.userLocation || 'Azamgarh, UP';
-
-  console.log(`[LokVani AI Engine] User Query: "${transcribedText}" | Gemini Key Available: ${Boolean(apiKey && apiKey.trim().length > 5)}`);
-
-  // 1. Live Gemini AI Call (If API Key Present)
-  if (apiKey && apiKey.trim().length > 5) {
-    try {
-      const genAI = new GoogleGenerativeAI(apiKey.trim());
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-      const prompt = `${SYSTEM_PROMPT}\n\nUser Voice Input: "${transcribedText}"\nLocation: ${userLocation}`;
-      const response = await model.generateContent(prompt);
-      const text = response.response.text();
-      
-      const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
-      
-      console.log('[LokVani AI Engine] Successfully processed query via Gemini 1.5 Flash API!');
-      return {
-        query_input: transcribedText,
-        engine_source: 'GEMINI_LIVE_AI',
-        ...parsed
-      };
-    } catch (err) {
-      console.warn('[LokVani AI Engine] Gemini API call error:', err.message);
-      // Try fallback model gemini-pro if flash fails
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey.trim());
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const prompt = `${SYSTEM_PROMPT}\n\nUser Voice Input: "${transcribedText}"\nLocation: ${userLocation}`;
-        const response = await model.generateContent(prompt);
-        const text = response.response.text();
-        const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(cleanJson);
-
-        return {
-          query_input: transcribedText,
-          engine_source: 'GEMINI_LIVE_AI',
-          ...parsed
-        };
-      } catch (err2) {
-        console.error('[LokVani AI Engine] Both Gemini models failed, falling back to NLP engine:', err2.message);
-      }
-    }
-  }
-
-  // 2. High-Precision Universal Dynamic Engine Fallback
-  const fallbackResult = universalVoiceNlpEngine(transcribedText, userLocation);
+  const result = localNlpEngine(transcribedText, userLocation);
   return {
-    engine_source: 'LOCAL_NLP_ENGINE',
-    ...fallbackResult
+    engine_source: 'LOCAL_NLP_FALLBACK',
+    confidence: 'LOW', // local engine is always LOW confidence
+    follow_up_questions: [
+      'Kirana node se verify karna chahenge?',
+      'Koi aur sawal hai?'
+    ],
+    ...result
   };
 }
 
-/**
- * Universal Dynamic Voice Engine
- */
-function universalVoiceNlpEngine(userSpeech, userLocation) {
+// ─── Local NLP Engine ────────────────────────────────────────────────────────
+
+function localNlpEngine(userSpeech, userLocation) {
   const text = userSpeech.trim();
   const lower = text.toLowerCase();
 
-  // Search matched commodity
-  const matchedCommodity = COMMODITY_DATABASE.find(c => 
+  const matchedCommodity = COMMODITY_DATABASE.find(c =>
     c.keywords.some(kw => lower.includes(kw))
   );
 
-  // Search matched scheme
-  const matchedScheme = GOVT_SCHEMES.find(s => 
+  const matchedScheme = GOVT_SCHEMES.find(s =>
     lower.includes(s.name.toLowerCase()) ||
     s.name.toLowerCase().split(' ').some(w => w.length > 3 && lower.includes(w))
   );
 
-  // 1. CROP DISEASE, PESTICIDE & FERTILIZER INTENT
-  if (lower.includes('keeda') || lower.includes('कीड़ा') || lower.includes('spray') || lower.includes('छिड़काव') || lower.includes('pesticide') || lower.includes('दवा') || lower.includes('dap') || lower.includes('urea') || lower.includes('खाद') || lower.includes('disease') || lower.includes('blight') || lower.includes('peele')) {
+  // 1. CROP DISEASE, PESTICIDE & FERTILIZER
+  if (
+    lower.includes('keeda') || lower.includes('कीड़ा') || lower.includes('spray') ||
+    lower.includes('छिड़काव') || lower.includes('pesticide') || lower.includes('दवा') ||
+    lower.includes('dap') || lower.includes('urea') || lower.includes('खाद') ||
+    lower.includes('disease') || lower.includes('blight') || lower.includes('peele')
+  ) {
     const cropName = matchedCommodity ? matchedCommodity.name : extractGeneralTopic(text);
     const isFertilizer = lower.includes('dap') || lower.includes('urea') || lower.includes('खाद');
+    const shortHi = isFertilizer
+      ? `${cropName} mein per acre 50 kg DAP aur 45 kg Urea daalein. Sahi matra ke liye Kirana operator se mitti jaanch confirm karein.`
+      : `${cropName} mein keede/bimari ke liye Copper Oxychloride 3g per liter paani mein spray karein. Sahi dosage Kirana center se confirm zaroor karein.`;
+    const shortEn = isFertilizer
+      ? `For ${cropName}, apply 50 kg DAP & 45 kg Urea per acre. Confirm exact dose with Kirana Node soil test.`
+      : `For ${cropName} pest control, spray Copper Oxychloride (3g/L). Confirm exact dosage at your Kirana Trust Node.`;
 
     return {
-      query_input: userSpeech,
+      transcribedText: userSpeech,
       intent: 'general_advice',
-      spoken_response: {
-        hindi_tts: isFertilizer
-          ? `${cropName} me per acre 50 kg DAP aur 45 kg Urea daalein. Sahi matra ke liye Kirana operator se mitti jaanch confirm karein.`
-          : `${cropName} me keede/bimari ke liye Copper Oxychloride 3g per liter paani me spray karein. Sahi dosage Kirana center se confirm karein.`,
-        english_translation: isFertilizer
-          ? `For ${cropName}, recommended application is 50kg DAP & 45kg Urea per acre. Confirm with Kirana Node.`
-          : `For ${cropName} pest control, spray Copper Oxychloride (3g/L). Confirm exact dosage with Kirana Node.`
-      },
+      domain: 'AGRI_ADVISORY',
+      shortAnswerHi: shortHi,
+      shortAnswerEn: shortEn,
+      detailedAnswerHi: shortHi + ' Kisan Helpline 1551 par bhi call kar sakte hain. Har fasal aur mitti ki zaroorat alag hoti hai, isliye Kirana node operator se mitti jaanch karwa kar hi sahi matra tay karein.',
+      detailedAnswerEn: shortEn + ' You can also call Kisan Helpline 1551. Every crop and soil type has different needs, so always verify dosage with a certified Kirana Trust Node operator before application.',
       needs_trust_node_review: true,
-      risk_metadata: {
-        risk_category: isFertilizer ? 'AGRICULTURAL_DOSAGE' : 'PESTICIDE_SAFETY',
-        trust_reason: isFertilizer ? 'Fertilizer dosage query: Requires Kirana operator review based on soil type.' : 'Chemical pesticide advice: Requires Kirana operator review for crop safety.'
-      },
-      actionable_steps: [
-        'Subah ya shaam ke vaqt spray/khad daalein',
-        'Peene ke paani ke srot se dur rakhein'
+      isHighStakes: true,
+      riskCategory: isFertilizer ? 'AGRICULTURAL_DOSAGE' : 'PESTICIDE_SAFETY',
+      trustNote: isFertilizer
+        ? 'Fertilizer dosage: Requires Kirana operator review based on soil type.'
+        : 'Chemical pesticide advice: Requires Kirana operator review for crop safety.',
+      actionableSteps: [
+        'Subah ya shaam ke waqt spray/khad daalein',
+        'Peene ke paani ke strot se door rakhein',
+        'Kirana node par mitti jaanch karwayein'
       ]
     };
   }
 
-  // 2. SCHEME & LOAN ELIGIBILITY INTENT
-  if (matchedScheme || lower.includes('scheme') || lower.includes('yojana') || lower.includes('योजना') || lower.includes('loan') || lower.includes('ऋण') || lower.includes('apply') || lower.includes('आवेदन') || lower.includes('subsidy') || lower.includes('सब्सिडी') || lower.includes('svanidhi') || lower.includes('kcc') || lower.includes('kusum')) {
+  // 2. SCHEME & LOAN ELIGIBILITY
+  if (
+    matchedScheme ||
+    lower.includes('scheme') || lower.includes('yojana') || lower.includes('योजना') ||
+    lower.includes('loan') || lower.includes('ऋण') || lower.includes('apply') ||
+    lower.includes('आवेदन') || lower.includes('subsidy') || lower.includes('सब्सिडी') ||
+    lower.includes('svanidhi') || lower.includes('kcc') || lower.includes('kusum')
+  ) {
     let schemeObj = matchedScheme;
     if (!schemeObj) {
       if (lower.includes('svanidhi') || lower.includes('स्वनिधि') || lower.includes('thela')) schemeObj = GOVT_SCHEMES[1];
@@ -167,92 +126,109 @@ function universalVoiceNlpEngine(userSpeech, userLocation) {
       else if (lower.includes('kusum') || lower.includes('solar')) schemeObj = GOVT_SCHEMES[4];
       else schemeObj = GOVT_SCHEMES[0];
     }
+    const shortHi = `${schemeObj.name} ke liye Aadhar Card aur Bank Passbook ke saath Kirana CSC center par jayen. Isme ${schemeObj.benefits} milta hai.`;
+    const shortEn = `For ${schemeObj.name}, visit your Kirana CSC center with Aadhar Card and bank passbook. Benefit: ${schemeObj.benefits}.`;
 
     return {
-      query_input: userSpeech,
+      transcribedText: userSpeech,
       intent: 'scheme_query',
-      spoken_response: {
-        hindi_tts: `${schemeObj.name} ke bare me: Isme ${schemeObj.benefits} milta hai. Aadhar Card aur Bank passbook ke sath Kirana CSC center par apply karein.`,
-        english_translation: `Regarding ${schemeObj.name}: Provides ${schemeObj.benefits}. Submit Aadhar Card and bank passbook at your local Kirana CSC center.`
-      },
+      domain: 'GOVT_SCHEME',
+      shortAnswerHi: shortHi,
+      shortAnswerEn: shortEn,
+      detailedAnswerHi: shortHi + ` Aavedan ke liye ${(schemeObj.documents || ['Aadhar', 'Bank Passbook']).join(', ')} zaroori hain. Niyam badal sakte hain, isliye Kirana node se latest jankari lein.`,
+      detailedAnswerEn: shortEn + ` Documents needed: ${(schemeObj.documents || ['Aadhar', 'Bank Passbook']).join(', ')}. Rules may change, always verify current eligibility at your Kirana Trust Node.`,
       needs_trust_node_review: true,
-      risk_metadata: {
-        risk_category: lower.includes('loan') || lower.includes('ऋण') ? 'FINANCIAL_LOAN' : 'FINANCIAL_ELIGIBILITY',
-        trust_reason: `High-stakes ${schemeObj.name} query: Requires Kirana node document verification.`
-      },
-      actionable_steps: schemeObj.documents ? schemeObj.documents.map(d => `${d} tayyar rakhein`) : ['Aadhar Card tayyar rakhein', 'Bank Passbook ready rakhein']
+      isHighStakes: true,
+      riskCategory: lower.includes('loan') || lower.includes('ऋण') ? 'FINANCIAL_LOAN' : 'FINANCIAL_ELIGIBILITY',
+      trustNote: `High-stakes ${schemeObj.name} query: Requires Kirana node document verification.`,
+      actionableSteps: schemeObj.documents
+        ? schemeObj.documents.map(d => `${d} tayyar rakhein`)
+        : ['Aadhar Card tayyar rakhein', 'Bank Passbook ready rakhein']
     };
   }
 
-  // 3. WEATHER FORECAST INTENT
-  if (lower.includes('barish') || lower.includes('मौसम') || lower.includes('weather') || lower.includes('rain') || lower.includes('dhoop') || lower.includes('thand')) {
+  // 3. WEATHER FORECAST
+  if (
+    lower.includes('barish') || lower.includes('मौसम') || lower.includes('weather') ||
+    lower.includes('rain') || lower.includes('dhoop') || lower.includes('thand')
+  ) {
     return {
-      query_input: userSpeech,
+      transcribedText: userSpeech,
       intent: 'weather_advisory',
-      spoken_response: {
-        hindi_tts: `Agle 48 ghante me ${userLocation} me halki barish ki sambhavna hai. Fasal ko tarpaulin se dhak kar rakhein.`,
-        english_translation: `Light rainfall expected in ${userLocation} over next 48 hours. Cover harvested crops.`
-      },
+      domain: 'WEATHER',
+      shortAnswerHi: `Agle 48 ghante mein ${userLocation} mein halki barish ki sambhavna hai. Khuli fasal ko tarpaulin se dhak lein aur khet mein paani nikasi ki vyavastha karein.`,
+      shortAnswerEn: `Light rainfall expected in ${userLocation} over the next 48 hours. Cover harvested crops with tarpaulin and ensure field drainage.`,
+      detailedAnswerHi: `Mausam vibhag ke anusar ${userLocation} mein agle 48 ghante mein halki se madham barish ho sakti hai. Isse pehle apni kati hui fasal ko surakshit jagah par rakhein ya tarpaulin se dhakein. Khet mein paani ka johar na ho, iski vyavastha karein. Barish ke baad khet mein ureya ya DAP daalein kyunki nam mitti mein khad jaldi ghulti hai.`,
+      detailedAnswerEn: `Meteorological reports suggest light to moderate rainfall in ${userLocation} over the next 48 hours. Move harvested produce to a covered area or cover with tarpaulin. Ensure field drainage to prevent waterlogging. After rainfall, consider applying fertilizers like Urea/DAP as moist soil improves nutrient absorption.`,
       needs_trust_node_review: false,
-      risk_metadata: {
-        risk_category: 'NONE',
-        trust_reason: 'Auto-verified regional weather forecast.'
-      },
-      actionable_steps: [
-        'Khule me rakhi fasal ko dhakein',
-        'Khet me paani nikasi saaf karein'
+      isHighStakes: false,
+      riskCategory: 'NONE',
+      trustNote: 'Auto-verified regional weather forecast.',
+      actionableSteps: [
+        'Khuli fasal ko tarpaulin se dhakein',
+        'Khet mein paani nikasi saaf karein',
+        'Barish ke baad khad daalein'
       ]
     };
   }
 
-  // 4. MARKET PRICE QUERY INTENT
-  if (matchedCommodity || lower.includes('bhav') || lower.includes('भाव') || lower.includes('rate') || lower.includes('रेट') || lower.includes('price') || lower.includes('मंडी') || lower.includes('mandi') || lower.includes('thok')) {
+  // 4. MARKET PRICE QUERY
+  if (
+    matchedCommodity ||
+    lower.includes('bhav') || lower.includes('भाव') || lower.includes('rate') ||
+    lower.includes('रेट') || lower.includes('price') || lower.includes('मंडी') ||
+    lower.includes('mandi') || lower.includes('thok')
+  ) {
     const item = matchedCommodity ? matchedCommodity.name : extractGeneralTopic(text);
     const price = matchedCommodity ? matchedCommodity.price : 30;
     const unit = matchedCommodity ? matchedCommodity.unit : 'kg';
 
     return {
-      query_input: userSpeech,
+      transcribedText: userSpeech,
       intent: 'price_query',
-      spoken_response: {
-        hindi_tts: `Aaj ${userLocation} me ${item} ka mandi rate ₹${price} prati ${unit} chal raha hai.`,
-        english_translation: `Today at ${userLocation}, ${item} mandi rate is ₹${price}/${unit}.`
-      },
+      domain: 'MARKET_PRICE',
+      shortAnswerHi: `Aaj ${userLocation} mein ${item} ka mandi rate ₹${price} prati ${unit} chal raha hai. Yeh benchmark price hai, sthaniya rate thoda upar ya neeche ho sakta hai.`,
+      shortAnswerEn: `Today at ${userLocation}, ${item} mandi rate is approximately ₹${price}/${unit}. This is a benchmark; local rates may vary slightly.`,
+      detailedAnswerHi: `${item} ka aaj ka benchmark mandi rate ₹${price} prati ${unit} hai. Yeh data community reports aur sarkari data par aadharit hai. Subah 10 baje ke pehle mandi jaana achha hota hai jab stock fresh hota hai. Bade shopkeepers se bargain karein aur doosri mandion ka rate bhi compare karein. Apna sthaniya rate neeche wale button se community ke saath share karein.`,
+      detailedAnswerEn: `The benchmark mandi rate for ${item} today is ₹${price}/${unit}. This is based on community reports and government data. Arriving before 10 AM gets fresher stock. Compare rates across nearby mandis and negotiate with bulk buyers. Share your local rate with the community using the button below.`,
       needs_trust_node_review: false,
-      risk_metadata: {
-        risk_category: 'NONE',
-        trust_reason: 'Auto-verified market rate lookup.'
-      },
-      actionable_steps: [
-        'Subah 10 baje se pehle Mandi stock le jayein',
-        'Niche button se apna local rate share karein'
+      isHighStakes: false,
+      riskCategory: 'NONE',
+      trustNote: 'Auto-verified market rate lookup.',
+      actionableSteps: [
+        'Subah 10 baje se pehle mandi jayen',
+        'Doosri mandion ka rate compare karein',
+        'Apna sthaniya rate community se share karein'
       ]
     };
   }
 
-  // 5. GENERAL SPEECH ANSWER SYNTHESIZER
+  // 5. GENERAL FALLBACK
   const topic = extractGeneralTopic(text);
   return {
-    query_input: userSpeech,
+    transcribedText: userSpeech,
     intent: 'general_advice',
-    spoken_response: {
-      hindi_tts: `Aapka sawal "${text}" prapt hua. ${topic} ke bare me sahi jankari ke liye apne Kirana CSC node se sampark karein.`,
-      english_translation: `Received your question "${text}". For verified guidance regarding ${topic}, consult your local Kirana Trust Node.`
-    },
+    domain: 'AGRI_ADVISORY',
+    shortAnswerHi: `Aapka sawal "${text.slice(0, 60)}" prapt hua. ${topic} ke baare mein sahi jankari ke liye apne Kirana CSC node se sampark karein.`,
+    shortAnswerEn: `Received your question about "${topic}". For verified guidance, please consult your local Kirana Trust Node.`,
+    detailedAnswerHi: `Aapne ${topic} ke baare mein poochha. Is vishay par sahi aur up-to-date jankari ke liye apne nayik Kirana CSC center par jaen. Wahan trained operator aapko sarkari yojanaon, mandi rates, aur krishi salah ke baare mein sahi margdarshan de sakte hain. Aap Kisan Helpline 1551 par bhi free call kar sakte hain.`,
+    detailedAnswerEn: `You asked about ${topic}. For accurate and up-to-date information on this subject, visit your nearest Kirana CSC center. Trained operators can guide you on government schemes, mandi rates, and agricultural advisory. You can also call Kisan Helpline 1551 for free guidance.`,
     needs_trust_node_review: false,
-    risk_metadata: {
-      risk_category: 'NONE',
-      trust_reason: 'General voice assistance response.'
-    },
-    actionable_steps: [
-      'Apna vishisht sawal bolen',
-      'Kirana node par jaankari verify karein'
+    isHighStakes: false,
+    riskCategory: 'NONE',
+    trustNote: 'General voice assistance response — consider verifying with Kirana node.',
+    actionableSteps: [
+      'Apna vishisht sawal dobara bolen',
+      'Kirana node par jankari verify karein',
+      'Kisan Helpline 1551 par call karein'
     ]
   };
 }
 
 function extractGeneralTopic(text) {
-  if (!text) return 'Aapke sawal';
-  const clean = text.replace(/mujhe|batao|kya|hai|kaisey|kaise|karna|chahiye|aur|ke|ki|ka|me|mein|par|karo/gi, '').trim();
+  if (!text) return 'aapke sawal';
+  const clean = text
+    .replace(/mujhe|batao|kya|hai|kaisey|kaise|karna|chahiye|aur|ke|ki|ka|me|mein|par|karo/gi, '')
+    .trim();
   return clean.length > 2 ? clean : text;
 }

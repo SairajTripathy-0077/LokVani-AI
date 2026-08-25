@@ -1,5 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+/**
+ * GeminiKeyRotator — Server-side ONLY.
+ * Reads GEMINI_API_KEYS from process.env (comma-separated for rotation/failover).
+ * NEVER expose this module or its keys to the browser bundle.
+ */
 class GeminiKeyRotator {
   constructor() {
     this.keys = [];
@@ -9,16 +14,10 @@ class GeminiKeyRotator {
   }
 
   initializeKeys() {
-    let rawKeys = '';
-
-    if (typeof process !== 'undefined' && process.env) {
-      rawKeys = process.env.GEMINI_API_KEYS || process.env.VITE_GEMINI_API_KEY || '';
-    }
-    
-    // Also check Vite import.meta.env if in browser context
-    if (!rawKeys && typeof import.meta !== 'undefined' && import.meta.env) {
-      rawKeys = import.meta.env.VITE_GEMINI_API_KEYS || import.meta.env.VITE_GEMINI_API_KEY || '';
-    }
+    // Server-only: only read from process.env (never import.meta.env)
+    const rawKeys = (typeof process !== 'undefined' && process.env)
+      ? (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+      : '';
 
     if (rawKeys) {
       this.keys = rawKeys.split(',').map(k => k.trim()).filter(Boolean);
@@ -53,19 +52,19 @@ class GeminiKeyRotator {
         return { key, index: this.currentIndex };
       }
 
-      // Key is in cooldown, move to next
+      // Key is in cooldown, try next
       this.currentIndex = (this.currentIndex + 1) % this.keys.length;
       attempts++;
     }
 
-    // All keys in cooldown, return the first one anyway
+    // All keys in cooldown — return first anyway to avoid complete failure
     return { key: this.keys[0], index: 0 };
   }
 
   markKeyFailed(key, errorMessage) {
-    const isRateLimitOrQuota = 
-      errorMessage.includes('429') || 
-      errorMessage.includes('RESOURCE_EXHAUSTED') || 
+    const isRateLimitOrQuota =
+      errorMessage.includes('429') ||
+      errorMessage.includes('RESOURCE_EXHAUSTED') ||
       errorMessage.includes('QUOTA_EXCEEDED') ||
       errorMessage.includes('403');
 
@@ -73,10 +72,14 @@ class GeminiKeyRotator {
     const cooldownMs = isRateLimitOrQuota ? 120000 : 30000;
     this.keyCooldowns.set(key, Date.now() + cooldownMs);
 
-    const maskedKey = key.length > 8 ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}` : '***';
-    console.warn(`[GeminiKeyRotator] Key ${maskedKey} (Index ${this.currentIndex}) failed (${errorMessage}). Rotated key. Cooldown set for ${cooldownMs / 1000}s.`);
+    const maskedKey = key.length > 8
+      ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}`
+      : '***';
+    console.warn(
+      `[GeminiKeyRotator] Key ${maskedKey} (Index ${this.currentIndex}) failed (${errorMessage}). ` +
+      `Rotated. Cooldown: ${cooldownMs / 1000}s.`
+    );
 
-    // Advance to next key
     if (this.keys.length > 0) {
       this.currentIndex = (this.currentIndex + 1) % this.keys.length;
     }
@@ -120,11 +123,11 @@ class GeminiKeyRotator {
           };
         } catch (err) {
           lastError = err;
-          // If the error is 404 (model not found), try the next model immediately
+          // 404 = model not found, try the next model
           if (err.message && (err.message.includes('404') || err.message.includes('not found'))) {
             continue;
           }
-          break; // Stop trying models if there's a different API error (e.g. rate limit, bad key)
+          break; // different error (rate limit, bad key) — don't try other models with this key
         }
       }
 

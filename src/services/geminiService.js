@@ -1,54 +1,83 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { geminiRotator } from './geminiKeyRotator.js';
 
 /**
- * Gemini AI Query Engine & Risk Classifier Service
- * Evaluates queries, retrieves domain knowledge, and tags high-stakes responses for Kirana Trust Node review.
+ * Gemini AI Query Engine — SERVER-SIDE ONLY.
+ * Evaluates queries, returns expanded response schema, and tags high-stakes responses.
+ * Input is sanitized before building the prompt.
  */
+
+/**
+ * Sanitize input: trim, strip control characters, cap length.
+ * @param {string} text
+ * @returns {string}
+ */
+function sanitizeInput(text) {
+  if (typeof text !== 'string') return '';
+  // Strip ASCII control characters (0x00-0x1F, 0x7F) except newline/tab
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, 500);
+}
 
 const SYSTEM_PROMPT = `
 You are LokVani AI, an inclusive voice AI assistant for small farmers, street vendors, and artisans in India.
-Analyze the user's voice query and provide a clear, concise response in simple Hindi (Devanagari script) and English translation.
+Analyze the user's voice query and provide accurate, helpful responses in the user's preferred dialect.
 
 Rules:
-1. Provide a short_answer_hi (max 25-35 words, suitable for voice TTS playback).
-2. Provide a short_answer_en (English translation).
-3. Classify domain: "GOVT_SCHEME", "MARKET_PRICE", "AGRI_ADVISORY", or "WEATHER".
-4. Determine is_high_stakes (boolean):
-   - Set to TRUE if query involves government scheme eligibility, document application, pesticide/chemical dosage, or loan/financial commitments.
-   - Set to FALSE if query is simple market price lookup, general weather forecast, or general crop care tips.
-5. Provide actionable_steps (array of 2-3 short bullet points).
+1. short_answer_hi: 35-50 words, written for TTS playback, must FULLY answer the question — not just acknowledge it. Use simple Hindi in Devanagari script.
+2. short_answer_en: Equivalent English translation (35-50 words).
+3. detailed_answer_hi: 90-160 words with reasoning, context, and practical detail. This is shown as expandable text.
+4. detailed_answer_en: Equivalent English translation (90-160 words).
+5. confidence: "HIGH" if you have reliable data, "MEDIUM" if approximate, "LOW" if uncertain or needs verification.
+6. follow_up_questions: Array of exactly 2 short, natural follow-up questions in the same language as the query.
+7. domain: "GOVT_SCHEME" | "MARKET_PRICE" | "AGRI_ADVISORY" | "WEATHER"
+8. is_high_stakes (boolean): TRUE only for government scheme eligibility, document applications, pesticide/chemical dosage, or loan/financial commitments. FALSE for market prices, weather, general crop tips.
+9. risk_category: "FINANCIAL_ELIGIBILITY" | "PESTICIDE_SAFETY" | "FINANCIAL_LOAN" | "NONE"
+10. trust_note: Explain clearly why human/Kirana node review is needed (or say "Auto-verified" if not high stakes).
+11. actionable_steps: Array of 2-3 short, practical bullet points.
 
-Return ONLY valid JSON matching this schema:
+IMPORTANT: If a dialect is specified in the query context, respond in that dialect/script wherever possible.
+For market price queries: use the provided community price data if available.
+For weather: use the provided weather context if available.
+
+Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
 {
-  "short_answer_hi": "string",
-  "short_answer_en": "string",
+  "short_answer_hi": "string (35-50 words)",
+  "short_answer_en": "string (35-50 words)",
+  "detailed_answer_hi": "string (90-160 words)",
+  "detailed_answer_en": "string (90-160 words)",
+  "confidence": "HIGH | MEDIUM | LOW",
+  "follow_up_questions": ["question 1", "question 2"],
   "domain": "GOVT_SCHEME | MARKET_PRICE | AGRI_ADVISORY | WEATHER",
-  "is_high_stakes": boolean,
+  "is_high_stakes": false,
   "risk_category": "FINANCIAL_ELIGIBILITY | PESTICIDE_SAFETY | FINANCIAL_LOAN | NONE",
-  "trust_note": "string explaining why review is suggested",
+  "trust_note": "string",
   "actionable_steps": ["step 1", "step 2"]
 }
 `;
 
-export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, customApiKey = null) {
-  // Build context string from community intelligence feed
-  const intelContext = Array.isArray(communityIntel) && communityIntel.length > 0
-    ? `Recent community reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} at ${i.location}`).join(', ')}.`
-    : 'No recent community reports.';
-
-  const weatherContext = weatherData
-    ? `Current Live Weather for ${weatherData.city || 'Azamgarh'}: Temperature: ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation sum: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
-    : 'No live weather telemetry available.';
-
-  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}\n${weatherContext}`;
-
-  if (customApiKey) {
-    geminiRotator.setKeys([customApiKey]);
+export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null) {
+  // Server-side input sanitization
+  const safeQuery = sanitizeInput(queryText);
+  if (!safeQuery) {
+    throw new Error('Invalid or empty query after sanitization.');
   }
 
-  // Attempt processing with Rotator Pool
-  const rotatedResult = await geminiRotator.executeWithRotation(systemContext, queryText);
+  // Build community intel context
+  const intelContext = Array.isArray(communityIntel) && communityIntel.length > 0
+    ? `Recent community market reports: ${communityIntel.map(i => `${i.item}: ₹${i.price}/${i.unit || 'kg'} at ${i.location}`).join(', ')}.`
+    : 'No recent community market reports available.';
+
+  const weatherContext = weatherData
+    ? `Live Weather for ${weatherData.city || 'Azamgarh'}: Temp ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
+    : 'No live weather telemetry available.';
+
+  const dialectContext = dialect && dialect !== 'hi' && dialect !== 'en'
+    ? `User's preferred dialect: ${dialect}. Respond in that dialect/script as closely as possible.`
+    : '';
+
+  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${intelContext}\n${weatherContext}${dialectContext ? '\n' + dialectContext : ''}`;
+
+  const rotatedResult = await geminiRotator.executeWithRotation(systemContext, safeQuery);
 
   if (rotatedResult && rotatedResult.text) {
     try {
@@ -60,9 +89,10 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
         modelUsed: rotatedResult.modelUsed
       };
     } catch (err) {
-      throw new Error(`[GeminiService] Failed to parse JSON response from Gemini API: ${err.message}`);
+      // Don't leak parse details to API response — just rethrow a clean message
+      throw new Error('AI response could not be parsed. Please try again.');
     }
   }
 
-  throw new Error('[GeminiService] All Gemini API keys in the rotator pool failed or returned empty response.');
+  throw new Error('AI service temporarily unavailable. Please try again in a moment.');
 }

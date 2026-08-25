@@ -6,7 +6,12 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
   const [language, setLanguage] = useState('hi'); // 'hi' | 'en'
-  
+
+  // Dialect selection — persisted to localStorage
+  const [dialect, setDialect] = useState(() =>
+    localStorage.getItem('lokvani_dialect') || 'hi'
+  );
+
   // Real User Queries (Persisted in localStorage, empty on fresh start)
   const [queries, setQueries] = useState(() => {
     const saved = localStorage.getItem('lokvani_real_queries');
@@ -20,16 +25,18 @@ export function AppProvider({ children }) {
   });
 
   const [liveWeather, setLiveWeather] = useState(null);
-  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('lokvani_api_key') || '');
+
+  // SECURITY: Clear any legacy API key that may have been stored in localStorage
+  useEffect(() => {
+    localStorage.removeItem('lokvani_api_key');
+  }, []);
 
   // Load Real-Time Data from Public APIs on mount
   useEffect(() => {
     async function loadRealData() {
-      // 1. Fetch Real Weather from Open-Meteo API
       const weather = await fetchLiveWeatherData('Azamgarh');
       setLiveWeather(weather);
 
-      // 2. Fetch Real Mandi Prices from Agmarknet API
       const livePrices = await fetchLiveMandiPrices();
       if (livePrices && livePrices.length > 0) {
         setCommunityIntel(prev => {
@@ -49,6 +56,10 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('lokvani_real_intel', JSON.stringify(communityIntel));
   }, [communityIntel]);
+
+  useEffect(() => {
+    localStorage.setItem('lokvani_dialect', dialect);
+  }, [dialect]);
 
   const addQuery = (newQuery) => {
     setQueries(prev => [newQuery, ...prev]);
@@ -86,11 +97,6 @@ export function AppProvider({ children }) {
     setCommunityIntel(prev => [newEntry, ...prev]);
   };
 
-  const saveApiKey = (key) => {
-    setGeminiKey(key);
-    localStorage.setItem('lokvani_api_key', key);
-  };
-
   const pendingReviewsCount = queries.filter(q => q.status === 'PENDING_TRUST_REVIEW').length;
 
   return (
@@ -99,6 +105,8 @@ export function AppProvider({ children }) {
       setActiveTab,
       language,
       setLanguage,
+      dialect,
+      setDialect,
       queries,
       addQuery,
       approveQuery,
@@ -106,8 +114,6 @@ export function AppProvider({ children }) {
       addCommunityIntel,
       liveWeather,
       pendingReviewsCount,
-      geminiKey,
-      saveApiKey
     }}>
       {children}
     </AppContext.Provider>

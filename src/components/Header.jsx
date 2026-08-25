@@ -1,143 +1,181 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X } from 'lucide-react';
+import { Mic, FileText, Users, Globe, LogIn, UserPlus, Home, Menu, X, Zap } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+
+const NAV_ITEMS = [
+  { id: 'home',    label: 'Home',           icon: Home    },
+  { id: 'voice',   label: 'Voice AI',       icon: Mic     },
+  { id: 'schemes', label: 'Gov Schemes',    icon: FileText },
+  { id: 'intel',   label: 'Market Intel',   icon: Users   },
+];
 
 export default function Header() {
-  const { activeTab, setActiveTab, language, setLanguage } = useApp();
+  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount } = useApp();
   const { isSignedIn } = useUser();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const isClerkAvailable = typeof window !== 'undefined' &&
+    import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
-  const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'voice', label: 'Voice App', icon: Mic },
-    { id: 'schemes', label: 'Public Schemes', icon: FileText },
-    { id: 'intel', label: 'Community Intel', icon: Users },
-  ];
+  const showNav = !isClerkAvailable || isSignedIn;
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm px-4 sm:px-6 py-3 transition-all">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        
-        {/* Brand Logo & Title */}
-        <div 
-          className="flex items-center gap-3 cursor-pointer group"
-          onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Mic className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-none">
-                LokVani AI
-              </h1>
-              <span className="text-xs font-black text-blue-600 tracking-wider">
-                BHARAT
-              </span>
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex h-16 items-center justify-between gap-4">
+
+          {/* ── Brand ─────────────────────────────────────── */}
+          <button
+            onClick={() => { setActiveTab('home'); setMobileOpen(false); }}
+            className="flex items-center gap-3 group shrink-0"
+          >
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-indigo-700" />
+              <Mic className="relative w-4.5 h-4.5 z-10" size={18} />
             </div>
-            <p className="text-xs text-slate-500 font-medium">
-              Inclusive Voice Intelligence
-            </p>
+            <div className="text-left hidden sm:block">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-black tracking-tight text-foreground leading-none">
+                  LokVani
+                </span>
+                <span className="text-base font-black tracking-tight text-primary leading-none">
+                  AI
+                </span>
+                <Badge variant="secondary" className="text-[9px] font-bold px-1.5 py-0 h-4 tracking-wide uppercase hidden sm:flex">
+                  Bharat
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground font-medium leading-none mt-0.5">
+                Inclusive Voice Intelligence
+              </p>
+            </div>
+          </button>
+
+          {/* ── Desktop Nav ───────────────────────────────── */}
+          {showNav && (
+            <nav className="hidden md:flex items-center gap-0.5 p-1 rounded-xl bg-muted/60 border border-border/40">
+              {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+                const active = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    className={cn(
+                      'relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200',
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+                    )}
+                  >
+                    <Icon size={14} />
+                    <span>{label}</span>
+                    {id === 'schemes' && pendingReviewsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                        {pendingReviewsCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* ── Right Actions ─────────────────────────────── */}
+          <div className="flex items-center gap-2">
+            {/* Language toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
+              className="hidden sm:flex gap-1.5 text-xs font-semibold rounded-lg h-8 px-3"
+            >
+              <Globe size={13} className="text-primary" />
+              {language === 'hi' ? 'हिं' : 'EN'}
+            </Button>
+
+            <Separator orientation="vertical" className="h-6 hidden sm:block" />
+
+            {/* Auth */}
+            {isClerkAvailable ? (
+              <>
+                <SignedOut>
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <Button variant="ghost" size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs">
+                      <LogIn size={13} /> Sign In
+                    </Button>
+                    <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
+                      <UserPlus size={13} /> Sign Up
+                    </Button>
+                  </div>
+                </SignedOut>
+                <SignedIn>
+                  <div className="flex items-center gap-2">
+                    <div className="p-0.5 rounded-full ring-2 ring-primary/20">
+                      <UserButton showName={false} />
+                    </div>
+                  </div>
+                </SignedIn>
+              </>
+            ) : (
+              <Button size="sm" onClick={() => setActiveTab('auth')} className="h-8 text-xs gap-1.5">
+                <Zap size={13} /> Guest Mode
+              </Button>
+            )}
+
+            {/* Mobile hamburger */}
+            {showNav && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8"
+                onClick={() => setMobileOpen(o => !o)}
+              >
+                {mobileOpen ? <X size={17} /> : <Menu size={17} />}
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Center Navigation - Pill Menu (Desktop) */}
-        {(!isClerkAvailable || isSignedIn) && (
-          <nav className="hidden md:flex items-center gap-1 bg-slate-100/80 p-1.5 rounded-full border border-slate-200 shadow-inner">
-            {navItems.map((item) => {
-              const IconComponent = item.icon;
-              const isActive = activeTab === item.id;
-
+        {/* ── Mobile Menu ───────────────────────────────── */}
+        {mobileOpen && showNav && (
+          <div className="md:hidden border-t border-border/40 py-3 flex flex-col gap-1">
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+              const active = activeTab === id;
               return (
                 <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                  }`}
+                  key={id}
+                  onClick={() => { setActiveTab(id); setMobileOpen(false); }}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all',
+                    active
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                  )}
                 >
-                  <IconComponent className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <Icon size={15} />
+                  {label}
+                  {id === 'schemes' && pendingReviewsCount > 0 && (
+                    <Badge variant="destructive" className="ml-auto text-[9px] h-4 px-1.5">
+                      {pendingReviewsCount}
+                    </Badge>
+                  )}
                 </button>
               );
             })}
-          </nav>
-        )}
-
-        {/* Right Actions: Language Selector & User Profile */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full border border-slate-200 text-xs sm:text-sm font-semibold transition-colors"
-          >
-            <Globe className="w-4 h-4 text-blue-600" />
-            <span>{language === 'hi' ? 'हिंदी' : 'English'}</span>
-          </button>
-
-          {/* Clerk Auth Integration */}
-          {isClerkAvailable ? (
-            <div className="flex items-center gap-2">
-              <SignedOut>
-                <div className="hidden sm:flex items-center gap-2">
-                  <button className="btn-secondary !rounded-full !px-3 !py-1.5 !text-xs" onClick={() => setActiveTab('auth')}>
-                    <LogIn className="w-3.5 h-3.5" /> Sign In
-                  </button>
-                  <button className="btn-primary !rounded-full !px-3 !py-1.5 !text-xs" onClick={() => setActiveTab('auth')}>
-                    <UserPlus className="w-3.5 h-3.5" /> Sign Up
-                  </button>
-                </div>
-              </SignedOut>
-              <SignedIn>
-                <div className="p-0.5 bg-slate-100 rounded-full border border-slate-200">
-                  <UserButton showName={false} />
-                </div>
-              </SignedIn>
+            <Separator className="my-1" />
+            <div className="flex items-center gap-2 px-2">
+              <Button variant="ghost" size="sm" onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')} className="gap-1.5 text-xs">
+                <Globe size={13} /> {language === 'hi' ? 'English' : 'हिंदी'}
+              </Button>
             </div>
-          ) : (
-            <button className="btn-primary !rounded-full !px-3.5 !py-1.5 !text-xs" onClick={() => setActiveTab('auth')}>
-              <LogIn className="w-4 h-4" /> Guest Mode
-            </button>
-          )}
-
-          {/* Mobile Hamburger Toggle Button */}
-          {(!isClerkAvailable || isSignedIn) && (
-            <button 
-              className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-lg"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-
-      {/* Mobile Dropdown Drawer Menu */}
-      {mobileMenuOpen && (!isClerkAvailable || isSignedIn) && (
-        <div className="md:hidden mt-3 pt-3 border-t border-slate-200 flex flex-col gap-2 pb-2">
-          {navItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => { setActiveTab(item.id); setMobileMenuOpen(false); }}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                  isActive ? 'bg-blue-600 text-white' : 'text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <IconComponent className="w-4 h-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
     </header>
   );
 }
