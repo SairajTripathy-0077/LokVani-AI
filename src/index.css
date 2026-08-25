@@ -86,6 +86,15 @@
 
   ::selection { background: rgba(79,70,229,.12); }
 
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid rgba(72, 115, 79, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   .large-text { font-size: 1.15rem !important; }
   .large-text h2 { font-size: 2rem !important; }
   .large-text p, .large-text span, .large-text li, .large-text button { font-size: 1.05rem !important; }
@@ -130,6 +139,14 @@
 
 /* ── Components ──────────────────────────────────────────────── */
 @layer components {
+  /* ── Shared buttons (used across app) ─────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white cursor-pointer transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-medium text-zinc-800 cursor-pointer transition-all duration-500 ease-premium hover:border-black/[0.2] hover:bg-zinc-50 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
   /* ── Mic Button System ─────────────────────────────────── */
   .mic-wrap {
     position: relative;

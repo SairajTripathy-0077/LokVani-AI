@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "better-interface": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-interface/SKILL.md",
+      "computedHash": "84b67f6b6c06337d47a56cfae89fd90eb893e04c14d60f9b3eeaca2804b86351"
+    },
+    "better-typography": {
+      "source": "jakubkrehel/skills",
+      "sourceType": "github",
+      "skillPath": "skills/better-typography/SKILL.md",
+      "computedHash": "0cd871f48bb1a411e0724b48226c69bb768f1c903930ae6d333e234d46f0a9d2"
+    },
     "high-end-visual-design": {
       "source": "nexu-io/open-design",
       "sourceType": "github",
