@@ -4,6 +4,14 @@ import { speechService } from '../services/speechService';
 
 const AppContext = createContext();
 
+const DEFAULT_CONVERSATION = {
+  id: 'conv_default',
+  title: 'General Voice Assistant',
+  messages: [],
+  createdAt: Date.now(),
+  updatedAt: Date.now()
+};
+
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
 
@@ -21,7 +29,6 @@ export function AppProvider({ children }) {
   const changeLanguage = useCallback((newLang) => {
     setLanguageState(newLang);
     localStorage.setItem('lokvani_language', newLang);
-    // Sync dialect to language if matching
     if (newLang === 'en') {
       setDialect('en');
     } else if (newLang === 'hi' && dialect === 'en') {
@@ -42,7 +49,6 @@ export function AppProvider({ children }) {
   // Global Speech Output State
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Subscribe to SpeechService speaking state changes
   useEffect(() => {
     const unsubscribe = speechService.onSpeakingStateChange((speaking) => {
       setIsSpeaking(speaking);
@@ -55,13 +61,120 @@ export function AppProvider({ children }) {
     setIsSpeaking(false);
   }, []);
 
-  // Real User Queries (Persisted in localStorage, empty on fresh start)
+  // ── Multi-Conversation / Multi-Chat State ─────────────────────────────────
+  const [conversations, setConversations] = useState(() => {
+    const saved = localStorage.getItem('lokvani_conversations');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (_) {}
+    }
+    return [DEFAULT_CONVERSATION];
+  });
+
+  const [activeConvId, setActiveConvId] = useState(() => {
+    const saved = localStorage.getItem('lokvani_active_conv_id');
+    if (saved && conversations.some(c => c.id === saved)) {
+      return saved;
+    }
+    return conversations[0]?.id || DEFAULT_CONVERSATION.id;
+  });
+
+  // Save conversations to localStorage
+  useEffect(() => {
+    localStorage.setItem('lokvani_conversations', JSON.stringify(conversations));
+  }, [conversations]);
+
+  useEffect(() => {
+    localStorage.setItem('lokvani_active_conv_id', activeConvId);
+  }, [activeConvId]);
+
+  // Get active conversation object
+  const activeConversation = conversations.find(c => c.id === activeConvId) || conversations[0] || DEFAULT_CONVERSATION;
+
+  // Create a new conversation session
+  const createConversation = useCallback((title) => {
+    const newConv = {
+      id: `conv_${Date.now()}`,
+      title: title || (language === 'hi' ? 'नई बातचीत' : 'New Chat'),
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+    setConversations(prev => [newConv, ...prev]);
+    setActiveConvId(newConv.id);
+    return newConv.id;
+  }, [language]);
+
+  // Select active conversation
+  const selectConversation = useCallback((id) => {
+    if (conversations.some(c => c.id === id)) {
+      setActiveConvId(id);
+    }
+  }, [conversations]);
+
+  // Delete a conversation thread
+  const deleteConversation = useCallback((id) => {
+    setConversations(prev => {
+      const filtered = prev.filter(c => c.id !== id);
+      if (filtered.length === 0) {
+        const fresh = {
+          id: `conv_${Date.now()}`,
+          title: language === 'hi' ? 'नई बातचीत' : 'New Chat',
+          messages: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        };
+        setActiveConvId(fresh.id);
+        return [fresh];
+      }
+      if (activeConvId === id) {
+        setActiveConvId(filtered[0].id);
+      }
+      return filtered;
+    });
+  }, [activeConvId, language]);
+
+  // Rename conversation thread
+  const renameConversation = useCallback((id, newTitle) => {
+    if (!newTitle || !newTitle.trim()) return;
+    setConversations(prev => prev.map(c => {
+      if (c.id === id) {
+        return { ...c, title: newTitle.trim(), updatedAt: Date.now() };
+      }
+      return c;
+    }));
+  }, []);
+
+  // Add query-response pair to active conversation thread
+  const addMessageToActiveConv = useCallback((messageData) => {
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === activeConvId) {
+        const updatedMessages = [...conv.messages, messageData];
+        // Auto-set title from first user query if title is default
+        const isFirstMessage = conv.messages.length === 0;
+        const autoTitle = isFirstMessage
+          ? (messageData.transcribedText ? messageData.transcribedText.slice(0, 32) + (messageData.transcribedText.length > 32 ? '…' : '') : conv.title)
+          : conv.title;
+
+        return {
+          ...conv,
+          title: autoTitle,
+          messages: updatedMessages,
+          updatedAt: Date.now()
+        };
+      }
+      return conv;
+    }));
+  }, [activeConvId]);
+
+  // Legacy Queries state (for backward compatibility)
   const [queries, setQueries] = useState(() => {
     const saved = localStorage.getItem('lokvani_real_queries');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Real-Time Community Intel (Populated via live Agmarknet API + User Reports)
   const [communityIntel, setCommunityIntel] = useState(() => {
     const saved = localStorage.getItem('lokvani_real_intel');
     return saved ? JSON.parse(saved) : [];
@@ -69,12 +182,10 @@ export function AppProvider({ children }) {
 
   const [liveWeather, setLiveWeather] = useState(null);
 
-  // SECURITY: Clear any legacy API key that may have been stored in localStorage
   useEffect(() => {
     localStorage.removeItem('lokvani_api_key');
   }, []);
 
-  // Load Real-Time Data from Public APIs on mount
   useEffect(() => {
     async function loadRealData() {
       const weather = await fetchLiveWeatherData('Azamgarh');
@@ -153,6 +264,16 @@ export function AppProvider({ children }) {
       setDialect,
       isSpeaking,
       stopSpeaking,
+      // Multi-Conversation Chat state & actions
+      conversations,
+      activeConvId,
+      activeConversation,
+      createConversation,
+      selectConversation,
+      deleteConversation,
+      renameConversation,
+      addMessageToActiveConv,
+      // Legacy queries
       queries,
       addQuery,
       approveQuery,
