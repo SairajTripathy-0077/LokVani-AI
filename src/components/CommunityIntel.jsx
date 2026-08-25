@@ -22,6 +22,10 @@
 import React, { useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { t } from './community/communityTranslations.js';
+import { fetchLiveMandiRates } from '../services/mandiService';
+import { fetchLiveWeatherData } from '../services/realDataService';
+
+const REGIONS = ['Azamgarh', 'Gorakhpur', 'Varanasi', 'Lucknow'];
 
 // ── Scoped styles (never touches index.css) ──────────────────────────────────
 import '../styles/community.css';
@@ -65,6 +69,8 @@ const INITIAL_STATE = {
   toast:        null,       // { message, type } | null
   searchQuery:  '',
   activeCategory: 'All',
+  selectedRegion: 'Azamgarh',
+  regionWeather: null,
 };
 
 const CATEGORIES_CONFIG = [
@@ -103,6 +109,8 @@ function reducer(state, action) {
       return { ...state, searchQuery: action.payload };
     case 'SET_CATEGORY':
       return { ...state, activeCategory: action.payload };
+    case 'SET_REGION_WEATHER':
+      return { ...state, selectedRegion: action.region, regionWeather: action.weather };
     default:
       return state;
   }
@@ -145,18 +153,36 @@ export default function CommunityIntel() {
   const lang = language || 'hi'; // default hi for farmers
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
-  const { intelList, loading, submitting, showModal, toast, searchQuery, activeCategory } = state;
+  const { intelList, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
+
+  const handleRegionChange = async (city) => {
+    dispatch({ type: 'SET_REGION_WEATHER', region: city, weather: regionWeather });
+    const w = await fetchLiveWeatherData(city);
+    dispatch({ type: 'SET_REGION_WEATHER', region: city, weather: w });
+  };
 
   /* ── Data Fetching ───────────────────────────────────────────────────────── */
   const fetchIntel = useCallback(async () => {
     dispatch({ type: 'FETCH_START' });
     try {
-      const res = await fetch('/api/intel');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      dispatch({ type: 'FETCH_SUCCESS', payload: json.data || [] });
+      let data = [];
+      try {
+        const res = await fetch('/api/intel');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && json.data.length > 0) data = json.data;
+        }
+      } catch (err) {
+        console.warn('API endpoint unavailable, loading public mandi data:', err);
+      }
+
+      if (!data || data.length === 0) {
+        data = await fetchLiveMandiRates();
+      }
+
+      dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
-      console.warn('[CommunityIntel] fetch /api/intel failed:', err.message);
+      console.error('Error loading intel dataset:', err);
       dispatch({ type: 'FETCH_ERROR' });
     }
   }, []);
@@ -405,13 +431,24 @@ export default function CommunityIntel() {
           SECTION 9 — Live Regional Weather
           ──────────────────────────────────────────────────────────────────── */}
       <section className="community-int__section" aria-labelledby="ci-weather-heading">
-        <h3 className="community-int__section-title" id="ci-weather-heading" style={{ marginBottom: '14px' }}>
-          <CloudSun size={18} color="var(--accent-gold)" aria-hidden="true" />
-          {t('weatherTitle', lang)}
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', gap: '8px' }}>
+          <h3 className="community-int__section-title" id="ci-weather-heading" style={{ marginBottom: 0 }}>
+            <CloudSun size={18} color="var(--accent-gold)" aria-hidden="true" />
+            {t('weatherTitle', lang)}
+          </h3>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {REGIONS.map(reg => (
+              <button type="button" key={reg} onClick={() => handleRegionChange(reg)}
+                className={`community-int__pill ${selectedRegion === reg ? 'community-int__pill--active' : ''}`}
+                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '4px' }}>
+                {reg}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="community-int__weather-box">
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            {liveWeather ? liveWeather.advisory_en : t('weatherDefault', lang)}
+            {regionWeather ? regionWeather.advisory_en : (liveWeather ? liveWeather.advisory_en : t('weatherDefault', lang))}
           </p>
         </div>
       </section>

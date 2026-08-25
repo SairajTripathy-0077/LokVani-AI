@@ -1,7 +1,15 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import dns from 'dns';
 
 dotenv.config();
+
+// Fix Node.js DNS SRV lookup issues on Windows / certain ISPs for mongodb+srv URIs
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore if setting DNS servers fails in specific environments
+}
 
 let isConnected = false;
 

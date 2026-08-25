@@ -13,6 +13,13 @@ import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realD
 
 dotenv.config();
 
+// Input sanitizer: strip control chars, cap at 500 chars
+function sanitizeInput(text) {
+  if (typeof text !== 'string') return '';
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim().slice(0, 500);
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -79,10 +86,11 @@ app.get('/api/health', (req, res) => {
 // 2. Process Voice Query (POST /api/query)
 app.post('/api/query', async (req, res) => {
   try {
-    const { transcribed_text, user_location, userId, userEmail, userName } = req.body || {};
+    const { transcribed_text, user_location, userId, userEmail, userName, dialect } = req.body || {};
 
-    if (!transcribed_text || typeof transcribed_text !== 'string') {
-      return res.status(400).json({ error: 'Missing required field: transcribed_text string.' });
+    const safeText = sanitizeInput(transcribed_text);
+    if (!safeText) {
+      return res.status(400).json({ error: 'Missing or invalid transcribed_text (max 500 chars).' });
     }
 
     // Fetch live Mandi prices from Govt API
@@ -115,8 +123,9 @@ app.post('/api/query', async (req, res) => {
     }
     const weatherData = await fetchLiveWeatherData(detectedCity);
 
-    // Run AI Engine through Rotator
-    const aiResult = await processVoiceQuery(transcribed_text, intelList, weatherData);
+    // Run AI Engine through Rotator (sanitized text, optional dialect)
+    const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
+    const aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
 
@@ -124,15 +133,20 @@ app.post('/api/query', async (req, res) => {
       userId: userId || 'anonymous',
       userEmail: userEmail || '',
       userName: userName || 'Guest User',
-      transcribedText: transcribed_text,
-      userLocation: user_location || 'Azamgarh, UP',
+      transcribedText: safeText,
+      userLocation: sanitizeInput(user_location) || 'Azamgarh, UP',
       shortAnswerHi: aiResult.short_answer_hi,
       shortAnswerEn: aiResult.short_answer_en,
+      detailedAnswerHi: aiResult.detailed_answer_hi || '',
+      detailedAnswerEn: aiResult.detailed_answer_en || '',
+      confidence: aiResult.confidence || 'MEDIUM',
+      followUpQuestions: aiResult.follow_up_questions || [],
       domain: aiResult.domain || 'AGRI_ADVISORY',
       isHighStakes: aiResult.is_high_stakes || false,
       riskCategory: aiResult.risk_category || 'NONE',
       trustNote: aiResult.trust_note || '',
       actionableSteps: aiResult.actionable_steps || [],
+      dialect: safeDialect || 'hi',
       status: initialStatus,
       apiKeyIndexUsed: aiResult.apiKeyIndexUsed || 0,
       createdAt: new Date()

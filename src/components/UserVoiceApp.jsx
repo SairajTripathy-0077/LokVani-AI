@@ -1,449 +1,694 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { speechService } from '../services/speechService';
-import { Mic, MicOff, Volume2, VolumeX, ShieldAlert, ShieldCheck, Sparkles, Send, CheckCircle2, AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Megaphone, Zap } from 'lucide-react';
+import { processUserSpeechQuery } from '../services/aiCoreEngine';
+import {
+  Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
+  AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
+  ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Zap, Clock, MapPin,
+  ThumbsUp, ThumbsDown
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+
+// ─── Dialect Map ────────────────────────────────────────────────────────────
+const DIALECT_MAP = {
+  hi:  { label: 'हिंदी',       locale: 'hi-IN',  promptName: 'Hindi' },
+  en:  { label: 'English',     locale: 'en-IN',  promptName: 'English' },
+  bho: { label: 'भोजपुरी',    locale: 'hi-IN',  promptName: 'Bhojpuri dialect of Hindi' },
+  awa: { label: 'अवधी',       locale: 'hi-IN',  promptName: 'Awadhi dialect of Hindi' },
+  mai: { label: 'मैथिली',     locale: 'hi-IN',  promptName: 'Maithili' },
+  mr:  { label: 'मराठी',      locale: 'mr-IN',  promptName: 'Marathi' },
+  bn:  { label: 'বাংলা',      locale: 'bn-IN',  promptName: 'Bengali' },
+  ta:  { label: 'தமிழ்',      locale: 'ta-IN',  promptName: 'Tamil' },
+  te:  { label: 'తెలుగు',     locale: 'te-IN',  promptName: 'Telugu' },
+  pa:  { label: 'ਪੰਜਾਬੀ',     locale: 'pa-IN',  promptName: 'Punjabi' },
+  gu:  { label: 'ગુજરાતી',    locale: 'gu-IN',  promptName: 'Gujarati' },
+  kn:  { label: 'ಕನ್ನಡ',       locale: 'kn-IN',  promptName: 'Kannada' },
+  or:  { label: 'ଓଡ଼ିଆ',       locale: 'or-IN',  promptName: 'Odia' },
+};
 
 const DEMO_PRESETS = [
-  {
-    label: 'PM-Kisan & Mandi Rate',
-    query: 'Mujhe PM-Kisan scheme ke liye apply karna hai aur tamatar ka mandi bhav jan-na hai.',
-    icon: Wheat
-  },
-  {
-    label: 'Crop Disease Advisory',
-    query: 'Tamatar me keede lag rahe hain, konsa pesticide spray karna chahiye?',
-    icon: Bug
-  },
-  {
-    label: 'Onion Market Rate',
-    query: 'Aaj Gorakhpur Mandi me pyaaz ka thoke rate kya hai?',
-    icon: TrendingUp
-  }
+  { label_en: 'PM-Kisan & Mandi', label_hi: 'पीएम-किसान व मंडी',
+    query_en: 'How to apply for PM-Kisan scheme and what is tomato mandi rate?',
+    query_hi: 'Mujhe PM-Kisan scheme ke liye apply karna hai aur tamatar ka mandi bhav janna hai.',
+    icon: Wheat, color: 'text-amber-600', bg: 'bg-amber-50 hover:bg-amber-100 border-amber-200' },
+  { label_en: 'Crop Disease', label_hi: 'फसल रोग',
+    query_en: 'Insects on tomatoes, which pesticide should I spray?',
+    query_hi: 'Tamatar me keede lag rahe hain, konsa pesticide spray karna chahiye?',
+    icon: Bug, color: 'text-red-600', bg: 'bg-red-50 hover:bg-red-100 border-red-200' },
+  { label_en: 'Mandi Rates', label_hi: 'मंडी भाव',
+    query_en: 'What is today wholesale price of onion in Gorakhpur Mandi?',
+    query_hi: 'Aaj Gorakhpur Mandi me pyaaz ka thoke rate kya hai?',
+    icon: TrendingUp, color: 'text-indigo-600', bg: 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200' },
 ];
 
-export default function UserVoiceApp() {
-  const { language, setActiveTab } = useApp();
-  
-  const [appState, setAppState] = useState('IDLE'); // 'IDLE' | 'LISTENING' | 'THINKING' | 'SPEAKING'
-  const [transcript, setTranscript] = useState('');
-  const [activeQueryResult, setActiveQueryResult] = useState(null);
-  const [userQueryHistory, setUserQueryHistory] = useState([]);
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
-  const [showPriceReportModal, setShowPriceReportModal] = useState(false);
-  const [reportItem, setReportItem] = useState('Tamatar (Tomato)');
-  const [reportPrice, setReportPrice] = useState('30');
+function ConfidenceBadge({ level }) {
+  const map = {
+    HIGH:   { cls: 'badge-high',   icon: '✓', label: 'High Confidence' },
+    MEDIUM: { cls: 'badge-medium', icon: '~', label: 'Medium' },
+    LOW:    { cls: 'badge-low',    icon: '⚠', label: 'Low — Verify' },
+  };
+  const c = map[level];
+  if (!c) return null;
+  return <span className={c.cls}>{c.icon} {c.label}</span>;
+}
+
+function SkeletonCard() {
+  return (
+    <Card className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <CardContent className="p-6 sm:p-8 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="skeleton w-6 h-6 rounded-full" />
+          <div className="skeleton h-4 w-40 rounded" />
+          <div className="skeleton h-5 w-24 rounded-full ml-auto" />
+        </div>
+        <div className="space-y-3 p-5 rounded-xl bg-muted/40">
+          <div className="skeleton h-5 w-3/4 rounded" />
+          <div className="skeleton h-4 w-full rounded" />
+          <div className="skeleton h-4 w-5/6 rounded" />
+          <div className="skeleton h-4 w-4/5 rounded" />
+        </div>
+        <div className="space-y-2">
+          <div className="skeleton h-3 w-1/3 rounded" />
+          <div className="skeleton h-4 w-full rounded" />
+          <div className="skeleton h-4 w-5/6 rounded" />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <div className="skeleton h-9 w-32 rounded-xl" />
+          <div className="skeleton h-9 w-32 rounded-xl" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+export default function UserVoiceApp() {
+  const { language, setActiveTab, dialect, setDialect } = useApp();
+
+  const [appState, setAppState]             = useState('IDLE');
+  const [transcript, setTranscript]         = useState('');
+  const [activeResult, setActiveResult]     = useState(null);
+  const [queryHistory, setQueryHistory]     = useState([]);
+  const [showDetailed, setShowDetailed]     = useState(false);
+  const [ttsRate, setTtsRate]               = useState(1.0);
+  const [largeText, setLargeText]           = useState(() => localStorage.getItem('lokvani_large_text') === 'true');
+  const [showModal, setShowModal]           = useState(false);
+  const [reportItem,     setReportItem]     = useState('Tamatar (Tomato)');
+  const [reportPrice,    setReportPrice]    = useState('30');
   const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
 
-  const fetchQueryHistory = async () => {
-    try {
-      const res = await fetch('/api/user/queries/user_demo_1');
-      if (res.ok) {
-        const json = await res.json();
-        setUserQueryHistory(json.data || []);
-      }
-    } catch (err) {
-      console.warn('Error fetching user query history:', err);
-    }
-  };
+  const abortRef = useRef(null);
 
   useEffect(() => {
-    fetchQueryHistory();
+    document.documentElement.classList.toggle('large-text', largeText);
+    localStorage.setItem('lokvani_large_text', String(largeText));
+  }, [largeText]);
+
+  const fetchHistory = useCallback(async () => {
+    try {
+      const res = await fetch('/api/user/queries/user_demo_1');
+      if (res.ok) { const j = await res.json(); if (j.data?.length) setQueryHistory(j.data); }
+    } catch (_) {}
   }, []);
 
-  const handleStartListening = () => {
-    setAppState('LISTENING');
-    setTranscript('');
-    speechService.startListening(
-      (result) => {
-        setTranscript(result.transcript);
-        if (result.isFinal) {
-          handleProcessQuery(result.transcript);
-        }
-      },
-      (err) => {
-        console.error(err);
-        setAppState('IDLE');
-      },
-      language === 'hi' ? 'hi-IN' : 'en-IN'
-    );
-  };
+  useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
-  const handleStopListening = () => {
-    speechService.stopListening();
-    if (transcript.trim()) {
-      handleProcessQuery(transcript);
-    } else {
-      setAppState('IDLE');
-    }
-  };
+  const dialectInfo = DIALECT_MAP[dialect] || DIALECT_MAP.hi;
+  const sttLocale   = dialectInfo.locale;
+  const ttsLocale   = dialect === 'en' ? 'en-IN' : sttLocale;
+  const isProcessing = appState === 'THINKING';
 
-  const handleProcessQuery = async (queryText) => {
-    if (!queryText.trim()) {
-      setAppState('IDLE');
-      return;
-    }
+  const primaryAnswer = (r) =>
+    (dialect === 'en') ? (r?.shortAnswerEn || r?.shortAnswerHi) : (r?.shortAnswerHi || r?.shortAnswerEn);
+  const detailedAnswer = (r) =>
+    (dialect === 'en') ? (r?.detailedAnswerEn || r?.detailedAnswerHi) : (r?.detailedAnswerHi || r?.detailedAnswerEn);
+
+  // ── Query processing ────────────────────────────────────────────────
+  const handleProcessQuery = useCallback(async (queryText) => {
+    const trimmed = queryText.trim().slice(0, 500);
+    if (!trimmed) { setAppState('IDLE'); return; }
+
+    if (abortRef.current) abortRef.current.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     setAppState('THINKING');
+    setShowDetailed(false);
 
     try {
-      let backendData = null;
+      let data = null;
       try {
-        const response = await fetch('/api/query', {
+        const res = await fetch('/api/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: ctrl.signal,
           body: JSON.stringify({
-            transcribed_text: queryText,
+            transcribed_text: trimmed,
             user_location: 'Azamgarh, UP',
             userId: 'user_demo_1',
-            userName: 'Ramesh Kumar (Farmer)'
+            userName: 'Ramesh Kumar (Farmer)',
+            dialect: dialectInfo.promptName,
           })
         });
-
-        if (response.ok) {
-          const resJson = await response.json();
-          backendData = resJson.data;
-        }
-      } catch (err) {
-        console.warn('Express Backend API unavailable, generating client fallback:', err);
+        if (res.ok) { const j = await res.json(); data = j.data; }
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        console.warn('Backend offline — using local fallback');
       }
 
-      if (!backendData) {
-        backendData = {
-          _id: `q_${Date.now()}`,
-          transcribedText: queryText,
+      if (!data || (!data.shortAnswerHi && !data.shortAnswerEn)) {
+        const local = processUserSpeechQuery(trimmed, { userLocation: 'Azamgarh, UP' });
+        data = {
+          _id: `local_${Date.now()}`,
+          transcribedText: trimmed,
           userLocation: 'Azamgarh, UP',
-          shortAnswerHi: 'Fasal aur mandi ke bhav ki live jaankari ke liye server se sampark karein.',
-          shortAnswerEn: 'For crop and live mandi prices, please consult the live API endpoint.',
-          domain: 'AGRI_ADVISORY',
-          isHighStakes: false,
-          actionableSteps: ['Try adding your Gemini key', 'Verify connections'],
-          status: 'AUTO_VERIFIED',
-          createdAt: new Date()
+          shortAnswerHi: local.shortAnswerHi   || '',
+          shortAnswerEn: local.shortAnswerEn   || '',
+          detailedAnswerHi: local.detailedAnswerHi || local.shortAnswerHi || '',
+          detailedAnswerEn: local.detailedAnswerEn || local.shortAnswerEn || '',
+          confidence: local.confidence || 'LOW',
+          followUpQuestions: local.follow_up_questions || [],
+          domain: local.domain || 'AGRI_ADVISORY',
+          isHighStakes: local.isHighStakes || false,
+          riskCategory: local.riskCategory || 'NONE',
+          trustNote: local.trustNote || '',
+          actionableSteps: local.actionableSteps || [],
+          status: local.isHighStakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED (Offline)',
+          engineSource: 'LOCAL_NLP_FALLBACK',
+          createdAt: new Date(),
         };
       }
 
-      setActiveQueryResult(backendData);
+      setActiveResult(data);
+      setQueryHistory(prev => [data, ...prev.filter(h => h._id !== data._id)]);
       setTranscript('');
       setAppState('IDLE');
 
-      // Refresh sidebar conversation list
-      fetchQueryHistory();
-
-      // Auto play TTS response
-      handlePlayTTS(language === 'hi' ? backendData.shortAnswerHi : backendData.shortAnswerEn);
+      const ttsText = dialect === 'en'
+        ? (data.shortAnswerEn || data.shortAnswerHi)
+        : (data.shortAnswerHi || data.shortAnswerEn);
+      handlePlayTTS(ttsText);
     } catch (e) {
-      console.error('Error processing query:', e);
+      if (e.name === 'AbortError') return;
+      console.error(e);
       setAppState('IDLE');
     }
-  };
+  }, [dialect, dialectInfo.promptName]);
 
-  const handlePresetSelect = (preset) => {
-    setTranscript(preset.query);
-    handleProcessQuery(preset.query);
-  };
+  const handleStartListening = useCallback(() => {
+    if (isProcessing) return;
+    setAppState('LISTENING');
+    setTranscript('');
+    speechService.startListening(
+      (r) => { setTranscript(r.transcript); if (r.isFinal) handleProcessQuery(r.transcript); },
+      (e) => { console.error(e); setAppState('IDLE'); },
+      sttLocale
+    );
+  }, [isProcessing, sttLocale, handleProcessQuery]);
 
-  const handlePlayTTS = (text) => {
-    if (appState === 'SPEAKING') {
-      speechService.stopSpeaking();
-      setAppState('IDLE');
-    } else {
-      setAppState('SPEAKING');
-      speechService.speakText(
-        text,
-        language === 'hi' ? 'hi-IN' : 'en-IN',
-        () => setAppState('IDLE')
-      );
-    }
-  };
+  const handleStopListening = useCallback(() => {
+    speechService.stopListening();
+    if (transcript.trim()) handleProcessQuery(transcript);
+    else setAppState('IDLE');
+  }, [transcript, handleProcessQuery]);
 
-  const handlePriceReportSubmit = async (e) => {
+  const handlePlayTTS = useCallback((text) => {
+    if (appState === 'SPEAKING') { speechService.stopSpeaking(); setAppState('IDLE'); return; }
+    if (!text) return;
+    setAppState('SPEAKING');
+    speechService.speakText(text, ttsLocale, () => setAppState('IDLE'), ttsRate);
+  }, [appState, ttsLocale, ttsRate]);
+
+  const handlePresetSelect = useCallback((p) => {
+    if (isProcessing) return;
+    const q = language === 'hi' ? p.query_hi : p.query_en;
+    setTranscript(q);
+    handleProcessQuery(q);
+  }, [isProcessing, language, handleProcessQuery]);
+
+  const handlePriceReport = async (e) => {
     e.preventDefault();
     try {
-      await fetch('/api/intel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          item: reportItem,
-          price: reportPrice,
-          unit: 'kg',
-          location: reportLocation,
-          reportedBy: 'Local Farmer'
-        })
-      });
-    } catch (err) {
-      console.warn('Intel report submit error:', err);
-    }
-
-    setShowPriceReportModal(false);
-    alert('Thank you! Your market price report has been saved to MongoDB & shared with neighboring farmers.');
+      await fetch('/api/intel', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: reportItem, price: reportPrice, unit: 'kg', location: reportLocation, reportedBy: 'Local Farmer' }) });
+    } catch (_) {}
+    setShowModal(false);
+    alert('Thank you! Your market price report has been shared with neighboring farmers.');
   };
 
   return (
-    <div className="minimal-container" style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      
-      {/* Sidebar conversation history (ChatGPT style) */}
-      <aside style={{
-        width: '260px',
-        borderRight: '1px solid var(--border-subtle)',
-        paddingRight: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        minWidth: '240px'
-      }}>
-        <button
-          onClick={() => {
-            setActiveQueryResult(null);
-            setTranscript('');
-          }}
-          className="btn-secondary"
-          style={{ width: '100%', justifyContent: 'center', fontSize: '0.82rem', padding: '10px' }}
-        >
-          + New Voice Query
-        </button>
+    <TooltipProvider>
+    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-5 items-start', largeText && 'large-text')}>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' }}>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: '6px' }}>
-            Voice History logs
+      {/* ── Sidebar ─────────────────────────────────────────────── */}
+      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3">
+        {/* New query */}
+        <Button
+          className="w-full gap-2 font-bold"
+          disabled={isProcessing}
+          onClick={() => { setActiveResult(null); setTranscript(''); setShowDetailed(false); }}
+        >
+          <Mic size={15} />
+          {language === 'hi' ? '+ नई पूछताछ' : '+ New Voice Query'}
+        </Button>
+
+        {/* Dialect */}
+        <Card className="p-0 overflow-hidden">
+          <div className="px-4 pt-3 pb-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span>🌐</span> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
+            </p>
+          </div>
+          <div className="px-3 pb-3">
+            <Select value={dialect} onValueChange={setDialect}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(DIALECT_MAP).map(([code, info]) => (
+                  <SelectItem key={code} value={code} className="text-sm">{info.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </Card>
+
+        {/* TTS Speed */}
+        <Card className="p-0 overflow-hidden">
+          <div className="px-4 py-3">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
+            </p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[0.75, 1.0, 1.25].map(r => (
+                <Button
+                  key={r}
+                  size="sm"
+                  variant={ttsRate === r ? 'default' : 'outline'}
+                  onClick={() => setTtsRate(r)}
+                  className="h-8 text-xs font-bold"
+                >
+                  {r}×
+                </Button>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Large text toggle */}
+        <Button
+          variant={largeText ? 'secondary' : 'outline'}
+          className="w-full gap-2 text-sm font-semibold justify-start"
+          onClick={() => setLargeText(p => !p)}
+        >
+          <Type size={14} />
+          {largeText
+            ? (language === 'hi' ? 'सामान्य आकार' : 'Normal Size')
+            : (language === 'hi' ? 'बड़ा टेक्स्ट A+' : 'Large Text A+')}
+        </Button>
+
+        <Separator />
+
+        {/* History */}
+        <div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5 px-1">
+            <Clock size={11} /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
           </p>
-          {userQueryHistory.length === 0 ? (
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>No past conversations</p>
-          ) : (
-            userQueryHistory.map((h) => (
-              <button
-                key={h._id}
-                onClick={() => {
-                  setActiveQueryResult(h);
-                  setTranscript('');
-                }}
-                style={{
-                  background: activeQueryResult?._id === h._id ? 'var(--bg-hover)' : 'transparent',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '10px 12px',
-                  cursor: 'pointer',
-                  borderRadius: 'var(--radius-sm)',
-                  color: activeQueryResult?._id === h._id ? 'var(--accent-primary)' : 'var(--text-main)',
-                  fontSize: '0.82rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  width: '100%',
-                  transition: 'background-color 0.15s ease'
-                }}
-              >
-                <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
-                  {h.transcribedText}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : 'Just now'}
-                </span>
-              </button>
-            ))
-          )}
+          <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-580px)]">
+            <div className="flex flex-col gap-1.5 pr-2">
+              {queryHistory.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic px-2 py-2">
+                  {language === 'hi' ? 'कोई इतिहास नहीं' : 'No history yet'}
+                </p>
+              ) : queryHistory.map((h) => (
+                <button
+                  key={h._id}
+                  onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
+                  className={cn(
+                    'text-left p-3 rounded-xl transition-all flex flex-col gap-1 w-full text-xs border',
+                    activeResult?._id === h._id
+                      ? 'bg-primary/10 border-primary/30 text-primary font-bold'
+                      : 'text-muted-foreground hover:bg-muted/60 border-transparent hover:border-border/50'
+                  )}
+                >
+                  <span className="truncate w-full font-semibold text-foreground">{h.transcribedText}</span>
+                  <span className="text-[10px] text-muted-foreground truncate w-full italic">
+                    {primaryAnswer(h)?.slice(0, 55)}…
+                  </span>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock size={9} />
+                    {h.createdAt ? new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       </aside>
 
-      {/* Main panel */}
-      <div style={{ flex: 1, minWidth: '320px' }}>
-        
-        {/* Minimal Header Section */}
-        <div className="minimal-section" style={{ textAlign: 'center', paddingTop: 0 }}>
-          <div style={{ marginBottom: '12px' }}>
-            <span className="status-text status-pending">
-              {appState === 'LISTENING' && <><Mic size={14} /> Listening Voice Input...</>}
-              {appState === 'THINKING' && <><RefreshCw size={14} className="spin" /> Rotator Processing...</>}
-              {appState === 'SPEAKING' && <><Volume2 size={14} /> Playing Response Audio...</>}
-              {appState === 'IDLE' && <><Sparkles size={14} /> Voice Assistant Ready</>}
-            </span>
-          </div>
+      {/* ── Main Panel ──────────────────────────────────────────── */}
+      <div className="flex-1 w-full min-w-0 space-y-4">
 
-          <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '8px' }}>
-            {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Voice Query Engine'}
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '560px', margin: '0 auto 20px auto' }}>
-            Mandi rates, Govt scheme eligibility, & crop advisories in simple Hindi/English.
-          </p>
+        {/* Hero / Mic section */}
+        <div className="relative overflow-hidden rounded-2xl hero-bg shadow-xl shadow-indigo-900/20">
+          {/* Bg blobs */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/5 pointer-events-none" />
+          <div className="absolute -bottom-20 -left-16 w-72 h-72 rounded-full bg-indigo-400/10 pointer-events-none" />
 
-          {/* Microphone Action Button */}
-          <div className="mic-btn-container">
-            <button
-              onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
-              className={`mic-btn ${appState === 'LISTENING' ? 'listening' : ''}`}
-              title="Tap to Speak"
-            >
-              {appState === 'LISTENING' ? <MicOff size={42} /> : <Mic size={42} />}
-            </button>
-          </div>
+          <div className="relative z-10 text-center p-6 sm:p-10">
+            {/* Status pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-white/90 text-xs font-semibold mb-5 backdrop-blur-sm">
+              {appState === 'IDLE'      && <><Sparkles size={12} className="text-amber-300" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
+              {appState === 'LISTENING' && <><Mic size={12} className="text-orange-300 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
+              {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
+              {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
+            </div>
 
-          {transcript && (
-            <p style={{ color: 'var(--accent-primary)', fontSize: '1rem', fontWeight: 600, marginTop: '12px' }}>
-              "{transcript}"
+            <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 tracking-tight">
+              {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
+            </h2>
+            <p className="text-indigo-200 text-sm max-w-sm mx-auto mb-8">
+              {language === 'hi'
+                ? 'मंडी भाव, सरकारी योजनाएं, फसल सलाह — अपनी भाषा में'
+                : 'Mandi rates, schemes, crop advisory — in your own dialect'}
             </p>
-          )}
 
-          {/* Minimal Presets Bar */}
-          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, marginBottom: '12px' }}>
-              Instant Demo Queries
-            </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
-              {DEMO_PRESETS.map((preset, idx) => {
-                const IconComp = preset.icon;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => handlePresetSelect(preset)}
-                    className="btn-secondary"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
-                  >
-                    <IconComp size={14} color="var(--accent-gold)" />
-                    <span>{preset.label}</span>
-                  </button>
-                );
-              })}
+            {/* Mic Button */}
+            <div className="flex justify-center mb-6">
+              <div className={cn('mic-wrap', appState === 'LISTENING' && 'listening')}>
+                {(appState === 'LISTENING') && (
+                  <>
+                    <div className="mic-ring" />
+                    <div className="mic-ring-2" />
+                  </>
+                )}
+                <button
+                  id="mic-btn"
+                  onClick={appState === 'LISTENING' ? handleStopListening : handleStartListening}
+                  disabled={isProcessing}
+                  className={cn(
+                    'mic-btn',
+                    appState === 'LISTENING'  && 'listening',
+                    appState === 'SPEAKING'   && 'speaking',
+                    isProcessing              && 'processing'
+                  )}
+                  aria-label={appState === 'LISTENING' ? 'Stop listening' : 'Start listening'}
+                >
+                  {appState === 'SPEAKING' ? (
+                    <div className="waveform text-white">
+                      {[...Array(5)].map((_, i) => <div key={i} className="waveform-bar" />)}
+                    </div>
+                  ) : isProcessing ? (
+                    <RefreshCw size={32} className="animate-spin" />
+                  ) : appState === 'LISTENING' ? (
+                    <MicOff size={32} />
+                  ) : (
+                    <Mic size={32} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Live transcript */}
+            {transcript && (
+              <p className="text-white/90 text-sm font-semibold italic mb-6 animate-pulse px-4 max-w-md mx-auto">
+                "{transcript}"
+              </p>
+            )}
+
+            {/* Demo Presets */}
+            <div className="border-t border-white/15 pt-5">
+              <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-3">
+                {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Examples'}
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {DEMO_PRESETS.map((p, i) => {
+                  const Icon = p.icon;
+                  return (
+                    <button
+                      key={i}
+                      id={`preset-${i}`}
+                      onClick={() => handlePresetSelect(p)}
+                      disabled={isProcessing}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/15 transition-all disabled:opacity-40 backdrop-blur-sm"
+                    >
+                      <Icon size={12} className="text-amber-300" />
+                      {language === 'hi' ? p.label_hi : p.label_en}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Active Response Result */}
-        {activeQueryResult && (
-          <div className="minimal-section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span className={`status-text ${activeQueryResult.isHighStakes ? 'status-pending' : 'status-verified'}`}>
-                {activeQueryResult.isHighStakes ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
-                {activeQueryResult.status}
-              </span>
+        {/* Skeleton while thinking */}
+        {isProcessing && <SkeletonCard />}
 
-              <button
-                onClick={() => handlePlayTTS(language === 'hi' ? activeQueryResult.shortAnswerHi : activeQueryResult.shortAnswerEn)}
-                className="btn-primary"
-                style={{ padding: '6px 14px', fontSize: '0.8rem' }}
-              >
-                {appState === 'SPEAKING' ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                {appState === 'SPEAKING' ? 'Stop Audio' : 'Play Audio'}
-              </button>
-            </div>
-
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '14px' }}>
-              Query: "{activeQueryResult.transcribedText}"
-            </p>
-
-            {/* Hindi & English Text Output */}
-            <div style={{ padding: '16px 0', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-              <h4 style={{ color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '6px' }}>
-                Hindi Spoken Response:
-              </h4>
-              <p style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                {activeQueryResult.shortAnswerHi}
-              </p>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                <em>{activeQueryResult.shortAnswerEn}</em>
-              </p>
-            </div>
-
-            {/* High Stakes Trust Node Alert */}
-            {activeQueryResult.isHighStakes && (
-              <div style={{ marginBottom: '16px' }}>
-                <span className="status-text status-pending" style={{ marginBottom: '4px' }}>
-                  <ShieldAlert size={14} /> High-Stakes Query Flagged
+        {/* Result Card */}
+        {!isProcessing && activeResult && (
+          <Card className="response-card overflow-hidden border-border/60 shadow-md">
+            {/* Header strip */}
+            <div className={cn(
+              'px-5 sm:px-7 py-3 flex flex-wrap items-center justify-between gap-3 border-b',
+              activeResult.isHighStakes
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-emerald-50 border-emerald-200'
+            )}>
+              <div className="flex items-center gap-2">
+                {activeResult.isHighStakes
+                  ? <AlertTriangle size={15} className="text-amber-600" />
+                  : <CheckCircle2 size={15} className="text-emerald-600" />
+                }
+                <span className={cn('text-xs font-bold uppercase tracking-wider',
+                  activeResult.isHighStakes ? 'text-amber-700' : 'text-emerald-700'
+                )}>
+                  {activeResult.isHighStakes
+                    ? (language === 'hi' ? 'समीक्षा आवश्यक' : 'Needs Review')
+                    : (language === 'hi' ? 'स्वत: सत्यापित' : 'Auto Verified')}
                 </span>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  {activeQueryResult.trustNote}
-                </p>
-                <button
-                  onClick={() => setActiveTab('trust')}
-                  style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', padding: 0, marginTop: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                >
-                  Open Kirana Verification Dashboard <ArrowRight size={13} />
-                </button>
               </div>
-            )}
-
-            {/* Actionable Steps */}
-            {activeQueryResult.actionableSteps?.length > 0 && (
-              <div style={{ marginBottom: '16px' }}>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px' }}>
-                  Recommended Action Steps:
-                </p>
-                <ul style={{ paddingLeft: '16px', color: 'var(--text-main)', fontSize: '0.88rem' }}>
-                  {activeQueryResult.actionableSteps.map((step, idx) => (
-                    <li key={idx}>{step}</li>
-                  ))}
-                </ul>
+              <div className="flex items-center gap-2 flex-wrap">
+                <ConfidenceBadge level={activeResult.confidence} />
+                {activeResult.domain && (
+                  <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-wider">
+                    {activeResult.domain.replace('_', ' ')}
+                  </Badge>
+                )}
               </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                Logged to MongoDB • Location: {activeQueryResult.userLocation}
-              </span>
-              <button
-                onClick={() => setShowPriceReportModal(true)}
-                className="btn-secondary"
-                style={{ fontSize: '0.78rem', padding: '6px 12px' }}
-              >
-                <Megaphone size={13} /> Report Local Rate
-              </button>
             </div>
-          </div>
-        )}
 
+            <CardContent className="p-5 sm:p-7 space-y-5">
+              {/* Query */}
+              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <MessageSquare size={11} />
+                "{activeResult.transcribedText}"
+              </p>
+
+              {/* Short Answer */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
+                    <Zap size={11} />
+                    {language === 'hi' ? 'त्वरित उत्तर' : 'Quick Answer'}
+                  </p>
+                  <Button
+                    id="play-answer-btn"
+                    size="sm"
+                    variant={appState === 'SPEAKING' ? 'destructive' : 'default'}
+                    className="h-7 text-xs gap-1.5 px-3"
+                    onClick={() => handlePlayTTS(primaryAnswer(activeResult))}
+                  >
+                    {appState === 'SPEAKING'
+                      ? <><VolumeX size={12} /> {language === 'hi' ? 'रोकें' : 'Stop'}</>
+                      : <><Volume2 size={12} /> {language === 'hi' ? 'सुनें' : 'Play'}</>}
+                  </Button>
+                </div>
+                <p className="text-lg sm:text-xl font-bold text-foreground leading-snug">
+                  {primaryAnswer(activeResult)}
+                </p>
+                {activeResult.shortAnswerEn && activeResult.shortAnswerHi && (
+                  <p className="text-xs text-muted-foreground italic">
+                    {dialect !== 'en' ? `EN: ${activeResult.shortAnswerEn}` : `HI: ${activeResult.shortAnswerHi}`}
+                  </p>
+                )}
+              </div>
+
+              {/* Detailed Answer (expandable) */}
+              {detailedAnswer(activeResult) && detailedAnswer(activeResult) !== primaryAnswer(activeResult) && (
+                <div className="border border-border/60 rounded-xl overflow-hidden">
+                  <button
+                    id="toggle-detailed"
+                    onClick={() => setShowDetailed(p => !p)}
+                    className="w-full flex items-center justify-between px-5 py-3 bg-muted/40 hover:bg-muted/60 transition-colors text-sm font-semibold text-foreground"
+                  >
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <MessageSquare size={14} />
+                      {language === 'hi' ? 'विस्तृत उत्तर' : 'Detailed Answer'}
+                    </span>
+                    {showDetailed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+                  {showDetailed && (
+                    <div className="p-5 border-t border-border/40 space-y-3">
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {detailedAnswer(activeResult)}
+                      </p>
+                      <Button
+                        size="sm" variant="outline"
+                        className="h-7 text-xs gap-1.5 px-3"
+                        onClick={() => handlePlayTTS(detailedAnswer(activeResult))}
+                      >
+                        <Volume2 size={12} />
+                        {language === 'hi' ? 'विस्तृत सुनें' : 'Play Detailed'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* High-stakes warning */}
+              {activeResult.isHighStakes && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+                    <ShieldAlert size={16} className="text-amber-600 shrink-0" />
+                    {language === 'hi' ? 'मानव सत्यापन आवश्यक है' : 'Human Verification Required'}
+                  </div>
+                  <p className="text-xs text-amber-700 leading-relaxed">{activeResult.trustNote}</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs font-bold text-indigo-600 gap-1"
+                    onClick={() => setActiveTab('schemes')}
+                  >
+                    {language === 'hi' ? 'योजनाएं डैशबोर्ड खोलें' : 'Open Schemes Dashboard'}
+                    <ArrowRight size={12} />
+                  </Button>
+                </div>
+              )}
+
+              {/* Actionable steps */}
+              {activeResult.actionableSteps?.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
+                  </p>
+                  <div className="space-y-2">
+                    {activeResult.actionableSteps.map((step, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border/40">
+                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm text-foreground">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Follow-up questions */}
+              {activeResult.followUpQuestions?.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    {language === 'hi' ? 'आगे पूछें' : 'Follow-up Questions'}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {activeResult.followUpQuestions.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleProcessQuery(q)}
+                        disabled={isProcessing}
+                        className="text-left flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-sm font-medium text-primary transition-all disabled:opacity-50"
+                      >
+                        <ArrowRight size={13} className="shrink-0" />
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+
+              {/* Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-3 text-[10px] text-muted-foreground font-medium">
+                <span className="flex items-center gap-1">
+                  <MapPin size={10} /> {activeResult.userLocation}
+                </span>
+                <div className="flex items-center gap-2">
+                  {activeResult.engineSource && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">
+                      {activeResult.engineSource.replace('_', ' ')}
+                    </Badge>
+                  )}
+                  {/* Feedback buttons */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-emerald-600">
+                        <ThumbsUp size={12} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Helpful</p></TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500">
+                        <ThumbsDown size={12} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Not helpful</p></TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Community Price Report Modal */}
-      {showPriceReportModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-muted)', padding: '24px', maxWidth: '400px', width: '90%' }}>
-            <h3 style={{ margin: '0 0 10px 0', color: 'var(--text-main)' }}>
-              Report Local Mandi Rate
-            </h3>
-            <form onSubmit={handlePriceReportSubmit}>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Commodity Name</label>
-                <input
-                  type="text"
-                  value={reportItem}
-                  onChange={e => setReportItem(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Rate (₹/kg)</label>
-                <input
-                  type="number"
-                  value={reportPrice}
-                  onChange={e => setReportPrice(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>Mandi Location</label>
-                <input
-                  type="text"
-                  value={reportLocation}
-                  onChange={e => setReportLocation(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-muted)', color: 'var(--text-main)' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowPriceReportModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" className="btn-primary"><Send size={13} /> Save to Database</button>
-              </div>
-            </form>
-          </div>
+      {/* ── Price Report Modal ───────────────────────────────────── */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="max-w-sm w-full shadow-2xl">
+            <CardHeader className="flex-row items-center justify-between pb-3">
+              <h3 className="text-base font-bold">Report Local Mandi Rate</h3>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowModal(false)}>
+                <X size={16} />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePriceReport} className="space-y-3">
+                {[
+                  { label: 'Commodity', value: reportItem, set: setReportItem, type: 'text' },
+                  { label: 'Rate (₹/kg)', value: reportPrice, set: setReportPrice, type: 'number' },
+                  { label: 'Mandi Location', value: reportLocation, set: setReportLocation, type: 'text' },
+                ].map(({ label, value, set, type }) => (
+                  <div key={label}>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{label}</label>
+                    <input
+                      type={type} value={value} onChange={e => set(e.target.value)} required
+                      className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                  </div>
+                ))}
+                <div className="flex gap-2 justify-end pt-2">
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>Cancel</Button>
+                  <Button type="submit" size="sm" className="gap-1.5"><Send size={13} /> Submit</Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }

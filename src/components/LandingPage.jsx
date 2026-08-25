@@ -1,399 +1,541 @@
-import React, { useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, ShieldCheck, Users, ArrowRight, Sparkles, CheckCircle2, Globe2, Zap, Award, HelpCircle, Volume2, Play } from 'lucide-react';
-import { SignedIn, SignedOut, SignUpButton, useUser } from '@clerk/clerk-react';
+import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
+import Reveal from './Reveal';
+
+/* ── Parallax (rAF-throttled, transform-only, reduced-motion safe) ── */
+function Parallax({ speed = 0.1, className = '', innerClassName = '', children }) {
+  const outer = useRef(null);
+  const inner = useRef(null);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const o = outer.current, i = inner.current;
+      if (!o || !i) return;
+      const r = o.getBoundingClientRect();
+      const delta = r.top + r.height / 2 - window.innerHeight / 2;
+      i.style.transform = `translate3d(0, ${(-delta * speed).toFixed(1)}px, 0)`;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [speed]);
+  return (
+    <div ref={outer} className={className}>
+      <div ref={inner} className={`will-change-transform ${innerClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Eyebrow tag ───────────────────────────────────────────── */
+function Eyebrow({ children, tone = 'bg-emerald-700' }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 px-3.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-500">
+      <span className={`h-1 w-1 rounded-full ${tone}`} />
+      {children}
+    </span>
+  );
+}
+
+/* ── Double-bezel card shell ───────────────────────────────── */
+function Bezel({ children, className = '', innerClassName = '' }) {
+  return (
+    <div
+      className={`rounded-[1.75rem] bg-zinc-200/40 p-1.5 ring-1 ring-black/[0.06] shadow-[0_32px_80px_-40px_rgba(24,24,27,0.18)] ${className}`}
+    >
+      <div className={`h-full rounded-[calc(1.75rem-6px)] bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] ${innerClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Pill button with nested trailing icon ─────────────────── */
+function PillButton({ children, onClick, dark = true, className = '' }) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        'group inline-flex items-center gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-medium',
+        'transition-all duration-500 ease-premium active:scale-[0.98] cursor-pointer',
+        dark
+          ? 'bg-zinc-900 text-white hover:bg-zinc-800'
+          : 'border border-black/[0.08] bg-white/70 text-zinc-900 hover:bg-white hover:border-black/[0.14]',
+        className,
+      ].join(' ')}
+    >
+      <span>{children}</span>
+      <span
+        className={[
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
+          'transition-transform duration-500 ease-premium group-hover:translate-x-0.5 group-hover:-translate-y-[1px]',
+          dark ? 'bg-white/10' : 'bg-black/[0.05]',
+        ].join(' ')}
+      >
+        <ArrowRight size={14} strokeWidth={1.5} />
+      </span>
+    </button>
+  );
+}
+
+/* ── Decorative: ridge band — gradient-faded so it melts into the page ── */
+let ridgeId = 0;
+function RidgeBand({ layers, className = '' }) {
+  const uid = useRef(`rg${ridgeId++}`);
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 1440 240"
+      preserveAspectRatio="none"
+      className={`pointer-events-none block h-auto w-full ${className}`}
+    >
+      <defs>
+        {layers.map((l, i) => (
+          <linearGradient key={i} id={`${uid.current}-${i}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={l.color} stopOpacity={l.opacity} />
+            <stop offset="72%" stopColor={l.color} stopOpacity={l.opacity * 0.35} />
+            <stop offset="100%" stopColor={l.color} stopOpacity="0" />
+          </linearGradient>
+        ))}
+      </defs>
+      {layers.map((l, i) => (
+        <path key={i} d={l.d} fill={`url(#${uid.current}-${i})`} />
+      ))}
+    </svg>
+  );
+}
+
+const RIDGE_FAR = [
+  { color: '#5a7d54', opacity: 0.11, d: 'M0,96 C190,52 380,118 570,98 C780,76 950,26 1160,52 C1280,66 1370,56 1440,44 L1440,241 L0,241 Z' },
+];
+const RIDGE_MID = [
+  { color: '#c49a2a', opacity: 0.08, d: 'M0,120 C230,90 430,136 670,116 C910,96 1100,68 1440,94 L1440,241 L0,241 Z' },
+  { color: '#3f5d3b', opacity: 0.09, d: 'M0,150 C260,126 520,162 790,152 C1050,142 1250,118 1440,138 L1440,241 L0,241 Z' },
+];
+const RIDGE_DUSK = [
+  { color: '#3f5d3b', opacity: 0.10, d: 'M0,84 C220,50 440,96 660,80 C900,62 1120,32 1440,64 L1440,241 L0,241 Z' },
+  { color: '#2e4630', opacity: 0.11, d: 'M0,124 C280,98 520,132 800,118 C1080,104 1260,86 1440,106 L1440,241 L0,241 Z' },
+];
+
+/* ── Decorative: wheat stalk line-art ──────────────────────── */
+function WheatStalk({ className = '' }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 48 140"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      className={className}
+    >
+      <path d="M24 138 C24 100 24 56 24 14" />
+      {[38, 52, 66].map((y, i) => (
+        <g key={i}>
+          <path d={`M24 ${y} C15 ${y - 4} 11 ${y - 12} 12 ${y - 20} C20 ${y - 17} 24 ${y - 9} 24 ${y}`} />
+          <path d={`M24 ${y} C33 ${y - 4} 37 ${y - 12} 36 ${y - 20} C28 ${y - 17} 24 ${y - 9} 24 ${y}`} />
+        </g>
+      ))}
+      <path d="M24 16 C18 12 16 6 18 0" />
+      <path d="M24 16 C30 12 32 6 30 0" />
+      <path d="M24 34 C19 31 18 26 19 21" />
+      <path d="M24 34 C29 31 30 26 29 21" />
+    </svg>
+  );
+}
+
+/* ── Decorative: contour rings ─────────────────────────────── */
+function Contours({ className = '' }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 900 480"
+      fill="none"
+      stroke="#5a7d54"
+      strokeWidth="1"
+      className={className}
+    >
+      {[...Array(7)].map((_, i) => (
+        <ellipse
+          key={i}
+          cx="450"
+          cy="240"
+          rx={70 + i * 62}
+          ry={36 + i * 33}
+          opacity={0.07 - i * 0.006}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/* ── Decorative: birds in flight ───────────────────────────── */
+function Birds({ className = '' }) {
+  return (
+    <svg aria-hidden viewBox="0 0 160 60" fill="none" stroke="#48734f" strokeWidth="1.3" strokeLinecap="round" className={className}>
+      <path d="M18 26 C23 19 28 19 32 25 C36 19 41 19 46 26" opacity="0.5" />
+      <path d="M74 14 C79 8 83 8 87 13 C91 8 95 8 100 14" opacity="0.38" />
+      <path d="M118 34 C122 29 126 29 129 33 C132 29 136 29 140 34" opacity="0.28" />
+    </svg>
+  );
+}
+
+/* ── Decorative: grass blades along the valley floor ───────── */
+function Grass({ className = '' }) {
+  return (
+    <svg aria-hidden viewBox="0 0 1440 64" preserveAspectRatio="none" fill="none" className={className}>
+      {[...Array(52)].map((_, i) => {
+        const x = i * 28 + ((i * 37) % 17);
+        const h = 16 + (i % 4) * 9;
+        const lean = (i % 2 ? 1 : -1) * (3 + (i % 3) * 3);
+        return (
+          <path
+            key={i}
+            d={`M${x} 64 Q ${x + lean / 2} ${64 - h * 0.6} ${x + lean} ${64 - h}`}
+            stroke="#3f5d3b"
+            strokeOpacity={0.16 + (i % 3) * 0.04}
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+const PILLARS = [
+  {
+    icon: Mic,
+    title: 'Multilingual Voice Engine',
+    desc: 'Spoken queries in Hindi, Bhojpuri, Marathi, Tamil and nine more regional dialects — with instant transcription and natural speech synthesis in reply.',
+    span: 'md:col-span-7',
+    accent: 'group-hover:border-[#c8dcc4] group-hover:text-[#48734f] group-hover:bg-[#f4f8f2]',
+  },
+  {
+    icon: Landmark,
+    title: 'Public Schemes Engine',
+    desc: 'Instant eligibility matching across 25+ government schemes, with document checklists and nearby CSC guidance.',
+    span: 'md:col-span-5',
+    accent: 'group-hover:border-[#ecdcb6] group-hover:text-[#a07a1e] group-hover:bg-[#faf6ec]',
+  },
+  {
+    icon: Users,
+    title: 'Community Intel Network',
+    desc: 'Crowdsourced mandi price tracking from local Kirana trust nodes, cross-checked against live Agmarknet government feeds — so no farmer trades on stale numbers.',
+    span: 'md:col-span-12',
+    accent: 'group-hover:border-[#d3d7f7] group-hover:text-indigo-600 group-hover:bg-[#f5f5fd]',
+  },
+];
 
 export default function LandingPage() {
-  const { setActiveTab, language, setLanguage } = useApp();
+  const { setActiveTab } = useApp();
   const { isSignedIn } = useUser();
-  const [demoQuery, setDemoQuery] = useState('');
-  const [demoResult, setDemoResult] = useState(null);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const isClerkAvailable =
+    typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
 
-  const handleLaunchDashboard = () => {
-    if (isClerkAvailable && !isSignedIn) {
-      setActiveTab('auth');
-    } else {
-      setActiveTab('voice');
-    }
-  };
-
-  const sampleQueries = [
-    {
-      title_hi: 'PM Kisan 17th kisht kab aayegi?',
-      title_en: 'When is PM Kisan 17th installment coming?',
-      ans_hi: 'PM-Kisan 17th kisht ke liye Aadhar e-KYC verified hona zaroori hai. Aapke nazdiki Gupta Kirana CSC node se Khasra document verify karayein.',
-      ans_en: 'PM-Kisan 17th installment requires Aadhar e-KYC verification. Get your land documents verified at your nearest Kirana CSC center.',
-      domain: 'GOVT_SCHEME',
-      trust: 'VERIFIED_BY_TRUST_NODE'
-    },
-    {
-      title_hi: 'Azamgarh Mandi me aaj Gehun (Wheat) ka bhav kya hai?',
-      title_en: 'What is today\'s wheat price in Azamgarh Mandi?',
-      ans_hi: 'Aaj Azamgarh Mandi me Gehun (Wheat) ka dam ₹2,400 per quintal hai. Pichle hafte se ₹50 ki barhotari hui hai.',
-      ans_en: 'Today in Azamgarh Mandi, wheat is priced at ₹2,400 per quintal, showing a ₹50 increase from last week.',
-      domain: 'MANDI_PRICE',
-      trust: 'AUTO_VERIFIED'
-    },
-    {
-      title_hi: 'Dhan ki fasal me patti peeli pad rahi hai, kya karein?',
-      title_en: 'Paddy leaves turning yellow, what treatment is needed?',
-      ans_hi: 'Dhan me peelapan Zinc aur Nitrogen ki kami se hota hai. 5kg Zinc Sulphate per acre chhidkav karein aur paani ka santulan banaye rakhein.',
-      ans_en: 'Yellowing in paddy is caused by Zinc & Nitrogen deficiency. Apply 5kg Zinc Sulphate per acre and maintain water levels.',
-      domain: 'AGRI_ADVISORY',
-      trust: 'VERIFIED_BY_TRUST_NODE'
-    }
-  ];
-
-  const handleRunDemo = (queryObj) => {
-    setDemoQuery(queryObj.title_hi);
-    setIsSimulating(true);
-    setDemoResult(null);
-
-    setTimeout(() => {
-      setDemoResult(queryObj);
-      setIsSimulating(false);
-
-      // Play synthesized audio demo if supported
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const text = language === 'hi' ? queryObj.ans_hi : queryObj.ans_en;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = language === 'hi' ? 'hi-IN' : 'en-US';
-        window.speechSynthesis.speak(utterance);
-      }
-    }, 1200);
-  };
+  const handleLaunch = () => setActiveTab(isClerkAvailable && !isSignedIn ? 'auth' : 'voice');
 
   return (
-    <div style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
-      {/* 1. HERO SECTION */}
-      <section style={{
-        padding: '60px 20px 50px',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        textAlign: 'center',
-        position: 'relative'
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
-          lineHeight: 1.15,
-          fontWeight: 800,
-          marginBottom: '20px',
-          letterSpacing: '-0.03em',
-          maxWidth: '900px',
-          margin: '0 auto 20px'
-        }}>
-          Inclusive Voice Intelligence for <span style={{ color: 'var(--accent-primary)' }}>Bharat</span> & Underserved Communities
-        </h1>
+    <div className="relative overflow-x-clip">
 
-        <p style={{
-          fontSize: 'clamp(1rem, 2vw, 1.2rem)',
-          color: 'var(--text-muted)',
-          maxWidth: '720px',
-          margin: '0 auto 36px',
-          lineHeight: 1.6
-        }}>
-          Speak naturally in your local dialect. LokVani AI connects rural citizens directly with verified Mandi prices, Government Scheme eligibility, and Kirana Trust Node human validation.
-        </p>
+      {/* ══ Ambient sky layer — one continuous atmosphere ═════ */}
+      <div aria-hidden className="grain pointer-events-none absolute inset-0">
+        {/* base gradient wash */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, #fbfbfa 0%, #f8f7f0 20%, #f3f5ec 46%, #edf1e6 72%, #e8ede0 100%)',
+          }}
+        />
 
-        {/* Dual Hero CTA Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <SignedOut>
-            <button
-              onClick={() => setActiveTab('auth')}
-              className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '1.02rem', borderRadius: '6px' }}
-            >
-              Get Started / Sign Up <ArrowRight size={18} />
-            </button>
-          </SignedOut>
+        {/* morning sun + halo rings (slow parallax drift) */}
+        <Parallax speed={0.05} className="absolute right-[5%] top-[1%] h-[520px] w-[520px]">
+          <div
+            className="absolute inset-0 rounded-full blur-3xl"
+            style={{ background: 'radial-gradient(circle, rgba(214,168,54,0.24), transparent 65%)' }}
+          />
+          <div className="absolute inset-[-70px] rounded-full ring-1 ring-[#d6a83a]/10" />
+          <div className="absolute inset-[-150px] rounded-full ring-1 ring-[#d6a83a]/[0.06]" />
+        </Parallax>
 
-          <SignedIn>
-            <button
-              onClick={() => setActiveTab('voice')}
-              className="btn-primary"
-              style={{ padding: '14px 28px', fontSize: '1.02rem', borderRadius: '6px' }}
-            >
-              Launch Dashboard <ArrowRight size={18} />
-            </button>
-          </SignedIn>
+        {/* drifting clouds */}
+        <Parallax speed={0.09} className="absolute left-[8%] top-[7%] h-20 w-72">
+          <div className="h-full w-full rounded-full bg-white/60 blur-2xl" />
+        </Parallax>
+        <Parallax speed={0.12} className="absolute left-[48%] top-[12%] h-16 w-96">
+          <div className="h-full w-full rounded-full bg-white/45 blur-2xl" />
+        </Parallax>
 
-          <button
-            onClick={handleLaunchDashboard}
-            className="btn-secondary"
-            style={{ padding: '14px 26px', fontSize: '1.02rem', borderRadius: '6px' }}
-          >
-            <Mic size={18} color="var(--accent-primary)" /> Launch Voice App
-          </button>
+        {/* birds crossing the sun */}
+        <Parallax speed={0.07} className="absolute right-[22%] top-[9%] w-40">
+          <Birds className="w-full" />
+        </Parallax>
+
+        {/* sage field glow, mid left */}
+        <div
+          className="absolute -left-48 top-[26%] h-[600px] w-[600px] rounded-full opacity-60 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(90,125,84,0.15), transparent 65%)' }}
+        />
+        {/* wheat warmth drifting through the pillars */}
+        <div
+          className="absolute right-[-8%] top-[42%] h-[460px] w-[460px] rounded-full opacity-50 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(196,154,42,0.13), transparent 65%)' }}
+        />
+        {/* indigo dusk settling before the final panel */}
+        <div
+          className="absolute -right-32 bottom-[3%] h-[540px] w-[540px] rounded-full opacity-50 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(79,90,160,0.12), transparent 65%)' }}
+        />
+        {/* deep green valley floor */}
+        <div
+          className="absolute left-[-10%] bottom-[-5%] h-[480px] w-[600px] rounded-full opacity-50 blur-3xl"
+          style={{ background: 'radial-gradient(circle, rgba(63,93,59,0.17), transparent 65%)' }}
+        />
+
+        {/* pollen drifting through the middle air */}
+        {[
+          ['6%', '30%', '#c49a2a'], ['30%', '24%', '#a3b86b'], ['58%', '33%', '#c49a2a'],
+          ['82%', '27%', '#a3b86b'], ['14%', '47%', '#a3b86b'], ['46%', '55%', '#c49a2a'],
+          ['74%', '49%', '#a3b86b'], ['92%', '58%', '#c49a2a'], ['22%', '63%', '#c49a2a'],
+        ].map(([left, top, color], i) => (
+          <span
+            key={i}
+            className="absolute h-1 w-1 rounded-full"
+            style={{
+              left, top, background: color, opacity: 0.5,
+              boxShadow: `0 0 10px 2px ${color}40`,
+              animation: `floatBlob ${8 + i * 1.9}s ease-in-out ${i * 0.9}s infinite`,
+            }}
+          />
+        ))}
+
+        {/* fireflies waking at the field's edge */}
+        {[
+          ['8%', '88%', '#d6a83a'], ['17%', '95%', '#d6a83a'], ['84%', '90%', '#a3b86b'],
+          ['93%', '82%', '#d6a83a'], ['70%', '97%', '#a3b86b'], ['27%', '80%', '#a3b86b'],
+        ].map(([left, top, color], i) => (
+          <span
+            key={i}
+            className="absolute h-1 w-1 rounded-full"
+            style={{
+              left, top, background: color,
+              boxShadow: `0 0 14px 3px ${color}55`,
+              animation: `floatBlob ${7 + i * 1.7}s ease-in-out ${i * 0.8}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* ══ Hero — dawn over the fields ═══════════════════════ */}
+      <section className="relative">
+        <div className="relative mx-auto max-w-4xl px-4 pb-24 pt-28 text-center sm:px-6 sm:pt-36 lg:pt-44">
+          <Reveal>
+            <Eyebrow>AI for Public Good</Eyebrow>
+          </Reveal>
+
+          <Reveal delay={90}>
+            <h1 className="mx-auto mt-8 max-w-3xl text-balance text-[2.75rem] font-semibold leading-[1.06] tracking-[-0.01em] text-zinc-900 sm:text-6xl lg:text-[4.5rem]">
+              Answers for rural India,{' '}
+              <span className="italic text-[#48734f]">in its own voice.</span>
+            </h1>
+          </Reveal>
+
+          <Reveal delay={180}>
+            <p className="mx-auto mt-7 max-w-xl text-pretty text-base leading-relaxed text-zinc-500 sm:text-lg">
+              LokVani listens in thirteen Indian dialects and returns verified mandi prices,
+              scheme eligibility and crop advisory — instantly, and free.
+            </p>
+          </Reveal>
+
+          <Reveal delay={270}>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+              <SignedOut>
+                <PillButton onClick={() => setActiveTab('auth')}>Get started free</PillButton>
+              </SignedOut>
+              <SignedIn>
+                <PillButton onClick={() => setActiveTab('voice')}>Launch dashboard</PillButton>
+              </SignedIn>
+              <PillButton onClick={handleLaunch} dark={false}>
+                <span className="inline-flex items-center gap-2">
+                  <Mic size={14} strokeWidth={1.5} /> Try the voice app
+                </span>
+              </PillButton>
+            </div>
+          </Reveal>
+
+          <Reveal delay={380}>
+            <p className="mt-16 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
+              Free for farmers · Always available · Built with the community
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      {/* 2. LIVE INTERACTIVE VOICE DEMO SIMULATOR */}
-      <section style={{
-        maxWidth: '960px',
-        margin: '0 auto 60px',
-        padding: '0 20px'
-      }}>
-        <div style={{
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: '8px',
-          padding: '28px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.06)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '32px', height: '32px', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
-                <Mic size={18} color="#fff" />
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0 }}>Interactive Live Voice Simulator</h3>
-            </div>
-          </div>
+      {/* ══ First ridges — far & near, dissolving both ways ═══ */}
+      <div aria-hidden className="relative -my-10">
+        <Parallax speed={0.04}>
+          <RidgeBand layers={RIDGE_FAR} />
+        </Parallax>
+        <div className="-mt-24">
+          <Parallax speed={0.09}>
+            <RidgeBand layers={RIDGE_MID} />
+          </Parallax>
+        </div>
+      </div>
 
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Click any sample voice query below to simulate instant speech transcription & AI response synthesis:
-          </p>
+      {/* ══ Trust strip — walking the field rows ══════════════ */}
+      <section className="relative py-20 sm:py-28">
+        <WheatStalk className="absolute left-[5%] top-1/2 hidden h-32 -translate-y-1/2 text-[#5a7d54]/30 lg:block" />
+        <WheatStalk className="absolute right-[5%] top-1/2 hidden h-32 -translate-y-1/2 scale-x-[-1] text-[#5a7d54]/25 lg:block" />
+        <WheatStalk className="absolute left-[13%] top-1/2 hidden h-24 -translate-y-[60%] text-[#c49a2a]/30 xl:block" />
+        <WheatStalk className="absolute right-[13%] top-1/2 hidden h-24 -translate-y-[42%] scale-x-[-1] text-[#c49a2a]/25 xl:block" />
 
-          {/* Sample Clickable Query Chips */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
-            {sampleQueries.map((q, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleRunDemo(q)}
-                disabled={isSimulating}
-                style={{
-                  background: 'var(--bg-main)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  padding: '10px 14px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  textAlign: 'left',
-                  transition: 'border-color 0.2s ease'
-                }}
-              >
-                <Play size={13} color="var(--accent-primary)" />
-                <span>{language === 'hi' ? q.title_hi : q.title_en}</span>
-              </button>
+        <Reveal className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            {[
+              ['Kirana Trust Node verified', 'bg-emerald-600'],
+              ['Google Gemini powered',      'bg-indigo-500'],
+              ['Live Agmarknet feeds',       'bg-[#c49a2a]'],
+              ['Community crowdsourced',     'bg-sky-500'],
+            ].map(([label, dot]) => (
+              <span key={label} className="flex items-center gap-2.5 text-[13px] font-medium text-zinc-500">
+                <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+                {label}
+              </span>
             ))}
           </div>
+        </Reveal>
+      </section>
 
-          {/* Simulation Output Area */}
-          {isSimulating && (
-            <div style={{
-              padding: '20px',
-              background: 'var(--bg-main)',
-              border: '1px dashed var(--accent-primary)',
-              borderRadius: '6px',
-              textAlign: 'center'
-            }}>
-              <p style={{ color: 'var(--accent-gold)', fontWeight: 600, margin: 0, fontSize: '0.92rem' }}>
-                🎙️ Synthesizing Voice Query: "{demoQuery}"...
+      {/* ══ Pillars — terraced across the hillside ════════════ */}
+      <section className="relative pb-24 pt-8 sm:pb-32">
+        <Contours className="pointer-events-none absolute left-1/2 top-1/2 w-[1300px] max-w-none -translate-x-1/2 -translate-y-1/2" />
+
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal>
+            <div className="mx-auto mb-16 max-w-2xl text-center">
+              <Eyebrow tone="bg-[#c49a2a]">The platform</Eyebrow>
+              <h2 className="mt-7 text-balance text-3xl font-semibold tracking-[-0.01em] text-zinc-900 sm:text-[2.6rem] sm:leading-[1.15]">
+                Built for real impact, not demos.
+              </h2>
+              <p className="mt-5 text-pretty text-[15px] leading-relaxed text-zinc-500">
+                State-of-the-art language models grounded by ground-level community verification.
               </p>
             </div>
-          )}
+          </Reveal>
 
-          {demoResult && !isSimulating && (
-            <div style={{
-              padding: '20px',
-              background: 'var(--bg-main)',
-              border: '1px solid var(--border-muted)',
-              borderRadius: '6px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
-                  Domain: {demoResult.domain}
-                </span>
-                <span style={{
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  color: demoResult.trust === 'VERIFIED_BY_TRUST_NODE' ? 'var(--accent-cyan)' : 'var(--accent-gold)'
-                }}>
-                  ✓ {demoResult.trust === 'VERIFIED_BY_TRUST_NODE' ? 'Kirana Node Verified' : 'Auto Verified'}
-                </span>
-              </div>
-              <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>
-                {language === 'hi' ? demoResult.ans_hi : demoResult.ans_en}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-5">
+            {PILLARS.map(({ icon: Icon, title, desc, span, accent }, i) => (
+              <Reveal key={title} delay={i * 110} className={`${span} w-full`}>
+                <Bezel className="group h-full transition-transform duration-700 ease-premium hover:-translate-y-1">
+                  <div className="flex h-full flex-col rounded-[calc(1.75rem-6px)] p-8 sm:p-10">
+                    <span className={`flex h-11 w-11 items-center justify-center self-start rounded-full border border-black/[0.07] bg-zinc-50 text-zinc-700 transition-all duration-700 ease-premium ${accent}`}>
+                      <Icon size={18} strokeWidth={1.25} />
+                    </span>
+                    <h3 className="mt-7 text-xl font-semibold text-zinc-900">{title}</h3>
+                    <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-500">{desc}</p>
+                  </div>
+                </Bezel>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══ Dusk ridges — the land folds toward evening ═══════ */}
+      <div aria-hidden className="relative -my-12">
+        <Parallax speed={0.05}>
+          <RidgeBand layers={RIDGE_DUSK} />
+        </Parallax>
+      </div>
+
+      {/* ══ Final CTA — dusk in the valley ════════════════════ */}
+      <section className="relative mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6 sm:pb-24">
+        <Reveal>
+          <div className="grain relative overflow-hidden rounded-[2rem] bg-zinc-950 px-6 py-20 text-center sm:px-16 sm:py-28">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  'radial-gradient(520px 300px at 50% 0%, rgba(90,125,84,0.30), transparent 70%), radial-gradient(340px 220px at 84% 100%, rgba(196,154,42,0.16), transparent 70%), radial-gradient(280px 200px at 8% 90%, rgba(99,102,241,0.14), transparent 70%)',
+              }}
+            />
+            {/* stars coming out */}
+            {[
+              ['14%', '18%'], ['78%', '12%'], ['88%', '34%'], ['8%', '44%'], ['62%', '8%'],
+            ].map(([left, top], i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="pointer-events-none absolute h-[3px] w-[3px] rounded-full bg-white/60"
+                style={{
+                  left, top,
+                  boxShadow: '0 0 8px 1px rgba(255,255,255,0.35)',
+                  animation: `floatBlob ${6 + i}s ease-in-out ${i * 0.6}s infinite`,
+                }}
+              />
+            ))}
+
+            <div className="relative mx-auto max-w-2xl">
+              <h2 className="text-balance text-3xl font-semibold leading-[1.18] tracking-[-0.01em] text-white sm:text-5xl">
+                No smartphone fluency required.
+                <span className="block italic text-[#a3b86b]">Just speak.</span>
+              </h2>
+              <p className="mx-auto mt-6 max-w-md text-pretty text-[15px] leading-relaxed text-zinc-400">
+                LokVani answers in your own dialect — free, forever, for every farming
+                household and micro-vendor in India.
               </p>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '12px' }}>
-                <Volume2 size={16} color="var(--accent-primary)" />
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Audio Response Playing...</span>
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                <SignedOut>
+                  <button
+                    onClick={() => setActiveTab('auth')}
+                    className="group inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-medium text-zinc-900 transition-all duration-500 ease-premium hover:bg-zinc-100 active:scale-[0.98] cursor-pointer"
+                  >
+                    Create free account
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900/[0.06] transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
+                      <ArrowRight size={14} strokeWidth={1.5} />
+                    </span>
+                  </button>
+                </SignedOut>
+                <button
+                  onClick={handleLaunch}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white transition-all duration-500 ease-premium hover:bg-white/[0.12] active:scale-[0.98] cursor-pointer"
+                >
+                  <Mic size={14} strokeWidth={1.5} /> Try without account
+                </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        </Reveal>
       </section>
 
-      {/* 3. THREE CORE PLATFORM PILLARS */}
-      <section style={{
-        maxWidth: '1100px',
-        margin: '0 auto 70px',
-        padding: '0 20px'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-          <h2 style={{ fontSize: '2rem', marginBottom: '12px' }}>Built for Real Impact at Scale</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-            Combining state-of-the-art AI language models with ground-level community verification.
-          </p>
-        </div>
+      {/* ══ Valley floor — grass line into the footer ════════ */}
+      <div aria-hidden className="relative -mb-px pb-2">
+        <Grass className="block h-16 w-full" />
+      </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '24px'
-        }}>
-          {/* Pillar 1 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(59, 130, 246, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-primary)'
-            }}>
-              <Mic size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Multilingual Voice Engine</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              Supports spoken queries in Hindi, Hinglish, Bhojpuri, and regional dialects with instant speech-to-text and AI text-to-speech audio synthesis.
-            </p>
-          </div>
-
-          {/* Pillar 2 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(245, 158, 11, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-gold)'
-            }}>
-              <ShieldCheck size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Kirana Trust Nodes</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              High-stakes queries (e.g. monetary schemes, land records) are routed to local Kirana store operators & CSC centers for human verification.
-            </p>
-          </div>
-
-          {/* Pillar 3 */}
-          <div style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            padding: '28px',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              background: 'rgba(6, 182, 212, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              color: 'var(--accent-cyan)'
-            }}>
-              <Users size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '10px' }}>Community Intel Network</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
-              Live crowdsourced Mandi commodity price tracking combined with real-time Agmarknet government API feeds for transparent crop trading.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. IMPACT NUMBERS COUNTER */}
-      <section style={{
-        background: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-subtle)',
-        borderBottom: '1px solid var(--border-subtle)',
-        padding: '50px 20px'
-      }}>
-        <div style={{
-          maxWidth: '1100px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '30px',
-          textAlign: 'center'
-        }}>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-primary)' }}>50,000+</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Voice Queries Processed</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-gold)' }}>99.4%</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Trust Review Accuracy</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>12+</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Dialects & Languages</div>
-          </div>
-          <div>
-            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--text-main)' }}>&lt; 1.2s</div>
-            <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>Average Response Time</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. BOTTOM CALL TO ACTION */}
-      <section style={{
-        padding: '70px 20px',
-        textAlign: 'center',
-        maxWidth: '800px',
-        margin: '0 auto'
-      }}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: 800, marginBottom: '16px' }}>Ready to Experience LokVani AI?</h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '32px' }}>
-          Sign up with your account or enter directly into the dashboard to test voice queries, review trust items, or check local Mandi prices.
+      <Reveal delay={100} className="relative pb-16">
+        <p className="text-center font-heading text-xl italic text-zinc-400">
+          Kisan ka apna saathi<span className="not-italic text-[#c49a2a]">.</span>
         </p>
-
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <SignedOut>
-            <button
-              onClick={() => setActiveTab('auth')}
-              className="btn-primary"
-              style={{ padding: '14px 32px', fontSize: '1rem', borderRadius: '6px' }}
-            >
-              Sign Up / Sign In <ArrowRight size={18} />
-            </button>
-          </SignedOut>
-
-          <button
-            onClick={handleLaunchDashboard}
-            className="btn-secondary"
-            style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: '6px' }}
-          >
-            Enter Dashboard
-          </button>
-        </div>
-      </section>
+      </Reveal>
     </div>
   );
 }
