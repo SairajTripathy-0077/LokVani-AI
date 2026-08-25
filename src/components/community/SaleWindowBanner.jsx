@@ -1,18 +1,18 @@
 /**
  * SaleWindowBanner.jsx
- * Analyses the current community intel list to compute and display the
- * best commodity sale recommendations.
+ * Shows farmers the best crops to sell right now, based on current prices.
+ *
+ * UX/UI Refactor Notes (Hackathon PR):
+ *   - Banner title changed from "Best Sale Windows" → "Best Time to Sell Right Now"
+ *   - "above avg" changed to "above usual price" for clarity
  *
  * Logic:
- *  1. Groups intel records by commodity name
- *  2. Finds the top 3 highest-priced items relative to their category average
- *  3. Displays a sale-window advisory strip — implements the problem statement
- *     requirement: "localised price trends and sale-window recommendations"
+ *   1. Groups price records by crop name
+ *   2. Finds the top 3 highest-priced crops relative to their average
+ *   3. Displays a simple advisory strip with which crop to sell and where
  *
  * Props:
- *   @param {Array} intelList — Raw array of community intel records from the API
- *
- * Commit: feat(community): add SaleWindowBanner for price window recommendations
+ *   @param {Array} intelList — Array of price records from the API
  */
 
 import React, { useMemo } from 'react';
@@ -86,9 +86,10 @@ export default function SaleWindowBanner({ intelList }) {
 
       {/* Content */}
       <div style={{ flex: 1 }}>
+        {/* UX Change: "Best Sale Windows Right Now" → "Best Time to Sell Right Now" */}
         <p className="community-int__banner-title" id="sale-window-title">
           <Star size={14} style={{ display: 'inline', marginRight: '4px', color: 'var(--accent-gold)' }} aria-hidden="true" />
-          Best Sale Windows Right Now
+          Best Time to Sell Right Now
         </p>
         <ul style={{ margin: '6px 0 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {windows.map((w) => (
@@ -97,11 +98,12 @@ export default function SaleWindowBanner({ intelList }) {
               <strong>{w.bestLocation}</strong> for{' '}
               <strong>{w.displayPrice}</strong>
               {w.premiumPct > 5 && (
+                // UX Change: "above avg" → "above usual price" — clearer for farmers
                 <span
                   style={{ marginLeft: '6px', color: 'var(--ci-trend-up)', fontWeight: 700, fontSize: '0.78rem' }}
-                  aria-label={`${w.premiumPct.toFixed(0)}% above average price`}
+                  aria-label={`${w.premiumPct.toFixed(0)}% above the usual price`}
                 >
-                  ↑ {w.premiumPct.toFixed(0)}% above avg
+                  ↑ {w.premiumPct.toFixed(0)}% above usual
                 </span>
               )}
             </li>

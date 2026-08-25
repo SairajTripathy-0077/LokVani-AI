@@ -1,25 +1,27 @@
 /**
  * SubmitReportModal.jsx
- * Accessible modal for submitting a new community mandi price report.
+ * Modal form that lets a farmer share the price they saw at the market.
  *
- * Accessibility implementation:
- *  - role="dialog" + aria-modal="true" + aria-labelledby
- *  - Focus trap: Tab/Shift+Tab cycles only within the modal
- *  - Escape key closes the modal
- *  - Inline field-level validation with aria-describedby error messages
- *  - Required fields announced with aria-required
+ * UX/UI Refactor Notes (Hackathon PR):
+ *   - Title changed: "Submit Mandi Price Report" → "Share Today's Crop Price"
+ *   - Subtitle is now one short, friendly sentence
+ *   - All field labels use conversational question forms (e.g. "What crop did you sell?")
+ *   - Grade options simplified: "Premium / Export quality" → "Very good quality"
+ *   - CTA "Save Report" → "Share Information"
+ *   - Location placeholder removes technical acronym "APMC"
  *
- * Extended fields over the original CommunityIntel form:
- *  - category (Vegetable / Grain / Spice / Fruit / Other)
- *  - qualityGrade (A / B / C)
+ * Accessibility (unchanged from original):
+ *   - role="dialog" + aria-modal + aria-labelledby
+ *   - Focus trap: Tab / Shift+Tab cycles within the modal
+ *   - Escape key closes the modal
+ *   - Inline validation with aria-describedby error messages
+ *   - Required fields announced with aria-required
  *
  * Props:
- *   @param {boolean}  isOpen      — Controls visibility
- *   @param {Function} onClose     — Called when modal should close
- *   @param {Function} onSubmit    — Called with (formData: object) on valid submit
+ *   @param {boolean}  isOpen       — Controls visibility
+ *   @param {Function} onClose      — Called when modal should close
+ *   @param {Function} onSubmit     — Called with (formData: object) on valid submit
  *   @param {boolean}  isSubmitting — Disables the submit button during the API call
- *
- * Commit: feat(community): add accessible SubmitReportModal with validation
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -42,21 +44,22 @@ const INITIAL_ERRORS = {
   location: '',
 };
 
-/* ── Validation ───────────────────────────────────────────────────────────── */
+/* ── Validation ──────────────────────────────────────────────────────────── */
 function validate(form) {
   const errors = { item: '', price: '', location: '' };
   let isValid = true;
 
+  // UX Change: Validation messages are plain — "Crop name is required" instead of "Commodity name"
   if (!form.item.trim()) {
-    errors.item = 'Commodity name is required.';
+    errors.item = 'Please enter the crop name.';
     isValid = false;
   }
   if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) {
-    errors.price = 'Enter a valid price greater than zero.';
+    errors.price = 'Please enter the price (must be more than 0).';
     isValid = false;
   }
   if (!form.location.trim()) {
-    errors.location = 'Mandi / location is required.';
+    errors.location = 'Please enter the market or location name.';
     isValid = false;
   }
 
@@ -183,29 +186,32 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
       >
         {/* ── Modal Header ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          {/* UX Change: Title changed from "Submit Mandi Price Report" → "Share Today's Crop Price" */}
           <h2 className="community-int__modal-title" id="modal-title">
             <Megaphone size={18} color="var(--accent-cyan)" aria-hidden="true" />
-            Submit Mandi Price Report
+            Share Today's Crop Price
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label="Close"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', padding: '2px' }}
           >
             <X size={20} />
           </button>
         </div>
+        {/* UX Change: Subtitle shortened to one friendly sentence — no jargon */}
         <p id="modal-desc" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px', marginTop: '-10px' }}>
-          Report local mandi rates to help fellow farmers make better decisions.
+          Help other farmers by sharing what price you saw today.
           Fields marked <span aria-hidden="true" style={{ color: 'var(--ci-trend-down)' }}>*</span> are required.
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* ── Commodity Name ── */}
+          {/* ── Crop Name ── */}
+          {/* UX Change: Label changed from "Crop / Commodity Name" → conversational "What crop did you sell?" */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-item">
-              Crop / Commodity Name
+              What crop did you sell?
               <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
             </label>
             <input
@@ -213,7 +219,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               name="item"
               type="text"
               className={`community-int__input ${errors.item ? 'community-int__input--error' : ''}`}
-              placeholder="e.g. Tamatar, Pyaaz, Gehun"
+              placeholder="e.g. Tomato, Onion, Wheat"
               value={form.item}
               onChange={handleChange}
               aria-required="true"
@@ -228,9 +234,10 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
             )}
           </div>
 
-          {/* ── Category ── */}
+          {/* ── Type of Crop ── */}
+          {/* UX Change: Label changed from "Category" → "Type of Crop" (plain English) */}
           <div className="community-int__field">
-            <label className="community-int__label" htmlFor="modal-category">Category</label>
+            <label className="community-int__label" htmlFor="modal-category">Type of Crop</label>
             <select
               id="modal-category"
               name="category"
@@ -238,7 +245,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               value={form.category}
               onChange={handleChange}
             >
-              <option value="">Select a category</option>
+              <option value="">Choose a type</option>
               <option value="Vegetable">Vegetable</option>
               <option value="Grain">Grain / Cereal</option>
               <option value="Pulse">Pulse / Dal</option>
@@ -250,11 +257,12 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
           </div>
 
           {/* ── Price + Unit (side by side) ── */}
+          {/* UX Change: "Price (₹)" → "Price you got (₹)", "Unit" → "Sold per" */}
           <div className="community-int__field">
             <div className="community-int__input-grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
               <div>
                 <label className="community-int__label" htmlFor="modal-price">
-                  Price (₹)
+                  Price you got (₹)
                   <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
                 </label>
                 <input
@@ -278,7 +286,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
                 )}
               </div>
               <div>
-                <label className="community-int__label" htmlFor="modal-unit">Unit</label>
+                <label className="community-int__label" htmlFor="modal-unit">Sold per</label>
                 <select
                   id="modal-unit"
                   name="unit"
@@ -293,9 +301,10 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
             </div>
           </div>
 
-          {/* ── Quality Grade ── */}
+          {/* ── Crop Condition (Quality Grade) ── */}
+          {/* UX Change: "Quality Grade" → "Crop Condition"; removed export/import jargon from options */}
           <div className="community-int__field">
-            <label className="community-int__label" htmlFor="modal-grade">Quality Grade</label>
+            <label className="community-int__label" htmlFor="modal-grade">Crop Condition</label>
             <select
               id="modal-grade"
               name="qualityGrade"
@@ -303,16 +312,17 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               value={form.qualityGrade}
               onChange={handleChange}
             >
-              <option value="A">Grade A — Premium / Export quality</option>
-              <option value="B">Grade B — Standard market quality</option>
-              <option value="C">Grade C — Below standard / local use</option>
+              <option value="A">Grade A — Very good quality</option>
+              <option value="B">Grade B — Normal quality</option>
+              <option value="C">Grade C — Below normal / home use</option>
             </select>
           </div>
 
-          {/* ── Mandi / Location ── */}
+          {/* ── Location (Market / Mandi) ── */}
+          {/* UX Change: "Mandi / Location" → question form "Where did you sell?" */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-location">
-              Mandi / Location
+              Where did you sell?
               <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
             </label>
             <input
@@ -320,7 +330,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               name="location"
               type="text"
               className={`community-int__input ${errors.location ? 'community-int__input--error' : ''}`}
-              placeholder="e.g. Azamgarh Mandi, Varanasi APMC"
+              placeholder="e.g. Azamgarh Market, Varanasi"
               value={form.location}
               onChange={handleChange}
               aria-required="true"
@@ -334,24 +344,26 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
             )}
           </div>
 
-          {/* ── Reporter Name (optional) ── */}
+          {/* ── Your Name (optional) ── */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-reporter">
               Your Name <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>(optional)</span>
             </label>
+            {/* UX Change: Removed "(Farmer)" tag from placeholder — redundant for a farmer app */}
             <input
               id="modal-reporter"
               name="reporter"
               type="text"
               className="community-int__input"
-              placeholder="e.g. Ramesh Kumar (Farmer)"
+              placeholder="e.g. Ramesh Kumar"
               value={form.reporter}
               onChange={handleChange}
               autoComplete="name"
             />
           </div>
 
-          {/* ── Actions ── */}
+          {/* ── Form Actions ── */}
+          {/* UX Change: "Cancel" kept plain; submit button text changed to "Share Information" */}
           <div className="community-int__modal-actions">
             <button
               type="button"
@@ -370,11 +382,11 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               {isSubmitting ? (
                 <>
                   <span aria-hidden="true" style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'ci-spin 0.6s linear infinite' }} />
-                  Saving…
+                  Sharing…
                 </>
               ) : (
                 <>
-                  <Send size={14} aria-hidden="true" /> Save Report
+                  <Send size={14} aria-hidden="true" /> Share Information
                 </>
               )}
             </button>
