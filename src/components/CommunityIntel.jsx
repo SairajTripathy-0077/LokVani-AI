@@ -1,22 +1,38 @@
 /**
- * CommunityIntel.jsx
- * Community Market Linkage & Intelligence — orchestrator / page component.
+ * CommunityIntel.jsx  (page-level orchestrator)
+ * ──────────────────────────────────────────────────────────────────────────
+ * "Local Farming Updates" page — the main hub where farmers can:
+ *   • See today's crop prices from nearby markets
+ *   • Find trusted buyers in their area
+ *   • Get live weather for their region
+ *   • Share a price they saw at the market
+ *   • Read the latest news and alerts from fellow farmers
  *
- * Architecture: This component owns page-level state and data fetching.
- * All rendering is delegated to isolated sub-components in ./community/.
+ * Architecture:
+ *   This component owns page-level state and data fetching.
+ *   All rendering is delegated to focused sub-components in ./community/.
  *
  * Sections:
- *   1. Stats Summary Row        — Total reports, top commodity, avg price
- *   2. Sale Window Banner       — AI-computed best time to sell
- *   3. Search + Filter Controls — Text search + category filter pills
- *   4. Price Intelligence Grid  — PriceCards / SkeletonCards / Empty state
- *   5. Verified Buyer Network   — BuyerCards (static demo, future /api/buyers)
- *   6. Live Regional Weather    — From AppContext (Open-Meteo API)
+ *   1. Stats Summary Row        — Quick stats: reports, top crop, avg price
+ *   2. Best Time to Sell Banner — AI-computed sale window advisory
+ *   3. Search + Filter Controls — Find prices by crop name or category
+ *   4. Today's Crop Prices Grid — Price cards / loading skeletons / empty state
+ *   5. Buyers Near You          — Trusted local buyer contacts
+ *   6. Compare Prices Table     — Min / avg / max per crop across markets
+ *   7. Latest News Feed         — Crowdsourced alerts from other farmers
+ *   8. Sell Together (FPO)      — Group selling to get better rates
+ *   9. Transport & Storage      — Share trucks and storage space
+ *  10. Trust & Safety           — Buyer ratings and complaint form
+ *  11. Weather                  — Live regional weather advisory
  *
- * State managed with useReducer for predictable, testable state transitions.
+ * State is managed with useReducer for predictable, testable transitions.
  *
- * Commits:
- *   refactor(community): rewrite CommunityIntel.jsx as orchestrator with search/filter
+ * UX/UI Refactor Notes (Hackathon PR):
+ *   - Page title changed from "Community Intel" → "Local Farming Updates"
+ *   - All jargon removed; terminology rewritten for farmers (Class 5–8 literacy)
+ *   - CTAs made action-oriented: "Share a Price", "Share Information"
+ *   - Verbose subtitles shortened to one clear sentence
+ *   - API provider names hidden from UI (farmers don't need to see them)
  */
 
 import React, { useReducer, useEffect, useCallback, useMemo } from 'react';
@@ -243,7 +259,8 @@ export default function CommunityIntel() {
      Render
      ══════════════════════════════════════════════════════════════════════════ */
   return (
-    <main className="community-int__page" aria-label={lang === 'hi' ? 'सामुदायिक मंडी जानकारी' : 'Community Market Linkage and Intelligence'}>
+    // UX Change: aria-label updated to use plain language for screen readers
+    <main className="community-int__page" aria-label={lang === 'hi' ? 'सामुदायिक मंडी जानकारी' : 'Local Farming Updates'}>
 
       {/* ── SECTION 1 — Page Header + Stats ── */}
       <section className="community-int__section" aria-labelledby="ci-page-heading">
@@ -272,8 +289,8 @@ export default function CommunityIntel() {
           </button>
         </div>
 
-        {/* Stats row */}
-        <div className="community-int__stats-row" role="list" aria-label={lang === 'hi' ? 'बाज़ार सारांश' : 'Market summary statistics'}>
+        {/* Stats row — shows quick totals at a glance */}
+        <div className="community-int__stats-row" role="list" aria-label={lang === 'hi' ? 'बाज़ार सारांश' : 'Quick stats'}>
           <div className="community-int__stat-card" role="listitem">
             <p className="community-int__stat-label">{t('statTotalLabel', lang)}</p>
             <p className="community-int__stat-value">{stats.total}</p>
@@ -323,7 +340,7 @@ export default function CommunityIntel() {
           <SaleWindowBanner intelList={intelList} />
         )}
 
-        {/* Search + Category Filter Controls */}
+        {/* ── Search + Category Filter Controls */}
         <div className="community-int__controls" role="search" aria-label={t('searchAriaLabel', lang)}>
           <div className="community-int__search-wrap">
             <Search size={15} className="community-int__search-icon" aria-hidden="true" />
@@ -334,7 +351,8 @@ export default function CommunityIntel() {
               aria-label={t('searchAriaLabel', lang)}
             />
           </div>
-          <ul className="community-int__filter-pills" role="group" aria-label={lang === 'hi' ? 'श्रेणी से फ़िल्टर करें' : 'Filter by category'}>
+          {/* UX Change: Filter pills use translated labels — no hardcoded English */}
+          <ul className="community-int__filter-pills" role="group" aria-label={lang === 'hi' ? 'श्रेणी से फ़िल्टर करें' : 'Filter by crop type'}>
             {CATEGORIES_CONFIG.map(cat => (
               <li key={cat.key}>
                 <button type="button"
@@ -397,19 +415,20 @@ export default function CommunityIntel() {
       </section>
 
       {/* ────────────────────────────────────────────────────────────────────
-          SECTION 4 — Price Comparison by Commodity
+          SECTION 4 — Compare Prices Across Markets
+          UX Change: Section title now uses t() so it respects language setting
           ──────────────────────────────────────────────────────────────────── */}
       {!loading && intelList.length > 1 && (
         <section className="community-int__section" aria-labelledby="ci-compare-heading">
           <div className="community-int__section-header">
             <h3 className="community-int__section-title" id="ci-compare-heading">
               <BarChart2 size={18} color="var(--accent-gold)" aria-hidden="true" />
-              Price Comparison Across Mandis
+              {t('compareSectionTitle', lang)}
             </h3>
           </div>
 
-          {/* Group intel by commodity and show min/max/avg */}
-          <ComparisonTable intelList={intelList} />
+          {/* Compare min / avg / max prices per crop across mandis */}
+          <ComparisonTable intelList={intelList} lang={lang} />
         </section>
       )}
 
@@ -429,6 +448,7 @@ export default function CommunityIntel() {
 
       {/* ────────────────────────────────────────────────────────────────────
           SECTION 9 — Live Regional Weather
+          UX Change: Section title uses t() to hide API name from farmers
           ──────────────────────────────────────────────────────────────────── */}
       <section className="community-int__section" aria-labelledby="ci-weather-heading">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', gap: '8px' }}>
@@ -436,11 +456,13 @@ export default function CommunityIntel() {
             <CloudSun size={18} color="var(--accent-gold)" aria-hidden="true" />
             {t('weatherTitle', lang)}
           </h3>
-          <div style={{ display: 'flex', gap: '4px' }}>
+          {/* UX Change: Region selector pills labelled clearly for screen readers */}
+          <div style={{ display: 'flex', gap: '4px' }} role="group" aria-label={lang === 'hi' ? 'अपना क्षेत्र चुनें' : 'Choose your area'}>
             {REGIONS.map(reg => (
               <button type="button" key={reg} onClick={() => handleRegionChange(reg)}
                 className={`community-int__pill ${selectedRegion === reg ? 'community-int__pill--active' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '4px' }}>
+                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '4px' }}
+                aria-pressed={selectedRegion === reg}>
                 {reg}
               </button>
             ))}
@@ -465,7 +487,7 @@ export default function CommunityIntel() {
         isSubmitting={submitting}
       />
 
-      {/* Toast Notification */}
+      {/* ── Toast Notification ── */}
       {toast && (
         <Toast
           message={toast.message}
@@ -478,11 +500,15 @@ export default function CommunityIntel() {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   ComparisonTable — inline sub-component (used only here, not worth its own file)
-   Groups intelList by commodity and shows min/max/avg price per quintal.
+   ComparisonTable — inline sub-component (used only in this file)
+   Groups intelList by crop and shows lowest / average / highest price per kg.
+
+   UX Change: Column headers now use the translation dictionary (t()) so they
+   display in the correct language (Hindi / English) based on user preference.
+   Heading text changed: "Commodity" → "Crop", "Min" → "Lowest", "Max" → "Highest".
    ══════════════════════════════════════════════════════════════════════════════ */
 
-function ComparisonTable({ intelList }) {
+function ComparisonTable({ intelList, lang = 'en' }) {
   // Build grouped data
   const groups = useMemo(() => {
     const map = {};
@@ -490,13 +516,13 @@ function ComparisonTable({ intelList }) {
       if (!r.item || r.price == null) return;
       const key = r.item.trim();
       if (!map[key]) map[key] = { name: key, prices: [] };
-      // Normalise to per-kg for display
+      // Normalise to per-kg for consistent display
       const pricePerKg = r.unit === 'quintal' ? r.price / 100 : r.price;
       map[key].prices.push(pricePerKg);
     });
 
     return Object.values(map)
-      .filter((g) => g.prices.length >= 2) // Only show if multiple data points
+      .filter((g) => g.prices.length >= 2) // Only show crops with multiple data points
       .map((g) => ({
         name: g.name,
         min:  Math.min(...g.prices),
@@ -505,26 +531,35 @@ function ComparisonTable({ intelList }) {
         count: g.prices.length,
       }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 8); // Show top 8 commodities
+      .slice(0, 8); // Show top 8 crops by number of reports
   }, [intelList]);
 
   if (groups.length === 0) return null;
+
+  // UX Change: Column headers resolved via t() — correct language, no hardcoded English
+  const columns = [
+    { key: 'colCommodity', align: 'left'  },
+    { key: 'colMin',       align: 'right' },
+    { key: 'colAvg',       align: 'right' },
+    { key: 'colMax',       align: 'right' },
+    { key: 'colReports',   align: 'right' },
+  ];
 
   return (
     <div style={{ overflowX: 'auto' }}>
       <table
         style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}
-        aria-label="Price comparison table across mandis by commodity"
+        aria-label={t('compareSectionTitle', lang)}
       >
         <thead>
           <tr style={{ borderBottom: '2px solid var(--border-subtle)' }}>
-            {['Commodity', 'Min (₹/kg)', 'Avg (₹/kg)', 'Max (₹/kg)', 'Reports'].map((h) => (
+            {columns.map((col) => (
               <th
-                key={h}
+                key={col.key}
                 scope="col"
                 style={{
                   padding: '8px 12px',
-                  textAlign: h === 'Commodity' ? 'left' : 'right',
+                  textAlign: col.align,
                   color: 'var(--text-muted)',
                   fontWeight: 700,
                   fontSize: '0.72rem',
@@ -532,7 +567,7 @@ function ComparisonTable({ intelList }) {
                   letterSpacing: '0.05em',
                 }}
               >
-                {h}
+                {t(col.key, lang)}
               </th>
             ))}
           </tr>
