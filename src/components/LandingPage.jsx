@@ -107,12 +107,18 @@ function Contours({ className = '' }) {
 /* ── Terraced Ridge Bands — dissolution gradients top & bottom ── */
 function RidgeBand({ layers }) {
   return (
-    <div className="relative w-full overflow-hidden">
+    <div
+      className="relative w-full overflow-hidden"
+      style={{
+        maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0) 98%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, rgba(0,0,0,0) 98%)',
+      }}
+    >
       <svg
-        viewBox="0 0 1440 220"
+        viewBox="0 0 1440 280"
         fill="none"
         preserveAspectRatio="none"
-        className="block h-24 w-full sm:h-32 lg:h-40"
+        className="block h-28 w-full sm:h-36 lg:h-44"
       >
         {layers.map((l, i) => (
           <path key={i} d={l.d} fill={l.fill} opacity={l.opacity} />
@@ -123,18 +129,18 @@ function RidgeBand({ layers }) {
 }
 
 const RIDGE_FAR = [
-  { d: 'M0 110 Q 360 40 720 90 T 1440 60 V220 H0 Z', fill: '#48734f', opacity: 0.08 },
-  { d: 'M0 140 Q 400 80 800 130 T 1440 100 V220 H0 Z', fill: '#c49a2a', opacity: 0.06 },
+  { d: 'M0 110 Q 360 40 720 90 T 1440 60 V280 H0 Z', fill: '#48734f', opacity: 0.08 },
+  { d: 'M0 140 Q 400 80 800 130 T 1440 100 V280 H0 Z', fill: '#c49a2a', opacity: 0.06 },
 ];
 
 const RIDGE_MID = [
-  { d: 'M0 90 Q 320 150 720 80 T 1440 120 V220 H0 Z', fill: '#3f5d3b', opacity: 0.12 },
-  { d: 'M0 130 Q 420 70 840 140 T 1440 90 V220 H0 Z', fill: '#5a7d54', opacity: 0.16 },
+  { d: 'M0 90 Q 320 150 720 80 T 1440 120 V280 H0 Z', fill: '#3f5d3b', opacity: 0.12 },
+  { d: 'M0 130 Q 420 70 840 140 T 1440 90 V280 H0 Z', fill: '#5a7d54', opacity: 0.16 },
 ];
 
 const RIDGE_DUSK = [
-  { d: 'M0 70 Q 380 140 760 60 T 1440 110 V220 H0 Z', fill: '#2e4231', opacity: 0.22 },
-  { d: 'M0 110 Q 340 50 700 120 T 1440 80 V220 H0 Z', fill: '#1a271c', opacity: 0.35 },
+  { d: 'M0 70 Q 380 140 760 60 T 1440 110 V280 H0 Z', fill: '#2e4231', opacity: 0.22 },
+  { d: 'M0 110 Q 340 50 700 120 T 1440 80 V280 H0 Z', fill: '#1a271c', opacity: 0.35 },
 ];
 
 /* ── Single Wheat Stalk motif ────────────────────────────────── */
