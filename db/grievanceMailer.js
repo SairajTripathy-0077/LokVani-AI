@@ -1,22 +1,15 @@
-import nodemailer from 'nodemailer';
+// Grievance mailer via EmailJS REST API (no SMTP server required).
+// Configure in .env:
+//   EMAILJS_SERVICE_ID    – EmailJS service (e.g. service_xxxxxxx)
+//   EMAILJS_TEMPLATE_ID   – EmailJS template that uses {{to_email}}, {{cc_email}},
+//                           {{subject}}, {{message}} params
+//   EMAILJS_PUBLIC_KEY    – EmailJS Public Key (user_id)
+//   EMAILJS_PRIVATE_KEY   – EmailJS Private Key (accessToken, required for REST)
 
 const FALLBACK_GRIEVANCE_EMAIL =
   process.env.GRIEVANCE_FALLBACK_EMAIL || 'grievance@lokvani-ai.demo';
 
-let transporter = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT) || 587,
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS }
-  });
-  return transporter;
-}
+const EMAILJS_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
 
 export function getGrievanceEmail(schemeGrievanceEmail) {
   return schemeGrievanceEmail || FALLBACK_GRIEVANCE_EMAIL;
@@ -64,7 +57,7 @@ function buildComplaintBodyHi({
     day: 'numeric', month: 'long', year: 'numeric'
   });
   return [
-    'आदरणीय शिकायत अधिकारी महोदय,', 
+    'आदरणीय शिकायत अधिकारी महोदय,',
     '',
     `विषय: "${schemeNameEn}" योजना के लाभ में देरी (लोकवाणी शिकायत आईडी: ${complaintId})`,
     '',
@@ -85,36 +78,54 @@ function buildComplaintBodyHi({
 
 export async function sendGrievanceEmail({ application, daysElapsed, complaintId }) {
   const to = getGrievanceEmail(application.grievanceEmail);
-  const cc = application.userEmail || undefined;
+  const cc = application.userEmail || '';
   const subject = `[Grievance] Delay in "${application.schemeNameEn}" — ${daysElapsed} days — Ref ${complaintId}`;
-  const text = [
+  const message = [
     buildComplaintBody({ ...application, daysElapsed, complaintId }),
     '',
     '──────────',
     buildComplaintBodyHi({ ...application, daysElapsed, complaintId })
   ].join('\n');
 
-  const tx = getTransporter();
-  if (!tx) {
+  const { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY } = process.env;
+  if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
     console.warn(
-      `[Grievance Mailer] SMTP not configured. Complaint ${complaintId} logged but email NOT sent (would go to ${to}${cc ? `, cc ${cc}` : ''}).`
+      `[Grievance Mailer] EmailJS is not configured. Complaint ${complaintId} logged but email NOT sent (would go to ${to}${cc ? `, cc ${cc}` : ''}).`
     );
-    return { emailSent: false, to, cc: cc || '' };
+    return { emailSent: false, to, cc };
   }
 
   try {
-    await tx.sendMail({
-      from: `"LokVani AI Grievance Desk" <${process.env.SMTP_USER}>`,
-      to,
-      cc,
-      replyTo: cc,
-      subject,
-      text
+    const res = await fetch(EMAILJS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id: EMAILJS_SERVICE_ID,
+        template_id: EMAILJS_TEMPLATE_ID,
+        user_id: EMAILJS_PUBLIC_KEY,
+        ...(EMAILJS_PRIVATE_KEY ? { accessToken: EMAILJS_PRIVATE_KEY } : {}),
+        template_params: {
+          to_email: to,
+          cc_email: cc,
+          reply_to: cc || undefined,
+          subject,
+          message,
+          complaint_id: complaintId,
+          applicant_name: application.userName || '',
+          scheme_name: application.schemeNameEn || ''
+        }
+      })
     });
-    return { emailSent: true, to, cc: cc || '' };
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error(`EmailJS responded ${res.status}: ${errText.slice(0, 200)}`);
+    }
+
+    return { emailSent: true, to, cc };
   } catch (err) {
     console.error(`[Grievance Mailer] Failed to send complaint ${complaintId}:`, err.message);
-    return { emailSent: false, to, cc: cc || '', error: err.message };
+    return { emailSent: false, to, cc, error: err.message };
   }
 }
 

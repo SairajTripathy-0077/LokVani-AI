@@ -263,7 +263,7 @@ export default function UserVoiceApp() {
     <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-4 lg:sticky lg:top-10">
+      <aside className="order-2 lg:order-1 w-full lg:w-64 shrink-0 flex flex-col gap-4 lg:sticky lg:top-10">
         {/* New query */}
         <Button
           className="w-full gap-2 font-bold"
@@ -274,16 +274,14 @@ export default function UserVoiceApp() {
           {language === 'hi' ? '+ नई पूछताछ' : '+ New Voice Query'}
         </Button>
 
-        {/* Dialect */}
+        {/* Preferences — one grouped panel */}
         <Card className="p-0 overflow-hidden">
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5">
+          <div className="px-4 py-4">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
               <Globe size={11} /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
             </p>
-          </div>
-          <div className="px-4 pb-4">
             <Select value={dialect} onValueChange={setDialect}>
-              <SelectTrigger className="h-9 text-sm">
+              <SelectTrigger className="w-full justify-between h-9 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -293,51 +291,64 @@ export default function UserVoiceApp() {
               </SelectContent>
             </Select>
           </div>
-        </Card>
 
-        {/* TTS Speed */}
-        <Card className="p-0 overflow-hidden">
+          <Separator />
+
           <div className="px-4 py-4">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
               <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
             </p>
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="flex gap-1 p-1 rounded-lg bg-muted">
               {[0.75, 1.0, 1.25].map(r => (
-                <Button
+                <button
                   key={r}
-                  size="sm"
-                  variant={ttsRate === r ? 'default' : 'outline'}
                   onClick={() => setTtsRate(r)}
-                  className="h-8 text-xs font-semibold tabular-nums"
+                  aria-pressed={ttsRate === r}
+                  className={cn(
+                    'flex-1 h-7 rounded-md text-xs font-semibold tabular-nums transition-all duration-200',
+                    ttsRate === r
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
                 >
                   {r}×
-                </Button>
+                </button>
               ))}
             </div>
           </div>
-        </Card>
 
-        {/* Large text toggle */}
-        <Button
-          variant={largeText ? 'secondary' : 'outline'}
-          className="w-full gap-2 text-sm font-semibold justify-start"
-          onClick={() => setLargeText(p => !p)}
-        >
-          <Type size={14} />
-          {largeText
-            ? (language === 'hi' ? 'सामान्य आकार' : 'Normal Size')
-            : (language === 'hi' ? 'बड़ा टेक्स्ट A+' : 'Large Text A+')}
-        </Button>
+          <Separator />
+
+          <button
+            onClick={() => setLargeText(p => !p)}
+            aria-pressed={largeText}
+            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors"
+          >
+            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Type size={13} className="text-muted-foreground" />
+              {language === 'hi' ? 'बड़ा टेक्स्ट' : 'Large Text'}
+            </span>
+            <span className={cn(
+              'relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0',
+              largeText ? 'bg-primary' : 'bg-border'
+            )}>
+              <span className={cn(
+                'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200',
+                largeText ? 'left-[18px]' : 'left-0.5'
+              )} />
+            </span>
+          </button>
+        </Card>
 
         <Separator />
 
         {/* History */}
         <div>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5 px-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5 px-1">
             <Clock size={11} /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
           </p>
           <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-40rem)]">
-            <div className="flex flex-col gap-2 pr-2">
+            <div className="flex flex-col pr-2">
               {queryHistory.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic px-1 py-3">
                   {language === 'hi' ? 'कोई इतिहास नहीं' : 'No history yet'}
@@ -347,10 +358,10 @@ export default function UserVoiceApp() {
                   key={h._id}
                   onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
                   className={cn(
-                    'text-left p-3 rounded-xl transition-all duration-200 flex flex-col gap-1 w-full text-xs border',
+                    'text-left py-3 px-3 transition-colors duration-200 flex flex-col gap-1 w-full text-xs rounded-lg',
                     activeResult?._id === h._id
-                      ? 'bg-primary/[0.07] border-primary/25 text-primary font-semibold shadow-[inset_2px_0_0_0] shadow-primary'
-                      : 'text-muted-foreground hover:bg-muted/60 border-border/40 hover:border-border'
+                      ? 'bg-primary/[0.07] text-primary font-semibold shadow-[inset_2px_0_0_0] shadow-primary'
+                      : 'text-muted-foreground hover:bg-muted/60'
                   )}
                 >
                   <span className="truncate w-full font-semibold text-foreground">{h.transcribedText}</span>
@@ -369,31 +380,27 @@ export default function UserVoiceApp() {
       </aside>
 
       {/* ── Main Panel ──────────────────────────────────────────── */}
-      <div className="flex-1 w-full min-w-0 space-y-6">
+      <div className="order-1 lg:order-2 flex-1 w-full min-w-0 space-y-6">
 
         {/* Hero / Mic section */}
-        <div className="relative overflow-hidden rounded-3xl hero-bg hero-edge grain shadow-[0_32px_80px_-40px_rgba(24,24,27,0.5)]">
-          {/* Bg blobs */}
-          <div className="hero-blob -top-24 -right-20 w-80 h-80 bg-[#d6a83a]/[0.08]" />
-          <div className="hero-blob -bottom-28 -left-24 w-96 h-96 bg-[#a3b86b]/[0.09]" style={{ animationDelay: '-3.5s' }} />
-
+        <div className="relative overflow-hidden rounded-3xl hero-bg grain border border-border/70 shadow-[0_24px_60px_-40px_rgba(24,24,27,0.25)]">
           <div className="relative z-10 text-center p-6 sm:p-10 lg:p-12">
             {/* Status pill */}
             <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.14] text-white/90 text-xs font-semibold tracking-wide mb-6"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-border text-foreground/80 text-xs font-semibold tracking-wide mb-6 shadow-sm"
               role="status"
               aria-live="polite"
             >
-              {appState === 'IDLE'      && <><Sparkles size={12} className="text-[#d6a83a]" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
-              {appState === 'LISTENING' && <><Mic size={12} className="text-orange-300 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
+              {appState === 'IDLE'      && <><Sparkles size={12} className="text-[#a07a1e]" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
+              {appState === 'LISTENING' && <><Mic size={12} className="text-red-600 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
               {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
-              {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
+              {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-[#48734f] animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
             </div>
 
-            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-white mb-4">
+            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-foreground mb-4">
               {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
             </h2>
-            <p className="text-zinc-400 text-sm sm:text-base max-w-md mx-auto mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto mb-10 leading-relaxed">
               {language === 'hi'
                 ? 'मंडी भाव, सरकारी योजनाएं, फसल सलाह — अपनी भाषा में'
                 : 'Mandi rates, schemes, crop advisory — in your own dialect'}
@@ -439,7 +446,7 @@ export default function UserVoiceApp() {
             {/* Live transcript */}
             {transcript && (
               <p
-                className="text-white/90 text-sm font-medium italic mb-8 px-6 py-3 max-w-md mx-auto rounded-2xl bg-white/[0.06] border border-white/[0.12] leading-relaxed"
+                className="text-foreground text-sm font-medium italic mb-8 px-6 py-3 max-w-md mx-auto rounded-2xl bg-white border border-border leading-relaxed shadow-sm"
                 aria-live="polite"
               >
                 "{transcript}"
@@ -447,8 +454,8 @@ export default function UserVoiceApp() {
             )}
 
             {/* Demo Presets */}
-            <div className="border-t border-white/[0.08] pt-6">
-              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.14em] mb-4">
+            <div className="border-t border-border/60 pt-6">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.14em] mb-4">
                 {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Examples'}
               </p>
               <div className="flex flex-wrap gap-3 justify-center">
@@ -460,9 +467,9 @@ export default function UserVoiceApp() {
                       id={`preset-${i}`}
                       onClick={() => handlePresetSelect(p)}
                       disabled={isProcessing}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.13] hover:border-white/[0.22] text-white/95 text-xs font-medium border border-white/[0.12] transition-all duration-300 ease-premium active:scale-[0.97] disabled:opacity-40"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-muted text-foreground text-xs font-medium border border-border hover:border-border transition-all duration-300 ease-premium active:scale-[0.97] disabled:opacity-40 shadow-sm"
                     >
-                      <Icon size={13} className="text-[#d6a83a]" />
+                      <Icon size={13} className="text-[#a07a1e]" />
                       {language === 'hi' ? p.label_hi : p.label_en}
                     </button>
                   );
