@@ -215,45 +215,53 @@ class SpeechService {
       return;
     }
 
-    // Select female voice for speech synthesis
-    const voice = this.selectVoice(langCode, this.voiceGender);
-    const chunks = this._splitIntoChunks(text);
-    let chunkIndex = 0;
-
-    this._setSpeaking(true);
-
-    const speakNext = () => {
-      if (chunkIndex >= chunks.length || !this._isSpeaking) {
-        this._setSpeaking(false);
-        if (onEnd) onEnd();
-        return;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
-      utterance.lang = langCode;
-      utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
-      // Pitch tuned to 1.18 for female voice tone
-      utterance.pitch = pitch;
-
-      if (voice) utterance.voice = voice;
-
-      utterance.onend = () => {
-        chunkIndex++;
-        speakNext();
-      };
-
-      utterance.onerror = (e) => {
-        if (e.error !== 'interrupted') {
-          console.warn('[SpeechService] TTS error on chunk:', e.error);
+    // Small delay after cancel() to allow browser speech engine to clear audio queue
+    setTimeout(() => {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
         }
-        this._setSpeaking(false);
-        if (onEnd) onEnd();
+      } catch (_) { /* ignore */ }
+
+      // Select voice for speech synthesis
+      const voice = this.selectVoice(langCode, this.voiceGender);
+      const chunks = this._splitIntoChunks(text);
+      let chunkIndex = 0;
+
+      this._setSpeaking(true);
+
+      const speakNext = () => {
+        if (chunkIndex >= chunks.length || !this._isSpeaking) {
+          this._setSpeaking(false);
+          if (onEnd) onEnd();
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+        utterance.lang = langCode;
+        utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
+        utterance.pitch = pitch;
+
+        if (voice) utterance.voice = voice;
+
+        utterance.onend = () => {
+          chunkIndex++;
+          speakNext();
+        };
+
+        utterance.onerror = (e) => {
+          if (e.error !== 'interrupted') {
+            console.warn('[SpeechService] TTS error on chunk:', e.error);
+          }
+          this._setSpeaking(false);
+          if (onEnd) onEnd();
+        };
+
+        window.speechSynthesis.speak(utterance);
       };
 
-      window.speechSynthesis.speak(utterance);
-    };
-
-    speakNext();
+      speakNext();
+    }, 50);
   }
 
   speak(text, langCode = 'hi-IN', onEnd = null, rate = 0.92, pitch = 1.18) {
