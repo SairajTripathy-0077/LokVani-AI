@@ -18,6 +18,15 @@
 
 const TRANSLATIONS = {
 
+  /* ── Page Header ─────────────────────────────────────────────────────── */
+  // UX Change: Simplified eyebrow — removed technical "Crowdsourced" term
+  pageEyebrow:       { hi: 'लाइव डेटा · लोगों द्वारा · सत्यापित',       en: 'Live · From Farmers · Verified' },
+  // UX Change: Renamed from "Community Mandi Intelligence" → plain "Local Farming Updates"
+  pageTitle:         { hi: 'सामुदायिक मंडी जानकारी',                     en: 'Local Farming Updates' },
+  // UX Change: Removed jargon ("information asymmetry", "crowdsourced") — now one simple sentence
+  pageSubtitle:      { hi: 'अपने आस-पास की मंडी के भाव, मौसम की जानकारी और खरीदारों से सीधा जुड़ाव — हर किसान के लिए।', en: 'See today\'s crop prices nearby, get weather updates, and find buyers in your area.' },
+  // UX Change: CTA changed from "Report Local Rate" → "Share a Price" (more inviting)
+  reportBtn:         { hi: ' भाव रिपोर्ट करें',                         en: ' Share a Price' },
  /* ── Page Header ─────────────────────────────────────────────────────── */
  // UX Change: Simplified eyebrow — removed technical "Crowdsourced" term
  pageEyebrow: { hi: 'लाइव डेटा · लोगों द्वारा · सत्यापित', en: 'Live · From Farmers · Verified' },
@@ -62,6 +71,27 @@ const TRANSLATIONS = {
  filterOilseed: { hi: 'तिलहन', en: 'Oilseed' },
  filterOther: { hi: 'अन्य', en: 'Other' },
 
+  /* ── Price Card ──────────────────────────────────────────────────────── */
+  trendUp:           { hi: '↑ बढ़ रहा है',                                 en: '↑ Rising' },
+  trendDown:         { hi: '↓ गिर रहा है',                                 en: '↓ Falling' },
+  trendStable:       { hi: '— स्थिर है',                                   en: '— Stable' },
+  trendLabelUp:      { hi: 'भाव ट्रेंड: बढ़ रहा है',                       en: 'Price trend: rising' },
+  trendLabelDown:    { hi: 'भाव ट्रेंड: गिर रहा है',                       en: 'Price trend: falling' },
+  trendLabelStable:  { hi: 'भाव ट्रेंड: स्थिर है',                         en: 'Price trend: stable' },
+  verifiedBadge:     { hi: ' सत्यापित',                                   en: ' Verified' },
+  mspWarning:        { hi: 'सरकारी MSP से कम भाव — बेचने से पहले जांचें', en: 'Price below Government MSP — verify before selling' },
+  reportedBy:        { hi: 'द्वारा',                                        en: 'by' },
+  justNow:           { hi: 'अभी-अभी',                                       en: 'Just now' },
+  minsAgo:           { hi: 'मिनट पहले',                                    en: 'm ago' },
+  hoursAgo:          { hi: 'घंटे पहले',                                    en: 'h ago' },
+  daysAgo:           { hi: 'दिन पहले',                                     en: 'd ago' },
+
+  /* ── Sale Window Banner ──────────────────────────────────────────────── */
+  bannerTitle:       { hi: ' अभी बेचने का सबसे अच्छा मौका',              en: 'Best Sale Windows Right Now' },
+  bannerSell:        { hi: 'बेचें',                                         en: 'Sell' },
+  bannerAt:          { hi: 'पर',                                            en: 'at' },
+  bannerFor:         { hi: 'के लिए',                                        en: 'for' },
+  bannerAboveAvg:    { hi: 'औसत से ऊपर',                                    en: 'above avg' },
  /* ── Price Card ──────────────────────────────────────────────────────── */
  trendUp: { hi: '↑ बढ़ रहा है', en: '↑ Rising' },
  trendDown: { hi: '↓ गिर रहा है', en: '↓ Falling' },
@@ -102,6 +132,24 @@ const TRANSLATIONS = {
  colMax: { hi: 'अधिकतम (₹/kg)', en: 'Highest (₹/kg)' },
  colReports: { hi: 'रिपोर्ट', en: 'Reports' },
 
+  /* ── Intel Feed ──────────────────────────────────────────────────────── */
+  // UX Change: "Real-Time Community Intel Feed" → "Latest News from Your Area"
+  feedSectionTitle:  { hi: 'लाइव खबरें और सूचनाएं',                         en: 'Latest News from Your Area' },
+  // UX Change: Removed technical language ("crowdsourced", "demand signals", "intel") — rewritten for farmers
+  feedSectionSub:    { hi: 'आपके क्षेत्र से भाव की खबरें, मांग की जानकारी और बाज़ार की हकीकत — सही लगे तो "सही" दबाएं, गलत लगे तो "रिपोर्ट" करें।', en: 'Price news and updates shared by farmers in your area. Tap  if it looks right, or flag it if something seems wrong.' },
+  feedFilterAll:     { hi: 'सभी',                                            en: 'All' },
+  feedCatPriceAlert: { hi: 'भाव अलर्ट',                                     en: 'Price Alert' },
+  feedCatDemand:     { hi: 'मांग बढ़ी',                                      en: 'Demand Spike' },
+  feedCatTransport:  { hi: 'ट्रांसपोर्ट',                                   en: 'Transport' },
+  feedCatWarning:    { hi: 'चेतावनी',                                        en: 'Warning' },
+  feedCatAnnouncement:{ hi: 'सरकारी सूचना',                                  en: 'Announcement' },
+  feedCatPriceDrop:  { hi: 'भाव गिरा',                                      en: 'Price Drop' },
+  confirmBtn:        { hi: 'सही है',                                         en: 'Confirm' },
+  flagBtn:           { hi: 'रिपोर्ट',                                        en: 'Flag' },
+  flaggedBtn:        { hi: 'रिपोर्ट किया',                                   en: 'Flagged' },
+  urgent:            { hi: 'जरूरी',                                           en: 'Urgent' },
+  feedEmptyTitle:    { hi: 'इस श्रेणी में कोई खबर नहीं',                     en: 'No intel in this category' },
+  feedEmptySub:      { hi: 'बाद में देखें या दूसरी श्रेणी चुनें।',           en: 'Check back soon or switch to a different filter.' },
  /* ── Intel Feed ──────────────────────────────────────────────────────── */
  // UX Change: "Real-Time Community Intel Feed" → "Latest News from Your Area"
  feedSectionTitle: { hi: 'लाइव खबरें और सूचनाएं', en: 'Latest News from Your Area' },
@@ -152,6 +200,91 @@ const TRANSLATIONS = {
  cancelBtn: { hi: 'रद्द करें', en: 'Cancel' },
  closeBtn: { hi: 'बंद करें', en: 'Close' },
 
+  /* ── FPO Pooling ─────────────────────────────────────────────────────── */
+  // UX Change: "FPO Aggregation & Harvest Pooling" → "Sell Together, Earn More" (benefit-first)
+  fpoSectionTitle:   { hi: 'FPO एकत्रीकरण — साथ बेचें, ज़्यादा पाएं',       en: 'Sell Together, Earn More' },
+  // UX Change: Removed "institutional buyer demand", "post-harvest losses" — rewritten as a simple benefit statement
+  fpoSectionSub:     { hi: 'दूसरे किसानों के साथ अपनी फसल मिलाएं, बड़े खरीदारों तक पहुंचें और बेहतर दाम पाएं।', en: 'Join other farmers to sell your crops together. Bigger quantities mean better prices for everyone.' },
+  poolStatusOpen:    { hi: 'खुला है',                                         en: 'Open' },
+  poolStatusFilling: { hi: 'लगभग भर गया',                                    en: 'Almost Full' },
+  poolStatusClosed:  { hi: 'भर गया',                                          en: 'Full' },
+  poolFilled:        { hi: 'भरा',                                             en: 'filled' },
+  poolFarmers:       { hi: 'किसान',                                           en: 'farmers' },
+  poolDeadline:      { hi: 'अंतिम तिथि',                                      en: 'Deadline' },
+  poolQuality:       { hi: 'गुणवत्ता',                                        en: 'Quality' },
+  poolFull:          { hi: 'पूरा भर गया',                                     en: 'Pool Full' },
+  addVolumeBtn:      { hi: ' मेरी फसल जोड़ें',                              en: ' Add My Volume' },
+  joinFormTitle:     { hi: 'अपनी फसल का वजन दर्ज करें',                       en: 'Register Your Volume' },
+  joinVolLabel:      { hi: 'आपकी मात्रा (क्विंटल)',                            en: 'Your Volume (qtl)' },
+  joinNameLabel:     { hi: 'आपका नाम',                                         en: 'Your Name' },
+  joinNamePlaceholder:{ hi: 'जैसे: रमेश कुमार (किसान)',                       en: 'e.g. Ramesh Kumar (Farmer)' },
+  joinConfirmBtn:    { hi: ' मात्रा दर्ज करें',                              en: 'Confirm My Volume' },
+  joinSuccessTitle:  { hi: 'आप शामिल हो गए! ',                              en: "You're In!" },
+  joinSuccessMsg:    { hi: 'आपकी फसल इस पूल में जोड़ दी गई है। समन्वयक जल्द ही संपर्क करेंगे।', en: 'Your harvest has been added to this pool. The coordinator will contact you before the deadline.' },
+  poolCloseFormBtn:  { hi: ' बंद करें',                                       en: ' Close' },
+  perQtl:            { hi: '/क्विंटल',                                         en: '/quintal' },
+  remaining:         { hi: 'क्विंटल बाकी है',                                  en: 'qtl remaining' },
+
+  /* ── Logistics & Storage ─────────────────────────────────────────────── */
+  // UX Change: "Logistics & Storage Sharing" → "Transport & Storage" (simpler)
+  logisticsSectionTitle:{ hi: 'परिवहन और भंडारण',                              en: 'Transport & Storage' },
+  // UX Change: Removed "post-harvest losses", "coordinate deliveries" — plain benefit-focused sentence
+  logisticsSectionSub:  { hi: 'ट्रक में जगह साझा करें, कोल्ड स्टोरेज बुक करें और अपनी फसल को नुकसान से बचाएं।', en: 'Share a truck or book storage space to keep your crop safe and get it to market.' },
+  tabTransport:      { hi: ' ट्रांसपोर्ट',                                  en: ' Transport' },
+  tabStorage:        { hi: ' भंडारण',                                        en: ' Storage' },
+  available:         { hi: 'उपलब्ध',                                           en: 'available' },
+  availableStatus:   { hi: 'उपलब्ध है',                                        en: 'Available' },
+  fillingStatus:     { hi: 'लगभग भर गया',                                      en: 'Almost Full' },
+  fullStatus:        { hi: 'भरा हुआ है',                                        en: 'Full' },
+  coldStorage:       { hi: 'कोल्ड स्टोरेज',                                    en: 'Cold Storage' },
+  dryStorage:        { hi: 'सूखा गोदाम',                                        en: 'Dry Storage' },
+  warehouse:         { hi: 'वेयरहाउस',                                         en: 'Warehouse' },
+  departure:         { hi: 'रवानगी',                                            en: 'Departure' },
+  ratePerQtl:        { hi: '₹/क्विंटल',                                        en: '₹/qtl' },
+  ratePerBagDay:     { hi: '₹/बोरा/दिन',                                       en: '₹/bag/day' },
+  minDays:           { hi: 'न्यूनतम दिन',                                       en: 'Min. days' },
+  bookSpace:         { hi: ' जगह बुक करें',                                  en: ' Book Space' },
+  bookStorage:       { hi: ' भंडारण बुक करें',                               en: ' Book Storage' },
+  noSpace:           { hi: 'जगह नहीं है',                                       en: 'No Space' },
+  fullyBooked:       { hi: 'पूरा बुक है',                                       en: 'Fully Booked' },
+  bookFormTonnage:   { hi: 'वजन (टन)',                                           en: 'Tonnage (tonnes)' },
+  bookFormBags:      { hi: 'बोरे (bags)',                                        en: 'Bags' },
+  bookFormDate:      { hi: 'पसंदीदा तारीख',                                     en: 'Preferred Date' },
+  bookFormName:      { hi: 'आपका नाम',                                           en: 'Your Name' },
+  bookFormNamePlaceholder:{ hi: 'जैसे: रमेश कुमार',                             en: 'e.g. Ramesh Kumar' },
+  bookConfirmBtn:    { hi: ' बुकिंग पक्की करें',                               en: 'Confirm Booking' },
+  bookSuccessTitle:  { hi: 'बुकिंग अनुरोध भेजा गया! ',                        en: 'Slot Requested!' },
+  bookSuccessMsg:    { hi: 'आपका अनुरोध भेज दिया गया है। समन्वयक 24 घंटों में किराना नोड के ज़रिए पुष्टि करेंगे।', en: 'Your booking request has been sent. The coordinator will confirm within 24 hours via Kirana Node.' },
+
+  /* ── Submit Report Modal ─────────────────────────────────────────────── */
+  // UX Change: "Submit Mandi Price Report" → "Share Today's Crop Price" (friendlier title)
+  modalTitle:        { hi: 'मंडी भाव रिपोर्ट करें',                            en: "Share Today's Crop Price" },
+  // UX Change: Simpler subtitle — one short sentence
+  modalSubtitle:     { hi: 'अपने आस-पास के मंडी भाव दर्ज करें ताकि दूसरे किसानों को मदद मिले। * वाले खाने ज़रूरी हैं।', en: 'Help other farmers by sharing what price you saw today. Fields marked * are required.' },
+  // UX Change: "Crop / Commodity Name" → "What crop did you sell?" (conversational)
+  cropNameLabel:     { hi: 'फसल / माल का नाम *',                               en: 'What crop did you sell? *' },
+  cropNamePlaceholder:{ hi: 'जैसे: टमाटर, प्याज, गेहूं',                       en: 'e.g. Tomato, Onion, Wheat' },
+  categoryLabel:     { hi: 'श्रेणी',                                            en: 'Type of Crop' },
+  categoryDefault:   { hi: 'श्रेणी चुनें',                                      en: 'Choose a type' },
+  // UX Change: "Price (₹)" → "Price you got (₹)" — clarifies meaning
+  priceLabel:        { hi: 'भाव (₹) *',                                         en: 'Price you got (₹) *' },
+  unitLabel:         { hi: 'इकाई',                                               en: 'Sold per' },
+  // UX Change: Grade labels simplified — export/import jargon removed
+  gradeLabel:        { hi: 'गुणवत्ता श्रेणी',                                   en: 'Crop Condition' },
+  gradeA:            { hi: 'ग्रेड A — प्रीमियम / निर्यात गुणवत्ता',             en: 'Grade A — Very good quality' },
+  gradeB:            { hi: 'ग्रेड B — सामान्य बाज़ार गुणवत्ता',                en: 'Grade B — Normal quality' },
+  gradeC:            { hi: 'ग्रेड C — सामान्य से कम / स्थानीय उपयोग',          en: 'Grade C — Below normal / home use' },
+  // UX Change: "Mandi / Location" → "Where did you sell?" (question form)
+  mandiLabel:        { hi: 'मंडी / स्थान *',                                    en: 'Where did you sell? *' },
+  mandiPlaceholder:  { hi: 'जैसे: आज़मगढ़ मंडी, वाराणसी APMC',                  en: 'e.g. Azamgarh Market, Varanasi' },
+  reporterLabel:     { hi: 'आपका नाम (वैकल्पिक)',                                en: 'Your Name (optional)' },
+  reporterPlaceholder:{ hi: 'जैसे: रमेश कुमार (किसान)',                         en: 'e.g. Ramesh Kumar' },
+  // UX Change: "Save Report" → "Share Information" (matches user request)
+  saveReportBtn:     { hi: ' रिपोर्ट सहेजें',                                 en: 'Share Information' },
+  savingBtn:         { hi: 'सहेजा जा रहा है…',                                  en: 'Sharing…' },
+  // UX Change: Friendlier toast messages
+  toastSuccess:      { hi: 'भाव रिपोर्ट सफलतापूर्वक जमा हो गई! ',             en: 'Price shared! Thank you ' },
+  toastError:        { hi: 'रिपोर्ट जमा नहीं हो सकी। फिर से कोशिश करें।',      en: 'Could not share. Please try again.' },
  /* ── FPO Pooling ─────────────────────────────────────────────────────── */
  // UX Change: "FPO Aggregation & Harvest Pooling" → "Sell Together, Earn More" (benefit-first)
  fpoSectionTitle: { hi: 'FPO एकत्रीकरण — साथ बेचें, ज़्यादा पाएं', en: 'Sell Together, Earn More' },
