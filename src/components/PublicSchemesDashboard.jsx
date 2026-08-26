@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import MyApplications from './MyApplications';
 import {
   matchSchemesForProfile,
   querySchemeWithAi
@@ -20,8 +22,13 @@ import {
   X,
   MapPin,
   Sprout,
-  IndianRupee
+  IndianRupee,
+  ClipboardList,
+  Compass,
+  Loader2,
+  MailCheck
 } from 'lucide-react';
+import { DEFAULT_SLA_DAYS, DEFAULT_GRIEVANCE_EMAIL } from '../data/expandedSchemesData';
 
 const STATES_LIST = [
   'Uttar Pradesh', 'Bihar', 'Madhya Pradesh', 'Rajasthan', 'Maharashtra',
@@ -46,6 +53,15 @@ const labelCls =
 
 export default function PublicSchemesDashboard() {
   const { language } = useApp();
+  const { user } = useAuth();
+  const userId = user?.uid || 'user_demo_1';
+
+  const [dashboardView, setDashboardView] = useState('browse'); // 'browse' | 'applications'
+  const [appliedSchemeIds, setAppliedSchemeIds] = useState(new Set());
+  const [isApplyFormOpen, setIsApplyFormOpen] = useState(false);
+  const [applyRefNo, setApplyRefNo] = useState('');
+  const [applyState, setApplyState] = useState('idle'); // 'idle' | 'saving' | 'done'
+  const [applyError, setApplyError] = useState('');
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('lokvani_user_profile');
@@ -89,6 +105,72 @@ export default function PublicSchemesDashboard() {
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedScheme]);
 
+  /* Reset apply form whenever a different scheme is opened */
+  useEffect(() => {
+    resetApplyForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScheme?.id]);
+
+  /* Load which schemes this user has already marked as applied */
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/applications/user/${encodeURIComponent(userId)}`)
+      .then(res => res.json())
+      .then(json => {
+        if (!cancelled && json?.success) {
+          setAppliedSchemeIds(new Set((json.data || []).map(a => a.schemeId)));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const resetApplyForm = () => {
+    setIsApplyFormOpen(false);
+    setApplyRefNo('');
+    setApplyState('idle');
+    setApplyError('');
+  };
+
+  const handleMarkApplied = async () => {
+    if (!selectedScheme) return;
+    setApplyState('saving');
+    setApplyError('');
+    try {
+      const res = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          userEmail: user?.email || '',
+          userName: profile.fullName,
+          schemeId: selectedScheme.id,
+          schemeNameEn: selectedScheme.title_en,
+          schemeNameHi: selectedScheme.title_hi,
+          ministryEn: selectedScheme.ministry_en,
+          applicationRefNo: applyRefNo.trim(),
+          slaDays: selectedScheme.slaDays || DEFAULT_SLA_DAYS,
+          grievanceEmail: selectedScheme.grievanceEmail || DEFAULT_GRIEVANCE_EMAIL
+        })
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        // 409 = already applied — treat as success state
+        if (res.status === 409) {
+          setAppliedSchemeIds(prev => new Set([...prev, selectedScheme.id]));
+          setApplyState('done');
+          return;
+        }
+        throw new Error(json.error || 'Failed to record application');
+      }
+      setAppliedSchemeIds(prev => new Set([...prev, selectedScheme.id]));
+      setApplyState('done');
+    } catch (err) {
+      setApplyError(err.message);
+      setApplyState('idle');
+    }
+  };
+
   const handleProfileChange = (e) => {
     const { name, value, type, checked } = e.target;
     setProfile(prev => ({
@@ -124,6 +206,7 @@ export default function PublicSchemesDashboard() {
   const TABS = [
     { id: 'matched', label: language === 'hi' ? 'मेरे लिए योग्य योजनाएं' : 'My Matches', icon: Award, count: strongMatches },
     { id: 'all', label: language === 'hi' ? 'सभी सार्वजनिक योजनाएं' : 'All Schemes', icon: BookOpen },
+    { id: 'applications', label: language === 'hi' ? 'मेरे आवेदन' : 'My Applications', icon: ClipboardList },
     { id: 'ai_assistant', label: language === 'hi' ? 'AI योजना मित्र' : 'AI Assistant', icon: Sparkles },
   ];
 
@@ -528,6 +611,11 @@ export default function PublicSchemesDashboard() {
         </div>
       )}
 
+      {/* ── My Applications (tracker + grievance) ───────────── */}
+      {activeTab === 'applications' && (
+        <MyApplications userName={profile.fullName} userEmail={user?.email || ''} />
+      )}
+
       {/* ── Scheme detail modal ─────────────────────────────── */}
       {selectedScheme && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
@@ -587,6 +675,79 @@ export default function PublicSchemesDashboard() {
                   </li>
                 ))}
               </ul>
+            </section>
+
+            {/* ── Mark as applied ─────────────────────────── */}
+            <section className="mb-7 rounded-2xl border border-black/[0.05] bg-zinc-50 p-5">
+              {applyState === 'done' || appliedSchemeIds.has(selectedScheme.id) ? (
+                <div className="flex items-start gap-3">
+                  <MailCheck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[#48734f]" />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {language === 'hi' ? 'आवेदन दर्ज — ट्रैकिंग शुरू' : 'Application tracked'}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                      {language === 'hi'
+                        ? `दिन-गणक चालू हो गया। ${selectedScheme.slaDays || DEFAULT_SLA_DAYS} दिन बीत जाने पर "मेरे आवेदन" टैब से शिकायत दर्ज कर सकते हैं।`
+                        : `Day counter started. If you haven't received the benefit within ${selectedScheme.slaDays || DEFAULT_SLA_DAYS} days, file a complaint from the “My Applications” tab.`}
+                    </p>
+                  </div>
+                </div>
+              ) : isApplyFormOpen ? (
+                <div>
+                  <p className="mb-3 text-sm font-medium text-zinc-800">
+                    {language === 'hi' ? 'आवेदन हो गया? ट्रैकिंग शुरू करें' : 'Already applied? Start tracking'}
+                  </p>
+                  <label htmlFor="apply-ref" className={labelCls}>
+                    {language === 'hi' ? 'सरकारी आवेदन संख्या (वैकल्पिक)' : 'Govt application ref no. (optional)'}
+                  </label>
+                  <input
+                    id="apply-ref"
+                    type="text"
+                    value={applyRefNo}
+                    onChange={(e) => setApplyRefNo(e.target.value)}
+                    placeholder={language === 'hi' ? 'जैसे: PMK/2026/123456' : 'e.g. PMK/2026/123456'}
+                    maxLength={100}
+                    className={`${inputCls} mb-4`}
+                  />
+                  {applyError && (
+                    <p className="mb-3 text-xs font-medium text-red-600">{applyError}</p>
+                  )}
+                  <div className="flex gap-2.5">
+                    <button
+                      onClick={handleMarkApplied}
+                      disabled={applyState === 'saving'}
+                      className="btn-primary inline-flex items-center gap-2"
+                    >
+                      {applyState === 'saving' && <Loader2 size={14} strokeWidth={1.5} className="animate-spin" />}
+                      <span>{language === 'hi' ? 'हाँ, मैंने आवेदन किया' : 'Yes, I applied'}</span>
+                    </button>
+                    <button onClick={resetApplyForm} className="btn-secondary">
+                      {language === 'hi' ? 'रद्द करें' : 'Cancel'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">
+                      {language === 'hi' ? 'पोर्टल पर आवेदन किया?' : 'Applied on the portal?'}
+                    </p>
+                    <p className="mt-1 max-w-[46ch] text-xs leading-relaxed text-zinc-500">
+                      {language === 'hi'
+                        ? 'ट्रैकिंग शुरू करें — SLA बीतने पर सीधे विभाग को शिकायत भेजें।'
+                        : 'Mark it to start the day counter — complain directly if the SLA passes.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsApplyFormOpen(true)}
+                    className="btn-secondary shrink-0"
+                  >
+                    <CheckCircle2 size={14} strokeWidth={1.5} />
+                    <span>{language === 'hi' ? 'मैंने आवेदन किया' : 'I Applied ✓'}</span>
+                  </button>
+                </div>
+              )}
             </section>
 
             <div className="flex justify-end gap-3 border-t border-black/[0.06] pt-5">

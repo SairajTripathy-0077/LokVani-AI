@@ -4282,3 +4282,36 @@ export const PUBLIC_SCHEMES = [
     "badge": "State Scheme"
   }
 ];
+
+/* ─── Grievance / SLA configuration ──────────────────────────────────────────
+ * slaDays        : expected resolution window after which a user may file
+ *                  a formal complaint ("Complain" button unlocks).
+ * grievanceEmail : demo grievance inbox per scheme. These are placeholder
+ *                  addresses for demonstration purposes.
+ */
+export const DEFAULT_SLA_DAYS = 30;
+export const DEFAULT_GRIEVANCE_EMAIL = 'grievances@lokvani-demo.in';
+
+const SCHEME_GRIEVANCE_CONFIG = {
+  'pm-kisan':                  { slaDays: 45, grievanceEmail: 'grievance-pmkisan@lokvani-demo.in' },
+  'pm-ayushman-bharat':        { slaDays: 15, grievanceEmail: 'grievance-pmjay@lokvani-demo.in' },
+  'pm-surya-ghar':             { slaDays: 60, grievanceEmail: 'grievance-suryaghar@lokvani-demo.in' },
+  'pm-fasal-bima':             { slaDays: 30, grievanceEmail: 'grievance-pmfby@lokvani-demo.in' },
+  'pm-svanidhi':               { slaDays: 21, grievanceEmail: 'grievance-svanidhi@lokvani-demo.in' },
+  'pm-awas-yojana-gramin':     { slaDays: 90, grievanceEmail: 'grievance-pmayg@lokvani-demo.in' },
+  'sukanya-samriddhi':         { slaDays: 20, grievanceEmail: 'grievance-ssy@lokvani-demo.in' },
+  'kisan-credit-card':         { slaDays: 14, grievanceEmail: 'grievance-kcc@lokvani-demo.in' },
+  'pm-vishwakarma':            { slaDays: 45, grievanceEmail: 'grievance-vishwakarma@lokvani-demo.in' },
+  'mgnrega':                   { slaDays: 15, grievanceEmail: 'grievance-nrega@lokvani-demo.in' },
+  'national-livestock-mission':{ slaDays: 45, grievanceEmail: 'grievance-nlm@lokvani-demo.in' },
+  'pm-jan-dhan-yojana':        { slaDays: 15, grievanceEmail: 'grievance-pmjdy@lokvani-demo.in' },
+  'pm-ujjwala-yojana':         { slaDays: 30, grievanceEmail: 'grievance-ujjwala@lokvani-demo.in' },
+  'nsap-old-age-pension':      { slaDays: 30, grievanceEmail: 'grievance-nsap@lokvani-demo.in' },
+  'pm-shram-yogi-maandhan':    { slaDays: 30, grievanceEmail: 'grievance-pmsym@lokvani-demo.in' }
+};
+
+// Apply overrides in-place so every consumer of PUBLIC_SCHEMES sees them.
+PUBLIC_SCHEMES.forEach((scheme) => {
+  const cfg = SCHEME_GRIEVANCE_CONFIG[scheme.id];
+  if (cfg) Object.assign(scheme, cfg);
+});
