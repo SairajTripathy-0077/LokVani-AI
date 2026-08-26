@@ -164,7 +164,9 @@ export default function UserVoiceApp() {
     const trimmed = queryText.trim().slice(0, 500);
     if (!trimmed) { setAppState('IDLE'); return; }
 
-    if (abortRef.current) abortRef.current.abort();
+    if (abortRef.current) {
+      try { abortRef.current.abort(); } catch (_) { /* ignore */ }
+    }
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
@@ -203,10 +205,14 @@ export default function UserVoiceApp() {
           }
         }
       } catch (e) {
-        if (e.name === 'AbortError') return;
-        console.warn('Backend offline — using local fallback');
+        if (e.name === 'AbortError') {
+          console.log('[UserVoiceApp] Query fetch aborted by new user action.');
+          return;
+        }
+        console.warn('[UserVoiceApp] Backend offline or unreachable — using local fallback engine');
       }
 
+      // If network call failed or returned empty payload, use deterministic local NLP engine
       if (!data || (!data.shortAnswerHi && !data.shortAnswerEn)) {
         const local = processUserSpeechQuery(trimmed, { userLocation: 'Azamgarh, UP' });
         data = {
@@ -232,18 +238,17 @@ export default function UserVoiceApp() {
 
       addMessageToActiveConv(data);
       setTranscript('');
-      setAppState('IDLE');
 
       const ttsText = dialect === 'en'
         ? (data.shortAnswerEn || data.shortAnswerHi)
         : (data.shortAnswerHi || data.shortAnswerEn);
       handlePlayTTS(ttsText);
-    } catch (e) {
-      if (e.name === 'AbortError') return;
-      console.error(e);
+    } catch (err) {
+      console.error('[UserVoiceApp] Error processing query:', err);
+    } finally {
       setAppState('IDLE');
     }
-  }, [dialect, dialectInfo.promptName, addMessageToActiveConv]);
+  }, [dialect, dialectInfo.promptName, addMessageToActiveConv, handlePlayTTS]);
 
   const handleStartListening = useCallback(() => {
     if (isProcessing) return;
