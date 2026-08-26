@@ -570,77 +570,59 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ Dusk ridges — static composition, perfectly aligned ══ */}
-      <div aria-hidden className="relative -my-12">
-        <RidgeBand layers={RIDGE_DUSK} />
-      </div>
-
-      {/* ══ Final CTA — dusk in the valley ════════════════════ */}
-      <section className="relative mx-auto max-w-6xl px-4 pb-20 pt-6 sm:px-6 sm:pb-24">
+      {/* ══ Final CTA — clean minimal light layout ════════════════════ */}
+      <section className="relative mx-auto max-w-6xl px-4 pb-20 pt-12 sm:px-6 sm:pb-28">
         <Reveal>
-          <div className="grain relative overflow-hidden rounded-[2rem] bg-zinc-950 px-6 py-20 text-center sm:px-16 sm:py-28">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  'radial-gradient(520px 300px at 50% 0%, rgba(90,125,84,0.30), transparent 70%), radial-gradient(340px 220px at 84% 100%, rgba(196,154,42,0.16), transparent 70%), radial-gradient(280px 200px at 8% 90%, rgba(99,102,241,0.14), transparent 70%)',
-              }}
-            />
-            {/* stars coming out */}
-            {[
-              ['14%', '18%'], ['78%', '12%'], ['88%', '34%'], ['8%', '44%'], ['62%', '8%'],
-            ].map(([left, top], i) => (
-              <span
-                key={i}
+          <div className="rounded-[2.5rem] bg-zinc-200/40 p-2 ring-1 ring-black/[0.06] shadow-[0_24px_60px_-28px_rgba(24,24,27,0.08)]">
+            <div className="relative overflow-hidden rounded-[calc(2.5rem-0.5rem)] bg-white/95 px-6 py-16 text-center sm:px-16 sm:py-24">
+              <div
                 aria-hidden
-                className="pointer-events-none absolute h-[3px] w-[3px] rounded-full bg-white/60"
+                className="pointer-events-none absolute inset-0"
                 style={{
-                  left, top,
-                  boxShadow: '0 0 8px 1px rgba(255,255,255,0.35)',
-                  animation: `floatBlob ${6 + i}s ease-in-out ${i * 0.6}s infinite`,
+                  background:
+                    'radial-gradient(600px 300px at 50% 0%, rgba(72,115,79,0.07), transparent 70%), radial-gradient(400px 240px at 85% 100%, rgba(196,154,42,0.05), transparent 70%)',
                 }}
               />
-            ))}
 
-            <div className="relative mx-auto max-w-2xl">
-              {isHindi ? (
-                <h2 className="text-balance text-3xl font-bold leading-[1.25] tracking-[-0.01em] text-white sm:text-5xl">
-                  स्मार्टफोन चलाने की कोई मजबूरी नहीं।
-                  <span className="block italic text-[#a3b86b]">बस अपनी भाषा में बोलें।</span>
-                </h2>
-              ) : (
-                <h2 className="text-balance text-3xl font-semibold leading-[1.18] tracking-[-0.01em] text-white sm:text-5xl">
-                  No smartphone fluency required.
-                  <span className="block italic text-[#a3b86b]">Just speak.</span>
-                </h2>
-              )}
-
-              <p className="mx-auto mt-6 max-w-md text-pretty text-[15px] leading-relaxed text-zinc-300">
-                {isHindi
-                  ? 'लोकवाणी आपकी अपनी बोली में उत्तर देती है — हमेशा के लिए मुफ्त, भारत के हर किसान और विक्रेता के लिए।'
-                  : 'LokVani answers in your own dialect — free, forever, for every farming household and micro-vendor in India.'}
-              </p>
-
-              <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                {!isSignedIn && (
-                  <button
-                    onClick={() => setActiveTab('auth')}
-                    className="group inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-semibold text-zinc-900 transition-all duration-500 ease-premium hover:bg-zinc-100 active:scale-[0.98] cursor-pointer"
-                  >
-                    {isHindi ? 'मुफ्त खाता बनाएं' : 'Create free account'}
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900/[0.06] transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
-                      <ArrowRight size={14} strokeWidth={1.5} />
-                    </span>
-                  </button>
+              <div className="relative mx-auto max-w-2xl">
+                {isHindi ? (
+                  <h2 className="text-balance text-3xl font-bold leading-[1.25] tracking-[-0.01em] text-zinc-900 sm:text-5xl">
+                    स्मार्टफोन चलाने की कोई मजबूरी नहीं।
+                    <span className="block italic text-[#48734f]">बस अपनी भाषा में बोलें।</span>
+                  </h2>
+                ) : (
+                  <h2 className="text-balance text-3xl font-semibold leading-[1.18] tracking-[-0.01em] text-zinc-900 sm:text-5xl">
+                    No smartphone fluency required.
+                    <span className="block italic text-[#48734f]">Just speak.</span>
+                  </h2>
                 )}
-                <button
-                  onClick={handleLaunch}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-semibold text-white transition-all duration-500 ease-premium hover:bg-white/[0.12] active:scale-[0.98] cursor-pointer"
-                >
-                  <Mic size={14} strokeWidth={1.5} />
-                  {isHindi ? 'बिना अकाउंट के आजमाएं' : 'Try without account'}
-                </button>
+
+                <p className="mx-auto mt-6 max-w-md text-pretty text-[15px] leading-relaxed text-zinc-600">
+                  {isHindi
+                    ? 'लोकवाणी आपकी अपनी बोली में उत्तर देती है — हमेशा के लिए मुफ्त, भारत के हर किसान और विक्रेता के लिए।'
+                    : 'LokVani answers in your own dialect — free, forever, for every farming household and micro-vendor in India.'}
+                </p>
+
+                <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+                  {!isSignedIn && (
+                    <button
+                      onClick={() => setActiveTab('auth')}
+                      className="group inline-flex items-center gap-3 rounded-full bg-zinc-900 py-2.5 pl-6 pr-2 text-sm font-semibold text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.98] cursor-pointer"
+                    >
+                      {isHindi ? 'मुफ्त खाता बनाएं' : 'Create free account'}
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
+                        <ArrowRight size={14} strokeWidth={1.5} />
+                      </span>
+                    </button>
+                  )}
+                  <button
+                    onClick={handleLaunch}
+                    className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-zinc-50 px-6 py-3 text-sm font-semibold text-zinc-700 transition-all duration-500 ease-premium hover:bg-zinc-100 hover:border-black/[0.12] active:scale-[0.98] cursor-pointer"
+                  >
+                    <Mic size={14} strokeWidth={1.5} />
+                    {isHindi ? 'बिना अकाउंट के आजमाएं' : 'Try without account'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
