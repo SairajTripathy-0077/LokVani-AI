@@ -95,10 +95,13 @@
     letter-spacing: -0.006em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  .font-heading {
     font-family: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, 'Times New Roman', serif;
     font-variation-settings: 'opsz' 72, 'SOFT' 40;
-    @apply tracking-[-0.01em] font-semibold;
+  }
+
+  .font-condensed {
+    font-family: 'Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', sans-serif !important;
   }
 
   ::selection { background: rgba(79,70,229,.12); }
