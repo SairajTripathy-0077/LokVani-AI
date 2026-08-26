@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, FileText, Users, Globe, Home, LogIn } from 'lucide-react';
-import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
+import { Mic, FileText, Users, Globe, Home, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -13,17 +13,21 @@ const NAV_ITEMS = [
 
 export default function Header() {
   const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount } = useApp();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  const isClerkAvailable =
-    typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
-
-  const showNav = !isClerkAvailable || isSignedIn;
+  const showNav = isSignedIn;
 
   const go = (tab) => {
     setActiveTab(tab);
     setMobileOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await logout();
+    setUserDropdownOpen(false);
+    setActiveTab('home');
   };
 
   return (
@@ -89,34 +93,46 @@ export default function Header() {
           </button>
 
           {/* Auth */}
-          {isClerkAvailable ? (
-            <>
-              <SignedOut>
-                <button
-                  onClick={() => go('auth')}
-                  className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-xs font-medium text-zinc-600 transition-all duration-500 ease-premium hover:bg-black/[0.04] hover:text-zinc-900 sm:flex"
-                >
-                  <LogIn size={12} strokeWidth={1.5} /> Sign in
-                </button>
-                <button
-                  onClick={() => go('auth')}
-                  className="flex h-9 cursor-pointer items-center rounded-full bg-zinc-900 px-4 text-xs font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.96]"
-                >
-                  Get started
-                </button>
-              </SignedOut>
-              <SignedIn>
-                <div className="rounded-full p-0.5 ring-1 ring-black/[0.08]">
-                  <UserButton showName={false} />
+          {isSignedIn ? (
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(o => !o)}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-black/[0.08] bg-white py-1 pl-1 pr-3 transition-all duration-300 hover:border-black/[0.16]"
+              >
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || 'User'} className="h-7 w-7 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+                    {user?.displayName ? user.displayName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U')}
+                  </span>
+                )}
+                <span className="max-w-[80px] truncate text-xs font-medium text-zinc-800 sm:max-w-[120px]">
+                  {user?.displayName || user?.email?.split('@')[0] || 'Account'}
+                </span>
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-black/[0.08] bg-white p-2 shadow-xl backdrop-blur-xl">
+                  <div className="border-b border-black/[0.05] px-3 py-2">
+                    <p className="truncate text-xs font-semibold text-zinc-900">{user?.displayName || 'User'}</p>
+                    <p className="truncate text-[11px] text-zinc-500">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50"
+                  >
+                    <LogOut size={13} strokeWidth={1.5} />
+                    Sign out
+                  </button>
                 </div>
-              </SignedIn>
-            </>
+              )}
+            </div>
           ) : (
             <button
               onClick={() => go('auth')}
               className="flex h-9 cursor-pointer items-center rounded-full bg-zinc-900 px-4 text-xs font-medium text-white transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.96]"
             >
-              Guest mode
+              Sign in
             </button>
           )}
 

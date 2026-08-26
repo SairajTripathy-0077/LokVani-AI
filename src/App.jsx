@@ -7,16 +7,15 @@ import UserVoiceApp from './components/UserVoiceApp';
 import PublicSchemesDashboard from './components/PublicSchemesDashboard';
 import CommunityIntel from './components/CommunityIntel';
 import Footer from './components/Footer';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from './context/AuthContext';
 
 function MainContent() {
   const { activeTab } = useApp();
-  const { isSignedIn } = useUser();
-  const isClerkAvailable = typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const { isSignedIn } = useAuth();
 
   // Enforce Sign-In for Voice App, Public Schemes, and Community Intel tabs
   const isProtectedTab = ['voice', 'schemes', 'intel'].includes(activeTab);
-  if (isProtectedTab && isClerkAvailable && !isSignedIn) {
+  if (isProtectedTab && !isSignedIn) {
     return <AuthPage />;
   }
 

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
+import { useAuth } from '../context/AuthContext';
 import Reveal from './Reveal';
 
 /* ── Parallax (rAF-throttled, transform-only, reduced-motion safe) ── */
@@ -327,11 +327,9 @@ const PILLARS = [
 
 export default function LandingPage() {
   const { setActiveTab } = useApp();
-  const { isSignedIn } = useUser();
-  const isClerkAvailable =
-    typeof window !== 'undefined' && import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.startsWith('pk_');
+  const { isSignedIn } = useAuth();
 
-  const handleLaunch = () => setActiveTab(isClerkAvailable && !isSignedIn ? 'auth' : 'voice');
+  const handleLaunch = () => setActiveTab(!isSignedIn ? 'auth' : 'voice');
 
   /* Quiet scatter of farm + product motifs — jittered grid so it
      spreads evenly across every screen, seeded to stay put */
@@ -487,12 +485,11 @@ export default function LandingPage() {
 
           <Reveal delay={270}>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <SignedOut>
+              {!isSignedIn ? (
                 <PillButton onClick={() => setActiveTab('auth')}>Get started free</PillButton>
-              </SignedOut>
-              <SignedIn>
+              ) : (
                 <PillButton onClick={() => setActiveTab('voice')}>Launch dashboard</PillButton>
-              </SignedIn>
+              )}
               <PillButton onClick={handleLaunch} dark={false}>
                 <span className="inline-flex items-center gap-2">
                   <Mic size={14} strokeWidth={1.5} /> Try the voice app
@@ -625,7 +622,7 @@ export default function LandingPage() {
                 household and micro-vendor in India.
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-                <SignedOut>
+                {!isSignedIn && (
                   <button
                     onClick={() => setActiveTab('auth')}
                     className="group inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-medium text-zinc-900 transition-all duration-500 ease-premium hover:bg-zinc-100 active:scale-[0.98] cursor-pointer"
@@ -635,7 +632,7 @@ export default function LandingPage() {
                       <ArrowRight size={14} strokeWidth={1.5} />
                     </span>
                   </button>
-                </SignedOut>
+                )}
                 <button
                   onClick={handleLaunch}
                   className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white transition-all duration-500 ease-premium hover:bg-white/[0.12] active:scale-[0.98] cursor-pointer"
