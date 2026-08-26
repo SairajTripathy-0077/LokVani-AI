@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap');
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -38,8 +38,8 @@
     --sidebar-ring:          79  70  229;
 
     /* ── LokVani semantic tokens (design system) ── */
-    --font-heading: 'Fraunces', Georgia, serif;
-    --font-body: 'Instrument Sans', ui-sans-serif, -apple-system, sans-serif;
+    --font-heading: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, serif;
+    --font-body: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
     --radius-sm: 12px;
 
     --bg-main:        #fbfbfa;
@@ -91,13 +91,13 @@
 
   body {
     @apply bg-background text-foreground antialiased min-h-screen;
-    font-family: 'Instrument Sans', ui-sans-serif, -apple-system, sans-serif;
+    font-family: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
     background-color: #fbfbfa;
     letter-spacing: -0.006em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+    font-family: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, 'Times New Roman', serif;
     font-variation-settings: 'opsz' 72, 'SOFT' 40;
     @apply tracking-[-0.01em] font-semibold;
   }

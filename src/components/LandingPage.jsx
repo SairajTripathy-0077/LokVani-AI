@@ -1,40 +1,47 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
 import Reveal from './Reveal';
 
 /* ── Parallax (rAF-throttled, transform-only, reduced-motion safe) ── */
 function Parallax({ speed = 0.1, className = '', innerClassName = '', children }) {
   const outer = useRef(null);
   const inner = useRef(null);
+
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const el = outer.current;
+    const target = inner.current;
+    if (!el || !target) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
     let ticking = false;
-    const update = () => {
-      ticking = false;
-      const o = outer.current, i = inner.current;
-      if (!o || !i) return;
-      const r = o.getBoundingClientRect();
-      const delta = r.top + r.height / 2 - window.innerHeight / 2;
-      i.style.transform = `translate3d(0, ${(-delta * speed).toFixed(1)}px, 0)`;
-    };
+
     const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect();
+        const vh = window.innerHeight || 800;
+        if (rect.bottom >= 0 && rect.top <= vh) {
+          const centerOffset = rect.top + rect.height / 2 - vh / 2;
+          const translateY = centerOffset * speed;
+          target.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
+        }
+        ticking = false;
+      });
     };
-    update();
+
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, [speed]);
+
   return (
-    <div ref={outer} className={className}>
+    <div ref={outer} className={`relative ${className}`}>
       <div ref={inner} className={`will-change-transform ${innerClassName}`}>
         {children}
       </div>
@@ -42,50 +49,128 @@ function Parallax({ speed = 0.1, className = '', innerClassName = '', children }
   );
 }
 
-/* ── Eyebrow tag ───────────────────────────────────────────── */
-function Eyebrow({ children, tone = 'bg-emerald-700' }) {
+/* ── PRNG for deterministic seed scatter ─────────────────────── */
+function mulberry32(a) {
+  return function () {
+    let t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ── Section eyebrow tag ─────────────────────────────────────── */
+function Eyebrow({ tone = 'bg-[#48734f]', children }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 px-3.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-500">
-      <span className={`h-1 w-1 rounded-full ${tone}`} />
-      {children}
+    <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white px-3.5 py-1 shadow-sm">
+      <span className={`h-1.5 w-1.5 rounded-full ${tone}`} />
+      <span className="font-body text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+        {children}
+      </span>
     </span>
   );
 }
 
-/* ── Double-bezel card shell ───────────────────────────────── */
-function Bezel({ children, className = '', innerClassName = '' }) {
+/* ── High-end Double-Bezel card ───────────────────────────────── */
+function Bezel({ children, className = '' }) {
   return (
-    <div
-      className={`rounded-[1.75rem] bg-zinc-200/40 p-1.5 ring-1 ring-black/[0.06] shadow-[0_32px_80px_-40px_rgba(24,24,27,0.18)] ${className}`}
-    >
-      <div className={`h-full rounded-[calc(1.75rem-6px)] bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] ${innerClassName}`}>
+    <div className={`rounded-[1.75rem] bg-zinc-200/40 p-1.5 ring-1 ring-black/[0.06] shadow-[0_20px_50px_-24px_rgba(24,24,27,0.12)] ${className}`}>
+      <div className="relative h-full overflow-hidden rounded-[calc(1.75rem-6px)] bg-white">
         {children}
       </div>
     </div>
   );
 }
 
-/* ── Pill button with nested trailing icon ─────────────────── */
-function PillButton({ children, onClick, dark = true, className = '' }) {
+/* ── Organic hillside contour lines SVG ──────────────────────── */
+function Contours({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 1200 600"
+      fill="none"
+      className={`pointer-events-none stroke-black/[0.04] ${className}`}
+      style={{ strokeWidth: 1.25 }}
+    >
+      <path d="M-100 120 C 150 180, 350 40, 600 110 C 850 180, 1050 60, 1300 140" />
+      <path d="M-100 220 C 200 140, 450 300, 700 200 C 950 100, 1100 260, 1300 210" />
+      <path d="M-100 340 C 120 400, 380 260, 650 350 C 920 440, 1080 300, 1300 360" />
+      <path d="M-100 460 C 240 380, 480 520, 750 430 C 1020 340, 1150 480, 1300 450" />
+    </svg>
+  );
+}
+
+/* ── Terraced Ridge Bands — dissolution gradients top & bottom ── */
+function RidgeBand({ layers }) {
+  return (
+    <div className="relative w-full overflow-hidden py-12">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#fbfbfa] to-transparent"
+      />
+      <svg
+        viewBox="0 0 1440 220"
+        fill="none"
+        preserveAspectRatio="none"
+        className="block h-28 w-full sm:h-36 lg:h-44"
+      >
+        {layers.map((l, i) => (
+          <path key={i} d={l.d} fill={l.fill} opacity={l.opacity} />
+        ))}
+      </svg>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#fbfbfa] to-transparent"
+      />
+    </div>
+  );
+}
+
+const RIDGE_FAR = [
+  { d: 'M0 110 Q 360 40 720 90 T 1440 60 V220 H0 Z', fill: '#48734f', opacity: 0.08 },
+  { d: 'M0 140 Q 400 80 800 130 T 1440 100 V220 H0 Z', fill: '#c49a2a', opacity: 0.06 },
+];
+
+const RIDGE_MID = [
+  { d: 'M0 90 Q 320 150 720 80 T 1440 120 V220 H0 Z', fill: '#3f5d3b', opacity: 0.12 },
+  { d: 'M0 130 Q 420 70 840 140 T 1440 90 V220 H0 Z', fill: '#5a7d54', opacity: 0.16 },
+];
+
+const RIDGE_DUSK = [
+  { d: 'M0 70 Q 380 140 760 60 T 1440 110 V220 H0 Z', fill: '#2e4231', opacity: 0.22 },
+  { d: 'M0 110 Q 340 50 700 120 T 1440 80 V220 H0 Z', fill: '#1a271c', opacity: 0.35 },
+];
+
+/* ── Single Wheat Stalk motif ────────────────────────────────── */
+function WheatStalk({ className = '' }) {
+  return (
+    <svg viewBox="0 0 40 120" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
+      <path d="M20 115 V 15" strokeLinecap="round" />
+      <path d="M20 40 C 12 35 8 25 10 15 C 18 20 20 30 20 40 Z" fill="currentColor" fillOpacity="0.2" />
+      <path d="M20 40 C 28 35 32 25 30 15 C 22 20 20 30 20 40 Z" fill="currentColor" fillOpacity="0.2" />
+      <path d="M20 60 C 10 55 5 43 8 32 C 17 38 20 50 20 60 Z" fill="currentColor" fillOpacity="0.2" />
+      <path d="M20 60 C 30 55 35 43 32 32 C 23 38 20 50 20 60 Z" fill="currentColor" fillOpacity="0.2" />
+      <path d="M20 80 C 8 75 3 60 7 48 C 17 55 20 68 20 80 Z" fill="currentColor" fillOpacity="0.15" />
+      <path d="M20 80 C 32 75 37 60 33 48 C 23 55 20 68 20 80 Z" fill="currentColor" fillOpacity="0.15" />
+    </svg>
+  );
+}
+
+/* ── Pill Button component ───────────────────────────────────── */
+function PillButton({ onClick, dark = true, children }) {
   return (
     <button
       onClick={onClick}
-      className={[
-        'group inline-flex items-center gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-medium',
-        'transition-all duration-500 ease-premium active:scale-[0.98] cursor-pointer',
+      className={`group flex cursor-pointer items-center gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-medium transition-all duration-500 ease-premium active:scale-[0.98] ${
         dark
           ? 'bg-zinc-900 text-white hover:bg-zinc-800'
-          : 'border border-black/[0.08] bg-white/70 text-zinc-900 hover:bg-white hover:border-black/[0.14]',
-        className,
-      ].join(' ')}
+          : 'border border-black/[0.08] bg-white text-zinc-900 hover:border-black/[0.16] hover:bg-zinc-50'
+      }`}
     >
       <span>{children}</span>
       <span
-        className={[
-          'flex h-8 w-8 shrink-0 items-center justify-center rounded-full',
-          'transition-transform duration-500 ease-premium group-hover:translate-x-0.5 group-hover:-translate-y-[1px]',
-          dark ? 'bg-white/10' : 'bg-black/[0.05]',
-        ].join(' ')}
+        className={`flex h-8 w-8 items-center justify-center rounded-full transition-transform duration-500 ease-premium group-hover:translate-x-0.5 ${
+          dark ? 'bg-white/10' : 'bg-black/[0.05]'
+        }`}
       >
         <ArrowRight size={14} strokeWidth={1.5} />
       </span>
@@ -93,190 +178,70 @@ function PillButton({ children, onClick, dark = true, className = '' }) {
   );
 }
 
-/* ── Decorative: ridge band — gradient-faded so it melts into the page ── */
-let ridgeId = 0;
-function RidgeBand({ layers, className = '' }) {
-  const uid = useRef(`rg${ridgeId++}`);
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 1440 240"
-      preserveAspectRatio="none"
-      className={`pointer-events-none block h-auto w-full ${className}`}
-    >
-      <defs>
-        {layers.map((l, i) => (
-          <linearGradient key={i} id={`${uid.current}-${i}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={l.color} stopOpacity={l.opacity} />
-            <stop offset="72%" stopColor={l.color} stopOpacity={l.opacity * 0.35} />
-            <stop offset="100%" stopColor={l.color} stopOpacity="0" />
-          </linearGradient>
-        ))}
-      </defs>
-      {layers.map((l, i) => (
-        <path key={i} d={l.d} fill={`url(#${uid.current}-${i})`} />
-      ))}
-    </svg>
-  );
-}
-
-const RIDGE_FAR = [
-  { color: '#5a7d54', opacity: 0.11, d: 'M0,96 C190,52 380,118 570,98 C780,76 950,26 1160,52 C1280,66 1370,56 1440,44 L1440,241 L0,241 Z' },
-];
-const RIDGE_MID = [
-  { color: '#c49a2a', opacity: 0.08, d: 'M0,120 C230,90 430,136 670,116 C910,96 1100,68 1440,94 L1440,241 L0,241 Z' },
-  { color: '#3f5d3b', opacity: 0.09, d: 'M0,150 C260,126 520,162 790,152 C1050,142 1250,118 1440,138 L1440,241 L0,241 Z' },
-];
-const RIDGE_DUSK = [
-  { color: '#3f5d3b', opacity: 0.10, d: 'M0,84 C220,50 440,96 660,80 C900,62 1120,32 1440,64 L1440,241 L0,241 Z' },
-  { color: '#2e4630', opacity: 0.11, d: 'M0,124 C280,98 520,132 800,118 C1080,104 1260,86 1440,106 L1440,241 L0,241 Z' },
-];
-
-/* ── Decorative: wheat stalk line-art ──────────────────────── */
-function WheatStalk({ className = '' }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 48 140"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.2"
-      strokeLinecap="round"
-      className={className}
-    >
-      <path d="M24 138 C24 100 24 56 24 14" />
-      {[38, 52, 66].map((y, i) => (
-        <g key={i}>
-          <path d={`M24 ${y} C15 ${y - 4} 11 ${y - 12} 12 ${y - 20} C20 ${y - 17} 24 ${y - 9} 24 ${y}`} />
-          <path d={`M24 ${y} C33 ${y - 4} 37 ${y - 12} 36 ${y - 20} C28 ${y - 17} 24 ${y - 9} 24 ${y}`} />
-        </g>
-      ))}
-      <path d="M24 16 C18 12 16 6 18 0" />
-      <path d="M24 16 C30 12 32 6 30 0" />
-      <path d="M24 34 C19 31 18 26 19 21" />
-      <path d="M24 34 C29 31 30 26 29 21" />
-    </svg>
-  );
-}
-
-/* ── Decorative: contour rings ─────────────────────────────── */
-function Contours({ className = '' }) {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 900 480"
-      fill="none"
-      stroke="#5a7d54"
-      strokeWidth="1"
-      className={className}
-    >
-      {[...Array(7)].map((_, i) => (
-        <ellipse
-          key={i}
-          cx="450"
-          cy="240"
-          rx={70 + i * 62}
-          ry={36 + i * 33}
-          opacity={0.07 - i * 0.006}
-        />
-      ))}
-    </svg>
-  );
-}
-
-
-
-/* ── Decorative: birds in flight ───────────────────────────── */
-function Birds({ className = '' }) {
-  return (
-    <svg aria-hidden viewBox="0 0 160 60" fill="none" stroke="#48734f" strokeWidth="1.3" strokeLinecap="round" className={className}>
-      <path d="M18 26 C23 19 28 19 32 25 C36 19 41 19 46 26" opacity="0.5" />
-      <path d="M74 14 C79 8 83 8 87 13 C91 8 95 8 100 14" opacity="0.38" />
-      <path d="M118 34 C122 29 126 29 129 33 C132 29 136 29 140 34" opacity="0.28" />
-    </svg>
-  );
-}
-
-/* ── Deterministic PRNG — same quiet scatter on every visit ── */
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/* ── Farming motifs — single-colour line art ───────────────── */
+/* ── Micro line-art motifs (scattered across the field) ─────── */
 function MotifSvg({ type }) {
-  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round' };
+  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round', strokeLinejoin: 'round' };
   switch (type) {
     case 'sprout':
       return (
-        <svg viewBox="0 0 24 26" width="26" height="28" {...p}>
-          <path d="M12 24 V12" />
-          <path d="M12 12 C12 8 9 5 4 5 C4 10 8 12 12 12 Z" />
-          <path d="M12 12 C12 8 15 5 20 5 C20 10 16 12 12 12 Z" />
+        <svg viewBox="0 0 24 28" width="20" height="23" {...p}>
+          <path d="M12 26 V12" />
+          <path d="M12 18 C 6 16 4 9 7 4 C 13 7 12 14 12 18 Z" />
+          <path d="M12 14 C 18 12 20 5 17 1 C 11 4 12 11 12 14 Z" />
         </svg>
       );
     case 'leaf':
       return (
-        <svg viewBox="0 0 24 24" width="24" height="24" {...p}>
-          <path d="M4 20 C4 10 10 4 20 4 C20 14 14 20 4 20 Z" />
-          <path d="M6 18 C10 13 14 9 18 6" />
-        </svg>
-      );
-    case 'furrow':
-      return (
-        <svg viewBox="0 0 48 32" width="44" height="30" {...p}>
-          <path d="M2 29 C14 21 34 21 46 29" />
-          <path d="M6 22 C16 15 32 15 42 22" />
-          <path d="M13 15 C20 11 28 11 35 15" />
-        </svg>
-      );
-    case 'seeds':
-      return (
-        <svg viewBox="0 0 32 24" width="30" height="22" {...p}>
-          <ellipse cx="8" cy="9" rx="3" ry="1.8" transform="rotate(-25 8 9)" />
-          <ellipse cx="21" cy="6" rx="3" ry="1.8" transform="rotate(18 21 6)" />
-          <ellipse cx="14" cy="17" rx="3" ry="1.8" transform="rotate(-42 14 17)" />
-          <ellipse cx="27" cy="16" rx="3" ry="1.8" transform="rotate(30 27 16)" />
+        <svg viewBox="0 0 26 24" width="22" height="20" {...p}>
+          <path d="M3 21 C 3 21 7 8 22 3 C 22 3 18 16 3 21 Z" />
+          <path d="M3 21 L 12 12" />
         </svg>
       );
     case 'wheat':
       return (
-        <svg viewBox="0 0 20 34" width="20" height="34" {...p}>
-          <path d="M10 33 V14" />
-          <path d="M10 20 C6 18 4.5 15 5 12 C8.5 13.5 10 16 10 20 Z" />
-          <path d="M10 20 C14 18 15.5 15 15 12 C11.5 13.5 10 16 10 20 Z" />
-          <path d="M10 13 C6.5 11 5.5 8.5 6 6 C9 7.5 10 9.5 10 13 Z" />
-          <path d="M10 13 C13.5 11 14.5 8.5 14 6 C11 7.5 10 9.5 10 13 Z" />
-          <path d="M10 7 C8 5.5 7.5 3.5 8 1.5" />
-          <path d="M10 7 C12 5.5 12.5 3.5 12 1.5" />
+        <svg viewBox="0 0 20 30" width="16" height="24" {...p}>
+          <path d="M10 29 V 3" />
+          <path d="M10 10 C 5 8 4 4 6 2 C 9 4 10 7 10 10 Z" />
+          <path d="M10 10 C 15 8 16 4 14 2 C 11 4 10 7 10 10 Z" />
+          <path d="M10 17 C 4 15 3 10 5 8 C 9 10 10 13 10 17 Z" />
+          <path d="M10 17 C 16 15 17 10 15 8 C 11 10 10 13 10 17 Z" />
+        </svg>
+      );
+    case 'furrow':
+      return (
+        <svg viewBox="0 0 32 16" width="28" height="14" {...p}>
+          <path d="M2 4 Q 8 12 16 4 T 30 4" />
+          <path d="M2 11 Q 8 19 16 11 T 30 11" opacity="0.6" />
+        </svg>
+      );
+    case 'seeds':
+      return (
+        <svg viewBox="0 0 24 24" width="20" height="20" {...p}>
+          <ellipse cx="6" cy="14" rx="2.5" ry="4" transform="rotate(-20 6 14)" />
+          <ellipse cx="14" cy="8" rx="2.5" ry="4" transform="rotate(25 14 8)" />
+          <ellipse cx="18" cy="17" rx="2" ry="3.5" transform="rotate(-15 18 17)" />
         </svg>
       );
     case 'bubble':
       return (
-        <svg viewBox="0 0 28 24" width="26" height="22" {...p}>
-          <path d="M3 4 H21 A3 3 0 0 1 24 7 V13 A3 3 0 0 1 21 16 H11 L6 21 V16 H3 A1 1 0 0 1 2 15 V7 A3 3 0 0 1 3 4 Z" transform="translate(1,0)" />
-          <circle cx="9" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
-          <circle cx="13.5" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
-          <circle cx="18" cy="10" r="0.8" fill="currentColor" strokeWidth="0" />
+        <svg viewBox="0 0 26 24" width="22" height="20" {...p}>
+          <path d="M4 18 V 6 C4 4 5.5 2.5 7.5 2.5 H 18.5 C 20.5 2.5 22 4 22 6 V 14 C 22 16 20.5 17.5 18.5 17.5 H 9 Z" />
+          <path d="M7 11 H 15 M7 14.5 H 12" />
         </svg>
       );
     case 'mic':
       return (
-        <svg viewBox="0 0 20 30" width="17" height="26" {...p}>
-          <rect x="6.5" y="2" width="7" height="13" rx="3.5" />
-          <path d="M3 12 C3 17 6 20 10 20 C14 20 17 17 17 12" />
-          <path d="M10 20 V25 M6 27 H14" />
+        <svg viewBox="0 0 22 26" width="18" height="22" {...p}>
+          <rect x="7" y="2" width="8" height="13" rx="4" />
+          <path d="M4 11 C 4 16 7 19 11 19 C 15 19 18 16 18 11" />
+          <path d="M11 19 V 24 M7 24 H 15" />
         </svg>
       );
     case 'coin':
       return (
-        <svg viewBox="0 0 24 24" width="22" height="22" {...p}>
-          <circle cx="12" cy="12" r="9.5" />
-          <path d="M9 7.5 H14 M9 10.5 H14 M13.5 7.5 C11.5 8 10.5 9 10.5 10.5 C10.5 12.5 12 13.5 14 13.5 L9 17.5" />
+        <svg viewBox="0 0 24 24" width="20" height="20" {...p}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7 V 17 M9.5 9.5 H 14.5 M9.5 14.5 H 14.5" />
         </svg>
       );
     case 'doc':
@@ -304,30 +269,38 @@ function MotifSvg({ type }) {
 const PILLARS = [
   {
     icon: Mic,
-    title: 'Multilingual Voice Engine',
-    desc: 'Spoken queries in Hindi, Bhojpuri, Marathi, Tamil and nine more regional dialects — with instant transcription and natural speech synthesis in reply.',
+    title_en: 'Multilingual Voice Engine',
+    title_hi: 'बहुभाषी वॉयस इंजन',
+    desc_en: 'Spoken queries in Hindi, Bhojpuri, Marathi, Tamil and nine more regional dialects — with instant transcription and natural speech synthesis in reply.',
+    desc_hi: 'हिंदी, भोजपुरी, मैथिली, मराठी और अन्य क्षेत्रीय बोलियों में बोलकर सवाल पूछें — त्वरित प्रतिलेखन और प्राकृतिक वाक् प्रतिक्रिया के साथ।',
     span: 'md:col-span-7',
     accent: 'group-hover:border-[#c8dcc4] group-hover:text-[#48734f] group-hover:bg-[#f4f8f2]',
   },
   {
     icon: Landmark,
-    title: 'Public Schemes Engine',
-    desc: 'Instant eligibility matching across 25+ government schemes, with document checklists and nearby CSC guidance.',
+    title_en: 'Public Schemes Engine',
+    title_hi: 'सरकारी योजना इंजन',
+    desc_en: 'Instant eligibility matching across 100+ government schemes, with document checklists and step-by-step application guidance.',
+    desc_hi: '१००+ से अधिक सरकारी योजनाओं में तत्काल योग्यता मिलान, आवश्यक दस्तावेजों की सूची और आवेदन प्रक्रिया के साथ।',
     span: 'md:col-span-5',
     accent: 'group-hover:border-[#ecdcb6] group-hover:text-[#a07a1e] group-hover:bg-[#faf6ec]',
   },
   {
     icon: Users,
-    title: 'Community Intel Network',
-    desc: 'Crowdsourced mandi price tracking from local Kirana trust nodes, cross-checked against live Agmarknet government feeds — so no farmer trades on stale numbers.',
+    title_en: 'Community Intel Network',
+    title_hi: 'सामुदायिक खुफिया नेटवर्क',
+    desc_en: 'Crowdsourced mandi price tracking from local Kirana trust nodes, cross-checked against live Agmarknet government feeds — so no farmer trades on stale numbers.',
+    desc_hi: 'स्थानीय किराना ट्रस्ट नोड्स से लाइव मंडी भाव ट्रैकिंग, एगमार्कनेट सरकारी डेटा के साथ सत्यापित — ताकि कोई भी किसान पुराने दामों पर व्यापार न करे।',
     span: 'md:col-span-12',
     accent: 'group-hover:border-[#d3d7f7] group-hover:text-indigo-600 group-hover:bg-[#f5f5fd]',
   },
 ];
 
 export default function LandingPage() {
-  const { setActiveTab } = useApp();
+  const { setActiveTab, language } = useApp();
   const { isSignedIn } = useAuth();
+
+  const isHindi = language === 'hi';
 
   const handleLaunch = () => setActiveTab(!isSignedIn ? 'auth' : 'voice');
 
@@ -357,7 +330,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="relative overflow-x-clip">
+    <div className={`relative overflow-x-clip ${isHindi ? 'font-devanagari' : ''}`}>
 
       {/* ══ Ambient sky layer — one continuous atmosphere ═════ */}
       <div aria-hidden className="grain pointer-events-none absolute inset-0">
@@ -387,8 +360,6 @@ export default function LandingPage() {
         <Parallax speed={0.12} className="absolute left-[48%] top-[12%] h-16 w-96">
           <div className="h-full w-full rounded-full bg-white/45 blur-2xl" />
         </Parallax>
-
-
 
         {/* sage field glow, mid left */}
         <div
@@ -468,31 +439,44 @@ export default function LandingPage() {
 
       {/* ══ Hero — dawn over the fields ═══════════════════════ */}
       <section className="relative">
-        <div className="relative mx-auto max-w-4xl px-4 pb-24 pt-28 text-center sm:px-6 sm:pt-36 lg:pt-44">
+        <div className="relative mx-auto max-w-4xl px-4 pb-24 pt-24 text-center sm:px-6 sm:pt-36 lg:pt-40">
           <Reveal delay={90}>
-            <h1 className="mx-auto max-w-3xl text-balance text-[2.75rem] font-semibold leading-[1.06] tracking-[-0.01em] text-zinc-900 sm:text-6xl lg:text-[4.5rem]">
-              Answers for rural India,{' '}
-              <span className="italic text-[#48734f]">in its own voice.</span>
-            </h1>
+            {isHindi ? (
+              <h1 className="mx-auto max-w-3xl text-balance text-[2.5rem] font-bold leading-[1.2] tracking-[-0.01em] text-zinc-900 sm:text-5xl lg:text-[4rem]">
+                ग्रामीण भारत के लिए उत्तर,{' '}
+                <span className="italic text-[#48734f]">उसकी अपनी आवाज में।</span>
+              </h1>
+            ) : (
+              <h1 className="mx-auto max-w-3xl text-balance text-[2.75rem] font-semibold leading-[1.06] tracking-[-0.01em] text-zinc-900 sm:text-6xl lg:text-[4.5rem]">
+                Answers for rural India,{' '}
+                <span className="italic text-[#48734f]">in its own voice.</span>
+              </h1>
+            )}
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="mx-auto mt-7 max-w-xl text-pretty text-base leading-relaxed text-zinc-500 sm:text-lg">
-              LokVani listens in thirteen Indian dialects and returns verified mandi prices,
-              scheme eligibility and crop advisory — instantly, and free.
+            <p className="mx-auto mt-7 max-w-xl text-pretty text-base leading-relaxed text-zinc-600 sm:text-lg">
+              {isHindi
+                ? 'लोकवाणी १३ भारतीय बोलियों में आपकी बात सुनती है और सत्यापित मंडी भाव, सरकारी योजनाएं एवं फसल सलाह — तुरंत और मुफ्त प्रदान करती है।'
+                : 'LokVani listens in thirteen Indian dialects and returns verified mandi prices, scheme eligibility and crop advisory — instantly, and free.'}
             </p>
           </Reveal>
 
           <Reveal delay={270}>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               {!isSignedIn ? (
-                <PillButton onClick={() => setActiveTab('auth')}>Get started free</PillButton>
+                <PillButton onClick={() => setActiveTab('auth')}>
+                  {isHindi ? 'मुफ्त में शुरू करें' : 'Get started free'}
+                </PillButton>
               ) : (
-                <PillButton onClick={() => setActiveTab('voice')}>Launch dashboard</PillButton>
+                <PillButton onClick={() => setActiveTab('voice')}>
+                  {isHindi ? 'डैशबोर्ड खोलें' : 'Launch dashboard'}
+                </PillButton>
               )}
               <PillButton onClick={handleLaunch} dark={false}>
                 <span className="inline-flex items-center gap-2">
-                  <Mic size={14} strokeWidth={1.5} /> Try the voice app
+                  <Mic size={14} strokeWidth={1.5} />
+                  {isHindi ? 'वॉयस ऐप आजमाएं' : 'Try the voice app'}
                 </span>
               </PillButton>
             </div>
@@ -500,7 +484,9 @@ export default function LandingPage() {
 
           <Reveal delay={380}>
             <p className="mt-16 text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">
-              Free for farmers · Always available · Built with the community
+              {isHindi
+                ? 'किसानों के लिए मुफ्त · 24x7 उपलब्ध · समुदाय के साथ निर्मित'
+                : 'Free for farmers · Always available · Built with the community'}
             </p>
           </Reveal>
         </div>
@@ -528,12 +514,12 @@ export default function LandingPage() {
         <Reveal className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
             {[
-              ['Kirana Trust Node verified', 'bg-emerald-600'],
-              ['Google Gemini powered',      'bg-indigo-500'],
-              ['Live Agmarknet feeds',       'bg-[#c49a2a]'],
-              ['Community crowdsourced',     'bg-sky-500'],
+              [isHindi ? 'किराना ट्रस्ट नोड द्वारा सत्यापित' : 'Kirana Trust Node verified', 'bg-emerald-600'],
+              [isHindi ? 'गूगल जेमिनी एआई संचालित' : 'Google Gemini powered',      'bg-indigo-500'],
+              [isHindi ? 'लाइव एगमार्कनेट मंडी भाव' : 'Live Agmarknet feeds',       'bg-[#c49a2a]'],
+              [isHindi ? 'समुदाय द्वारा संकलित' : 'Community crowdsourced',     'bg-sky-500'],
             ].map(([label, dot]) => (
-              <span key={label} className="flex items-center gap-2.5 text-[13px] font-medium text-zinc-500">
+              <span key={label} className="flex items-center gap-2.5 text-[13px] font-semibold text-zinc-600">
                 <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
                 {label}
               </span>
@@ -549,26 +535,34 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal>
             <div className="mx-auto mb-16 max-w-2xl text-center">
-              <Eyebrow tone="bg-[#c49a2a]">The platform</Eyebrow>
-              <h2 className="mt-7 text-balance text-3xl font-semibold tracking-[-0.01em] text-zinc-900 sm:text-[2.6rem] sm:leading-[1.15]">
-                Built for real impact, not demos.
+              <Eyebrow tone="bg-[#c49a2a]">
+                {isHindi ? 'हमारा मंच' : 'The platform'}
+              </Eyebrow>
+              <h2 className="mt-7 text-balance text-3xl font-bold tracking-[-0.01em] text-zinc-900 sm:text-[2.6rem] sm:leading-[1.15]">
+                {isHindi ? 'दिखावे के लिए नहीं, वास्तविक प्रभाव के लिए निर्मित।' : 'Built for real impact, not demos.'}
               </h2>
-              <p className="mt-5 text-pretty text-[15px] leading-relaxed text-zinc-500">
-                State-of-the-art language models grounded by ground-level community verification.
+              <p className="mt-5 text-pretty text-[15px] leading-relaxed text-zinc-600">
+                {isHindi
+                  ? 'जमीनी स्तर पर सामुदायिक सत्यापन से सशक्त अत्याधुनिक भाषा मॉडल।'
+                  : 'State-of-the-art language models grounded by ground-level community verification.'}
               </p>
             </div>
           </Reveal>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-5">
-            {PILLARS.map(({ icon: Icon, title, desc, span, accent }, i) => (
-              <Reveal key={title} delay={i * 110} className={`${span} w-full`}>
+            {PILLARS.map(({ icon: Icon, title_en, title_hi, desc_en, desc_hi, span, accent }, i) => (
+              <Reveal key={title_en} delay={i * 110} className={`${span} w-full`}>
                 <Bezel className="group h-full transition-transform duration-700 ease-premium hover:-translate-y-1">
                   <div className="flex h-full flex-col rounded-[calc(1.75rem-6px)] p-8 sm:p-10">
                     <span className={`flex h-11 w-11 items-center justify-center self-start rounded-full border border-black/[0.07] bg-zinc-50 text-zinc-700 transition-all duration-700 ease-premium ${accent}`}>
                       <Icon size={18} strokeWidth={1.25} />
                     </span>
-                    <h3 className="mt-7 text-xl font-semibold text-zinc-900">{title}</h3>
-                    <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-500">{desc}</p>
+                    <h3 className="mt-7 text-xl font-bold text-zinc-900">
+                      {isHindi ? title_hi : title_en}
+                    </h3>
+                    <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
+                      {isHindi ? desc_hi : desc_en}
+                    </p>
                   </div>
                 </Bezel>
               </Reveal>
@@ -613,21 +607,31 @@ export default function LandingPage() {
             ))}
 
             <div className="relative mx-auto max-w-2xl">
-              <h2 className="text-balance text-3xl font-semibold leading-[1.18] tracking-[-0.01em] text-white sm:text-5xl">
-                No smartphone fluency required.
-                <span className="block italic text-[#a3b86b]">Just speak.</span>
-              </h2>
-              <p className="mx-auto mt-6 max-w-md text-pretty text-[15px] leading-relaxed text-zinc-400">
-                LokVani answers in your own dialect — free, forever, for every farming
-                household and micro-vendor in India.
+              {isHindi ? (
+                <h2 className="text-balance text-3xl font-bold leading-[1.25] tracking-[-0.01em] text-white sm:text-5xl">
+                  स्मार्टफोन चलाने की कोई मजबूरी नहीं।
+                  <span className="block italic text-[#a3b86b]">बस अपनी भाषा में बोलें।</span>
+                </h2>
+              ) : (
+                <h2 className="text-balance text-3xl font-semibold leading-[1.18] tracking-[-0.01em] text-white sm:text-5xl">
+                  No smartphone fluency required.
+                  <span className="block italic text-[#a3b86b]">Just speak.</span>
+                </h2>
+              )}
+
+              <p className="mx-auto mt-6 max-w-md text-pretty text-[15px] leading-relaxed text-zinc-300">
+                {isHindi
+                  ? 'लोकवाणी आपकी अपनी बोली में उत्तर देती है — हमेशा के लिए मुफ्त, भारत के हर किसान और विक्रेता के लिए।'
+                  : 'LokVani answers in your own dialect — free, forever, for every farming household and micro-vendor in India.'}
               </p>
+
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 {!isSignedIn && (
                   <button
                     onClick={() => setActiveTab('auth')}
-                    className="group inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-medium text-zinc-900 transition-all duration-500 ease-premium hover:bg-zinc-100 active:scale-[0.98] cursor-pointer"
+                    className="group inline-flex items-center gap-3 rounded-full bg-white py-2 pl-6 pr-2 text-sm font-semibold text-zinc-900 transition-all duration-500 ease-premium hover:bg-zinc-100 active:scale-[0.98] cursor-pointer"
                   >
-                    Create free account
+                    {isHindi ? 'मुफ्त खाता बनाएं' : 'Create free account'}
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900/[0.06] transition-transform duration-500 ease-premium group-hover:translate-x-0.5">
                       <ArrowRight size={14} strokeWidth={1.5} />
                     </span>
@@ -635,9 +639,10 @@ export default function LandingPage() {
                 )}
                 <button
                   onClick={handleLaunch}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white transition-all duration-500 ease-premium hover:bg-white/[0.12] active:scale-[0.98] cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-semibold text-white transition-all duration-500 ease-premium hover:bg-white/[0.12] active:scale-[0.98] cursor-pointer"
                 >
-                  <Mic size={14} strokeWidth={1.5} /> Try without account
+                  <Mic size={14} strokeWidth={1.5} />
+                  {isHindi ? 'बिना अकाउंट के आजमाएं' : 'Try without account'}
                 </button>
               </div>
             </div>
@@ -648,4 +653,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
