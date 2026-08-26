@@ -27,7 +27,13 @@ const PORT = process.env.PORT || 5000;
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true
 }));
 
@@ -181,7 +187,7 @@ app.post('/api/query', async (req, res) => {
       engineSource,
       apiKeyIndexUsed: aiResult.apiKeyIndexUsed,
       isCached: aiResult.isCached || false,
-      latencyMs: aiResult.latencyMs || 0 ?? 0,
+      latencyMs: aiResult.latencyMs || 0,
       createdAt: new Date()
     };
 
