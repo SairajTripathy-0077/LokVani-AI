@@ -5,11 +5,17 @@ const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
-  const [language, setLanguage] = useState('hi'); // 'hi' | 'en'
+  const [language, setLanguage] = useState(() =>
+    localStorage.getItem('lokvani_language') || 'en'
+  );
+
+  useEffect(() => {
+    localStorage.setItem('lokvani_language', language);
+  }, [language]);
 
   // Dialect selection — persisted to localStorage
   const [dialect, setDialect] = useState(() =>
-    localStorage.getItem('lokvani_dialect') || 'hi'
+    localStorage.getItem('lokvani_dialect') || 'en'
   );
 
   // Real User Queries (Persisted in localStorage, empty on fresh start)

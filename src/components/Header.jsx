@@ -94,7 +94,7 @@ export default function Header() {
             aria-label="Toggle language"
           >
             <Globe size={13} strokeWidth={1.5} className="shrink-0 text-zinc-400" />
-            <span>{language === 'hi' ? 'हिं' : 'EN'}</span>
+            <span>{language === 'en' ? 'EN' : 'हिं'}</span>
           </button>
 
           {/* User Profile Pill / Auth Button */}
