@@ -179,7 +179,9 @@ app.post('/api/query', async (req, res) => {
       dialect: safeDialect || 'hi',
       status: initialStatus,
       engineSource,
-      apiKeyIndexUsed: aiResult.apiKeyIndexUsed ?? 0,
+      apiKeyIndexUsed: aiResult.apiKeyIndexUsed,
+      isCached: aiResult.isCached || false,
+      latencyMs: aiResult.latencyMs || 0 ?? 0,
       createdAt: new Date()
     };
 
