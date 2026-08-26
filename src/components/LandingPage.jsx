@@ -534,10 +534,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal>
             <div className="mx-auto mb-16 max-w-2xl text-center">
-              <Eyebrow tone="bg-[#c49a2a]">
-                {isHindi ? 'हमारा मंच' : 'The platform'}
-              </Eyebrow>
-              <h2 className="mt-7 text-balance text-3xl font-bold tracking-[-0.01em] text-zinc-900 sm:text-[2.6rem] sm:leading-[1.15]">
+              <h2 className="text-balance text-3xl font-bold tracking-[-0.01em] text-zinc-900 sm:text-[2.6rem] sm:leading-[1.15]">
                 {isHindi ? 'दिखावे के लिए नहीं, वास्तविक प्रभाव के लिए निर्मित।' : 'Built for real impact, not demos.'}
               </h2>
               <p className="mt-5 text-pretty text-[15px] leading-relaxed text-zinc-600">

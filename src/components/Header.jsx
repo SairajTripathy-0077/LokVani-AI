@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Mic, FileText, Users, Globe, Home, LogOut, User as UserIcon, ChevronDown } from 'lucide-react';
+import { Mic, FileText, Users, Globe, Home, LogOut, User as UserIcon, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -17,8 +17,6 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
-
-  const showNav = isSignedIn;
 
   const go = (tab) => {
     setActiveTab(tab);
@@ -146,92 +144,97 @@ export default function Header() {
           ) : (
             <button
               onClick={() => go('auth')}
-              className="flex h-9 cursor-pointer items-center whitespace-nowrap rounded-full bg-zinc-900 px-4.5 text-xs font-semibold text-white shadow-sm transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.96]"
+              className="h-9 cursor-pointer rounded-full bg-zinc-900 px-4 text-xs font-semibold text-white shadow-sm transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.97]"
             >
               Sign in
             </button>
           )}
 
           {/* Hamburger — morphs to X for mobile viewports */}
-          {showNav && (
-            <button
-              onClick={() => setMobileOpen(o => !o)}
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={mobileOpen}
-              className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors duration-500 hover:bg-black/[0.04] lg:hidden"
-            >
-              <span
-                className={cn(
-                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
-                  'transition-all duration-500 ease-premium',
-                  mobileOpen ? 'rotate-45' : '-translate-y-[3px]'
-                )}
-              />
-              <span
-                className={cn(
-                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
-                  'transition-all duration-500 ease-premium',
-                  mobileOpen ? '-rotate-45' : 'translate-y-[3px]'
-                )}
-              />
-            </button>
-          )}
+          <button
+            onClick={() => setMobileOpen(o => !o)}
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors duration-500 hover:bg-black/[0.04] lg:hidden"
+          >
+            <span
+              className={cn(
+                'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                'transition-all duration-500 ease-premium',
+                mobileOpen ? 'rotate-45' : '-translate-y-[3px]'
+              )}
+            />
+            <span
+              className={cn(
+                'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                'transition-all duration-500 ease-premium',
+                mobileOpen ? '-rotate-45' : 'translate-y-[3px]'
+              )}
+            />
+          </button>
         </div>
       </div>
 
       {/* ── Full-screen mobile overlay ────────────────────── */}
       <div
         className={cn(
-          'fixed inset-0 z-40 flex flex-col justify-center bg-[#fbfbfa]/95 px-8 backdrop-blur-2xl lg:hidden',
+          'fixed inset-0 z-50 flex flex-col justify-center bg-[#fbfbfa]/95 px-8 backdrop-blur-2xl lg:hidden',
           'transition-opacity duration-500 ease-premium',
           mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         )}
         aria-hidden={!mobileOpen}
       >
-        {showNav && (
-          <nav className="flex flex-col gap-7" aria-label="Mobile">
-            {NAV_ITEMS.map(({ id, label, icon: Icon }, i) => {
-              const active = activeTab === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => go(id)}
-                  tabIndex={mobileOpen ? 0 : -1}
-                  style={{ transitionDelay: mobileOpen ? `${120 + i * 70}ms` : '0ms' }}
+        {/* Top-Right Explicit Close (X) Button */}
+        <button
+          onClick={() => setMobileOpen(false)}
+          aria-label="Close menu"
+          className="absolute top-6 right-6 flex h-11 w-11 items-center justify-center rounded-full border border-black/[0.10] bg-white text-zinc-900 shadow-md transition-all duration-300 hover:bg-zinc-100 active:scale-95 cursor-pointer z-50"
+        >
+          <X size={20} strokeWidth={2} />
+        </button>
+
+        <nav className="flex flex-col gap-7" aria-label="Mobile">
+          {NAV_ITEMS.map(({ id, label, icon: Icon }, i) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => go(id)}
+                tabIndex={mobileOpen ? 0 : -1}
+                style={{ transitionDelay: mobileOpen ? `${120 + i * 70}ms` : '0ms' }}
+                className={cn(
+                  'group flex w-max cursor-pointer items-center gap-4 text-left',
+                  'transition-all duration-700 ease-premium',
+                  mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                )}
+              >
+                <span
                   className={cn(
-                    'group flex w-max cursor-pointer items-center gap-4 text-left',
-                    'transition-all duration-700 ease-premium',
-                    mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+                    'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-500',
+                    active
+                      ? 'border-zinc-900 bg-zinc-900 text-white'
+                      : 'border-black/[0.08] bg-white text-zinc-500 group-hover:border-emerald-200 group-hover:text-emerald-800'
                   )}
                 >
-                  <span
-                    className={cn(
-                      'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-500',
-                      active
-                        ? 'border-zinc-900 bg-zinc-900 text-white'
-                        : 'border-black/[0.08] bg-white text-zinc-500 group-hover:border-emerald-200 group-hover:text-emerald-800'
-                    )}
-                  >
-                    <Icon size={17} strokeWidth={1.25} />
-                  </span>
-                  <span
-                    className={cn(
-                      'text-2xl font-semibold tracking-tight',
-                      active ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'
-                    )}
-                  >
-                    {label}
-                  </span>
-                  {id === 'schemes' && pendingReviewsCount > 0 && (
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                      {pendingReviewsCount}
-                    </span>
+                  <Icon size={17} strokeWidth={1.25} />
+                </span>
+                <span
+                  className={cn(
+                    'text-2xl font-semibold tracking-tight',
+                    active ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'
                   )}
-                </button>
-              );
-            })}
-          </nav>
-        )}
+                >
+                  {label}
+                </span>
+                {id === 'schemes' && pendingReviewsCount > 0 && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                    {pendingReviewsCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
         <button
           onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}
