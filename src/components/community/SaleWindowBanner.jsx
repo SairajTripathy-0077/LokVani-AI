@@ -16,7 +16,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Star } from 'lucide-react';
 import { t } from './communityTranslations.js';
 
 /**
