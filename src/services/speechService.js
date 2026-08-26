@@ -166,15 +166,18 @@ class SpeechService {
 
       this.recognition.lang = langCode;
 
+      let lastTranscript = '';
+
       this.recognition.onresult = (event) => {
         let transcript = '';
         let isFinal = false;
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; ++i) {
           transcript += event.results[i][0].transcript;
           if (event.results[i].isFinal) isFinal = true;
         }
-        if (onResult) onResult({ transcript, isFinal });
+        lastTranscript = transcript.trim();
+        if (onResult) onResult({ transcript: lastTranscript, isFinal });
       };
 
       this.recognition.onerror = (event) => {
@@ -183,7 +186,7 @@ class SpeechService {
       };
 
       this.recognition.onend = () => {
-        if (onEnd) onEnd();
+        if (onEnd) onEnd(lastTranscript);
       };
 
       this.recognition.start();

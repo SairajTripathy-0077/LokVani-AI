@@ -269,20 +269,17 @@ export default function UserVoiceApp() {
     speechService.startListening(
       (r) => {
         setTranscript(r.transcript);
-        if (r.isFinal && r.transcript.trim()) {
-          handleProcessQuery(r.transcript);
-        }
       },
       (e) => {
         console.warn('[UserVoiceApp] STT Error:', e);
         setAppState('IDLE');
       },
-      () => {
+      (capturedText) => {
         // onEnd callback when speech recognition completes naturally
-        setAppState((curr) => {
-          if (curr === 'LISTENING') return 'IDLE';
-          return curr;
-        });
+        setAppState('IDLE');
+        if (capturedText && capturedText.trim()) {
+          handleProcessQuery(capturedText.trim());
+        }
       },
       sttLocale
     );
