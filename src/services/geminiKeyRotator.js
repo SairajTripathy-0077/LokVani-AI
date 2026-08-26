@@ -58,8 +58,19 @@ class GeminiKeyRotator {
       attempts++;
     }
 
-    // All keys in cooldown — return first anyway to avoid complete failure
-    return { key: this.keys[0], index: 0 };
+    // All keys in cooldown — return key with earliest expiring cooldown
+    let bestIndex = 0;
+    let minCooldown = Infinity;
+    this.keys.forEach((k, idx) => {
+      const cd = this.keyCooldowns.get(k) || 0;
+      if (cd < minCooldown) {
+        minCooldown = cd;
+        bestIndex = idx;
+      }
+    });
+
+    this.currentIndex = bestIndex;
+    return { key: this.keys[bestIndex], index: bestIndex };
   }
 
   markKeyFailed(key, errorMessage) {
@@ -69,15 +80,15 @@ class GeminiKeyRotator {
       errorMessage.includes('QUOTA_EXCEEDED') ||
       errorMessage.includes('403');
 
-    // 2-minute cooldown for rate limits, 30s for general errors
-    const cooldownMs = isRateLimitOrQuota ? 120000 : 30000;
+    // 45s cooldown for rate limits, 15s for general errors
+    const cooldownMs = isRateLimitOrQuota ? 45000 : 15000;
     this.keyCooldowns.set(key, Date.now() + cooldownMs);
 
     const maskedKey = key.length > 8
       ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}`
       : '***';
     console.warn(
-      `[GeminiKeyRotator] Key ${maskedKey} (Index ${this.currentIndex}) failed (${errorMessage}). ` +
+      `[GeminiKeyRotator] Key ${maskedKey} (Index ${this.currentIndex}) failed (${errorMessage.slice(0, 80)}). ` +
       `Rotated. Cooldown: ${cooldownMs / 1000}s.`
     );
 
@@ -124,21 +135,20 @@ class GeminiKeyRotator {
           };
         } catch (err) {
           lastError = err;
-          // 404 = model not found, try the next model
-          if (err.message && (err.message.includes('404') || err.message.includes('not found'))) {
-            continue;
-          }
-          break; // different error (rate limit, bad key) — don't try other models with this key
+          console.warn(`[GeminiKeyRotator] Key ${index} model ${modelName} notice:`, err.message ? err.message.slice(0, 90) : err);
+          // Continue trying next model for this key (e.g. gemini-3.5-flash-lite has separate quota)
+          continue;
         }
       }
 
       attempts++;
-      this.markKeyFailed(key, lastError ? lastError.message : 'Model generation failed');
+      this.markKeyFailed(key, lastError ? lastError.message : 'All model generation endpoints failed');
     }
 
     console.warn('[GeminiKeyRotator] All available keys or model endpoints failed.');
     return null;
   }
+
 }
 
 export const geminiRotator = new GeminiKeyRotator();

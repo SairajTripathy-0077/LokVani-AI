@@ -37,14 +37,16 @@ class SpeechService {
   }
 
   _loadVoices() {
+    if (typeof window === 'undefined' || !this.synthesisSupported) return;
     const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
+    if (voices && voices.length > 0) {
       this._cachedVoices = voices;
       this._voicesLoaded = true;
     }
   }
 
   getVoices() {
+    if (typeof window === 'undefined' || !this.synthesisSupported) return [];
     if (!this._voicesLoaded || this._cachedVoices.length === 0) {
       this._loadVoices();
     }
@@ -57,7 +59,7 @@ class SpeechService {
    */
   selectVoice(langCode, preferredGender = 'female') {
     const voices = this.getVoices();
-    if (!voices.length) return null;
+    if (!voices || !voices.length) return null;
 
     const langPrefix = langCode.split('-')[0].toLowerCase();
     const isEnglish = langPrefix === 'en';
@@ -182,7 +184,10 @@ class SpeechService {
 
       this.recognition.onerror = (event) => {
         console.warn('[SpeechService] STT error event:', event.error);
-        if (onError) onError(`Voice recognition event: ${event.error}`);
+        if (event.error !== 'no-speech') {
+          if (onError) onError(`Voice recognition event: ${event.error}`);
+        }
+        if (onEnd) onEnd(lastTranscript);
       };
 
       this.recognition.onend = () => {
@@ -193,6 +198,7 @@ class SpeechService {
     } catch (err) {
       console.warn('[SpeechService] Failed to start recognition:', err.message);
       if (onError) onError('Microphone access busy or denied. Please check browser microphone permissions.');
+      if (onEnd) onEnd('');
     }
   }
 
@@ -217,6 +223,13 @@ class SpeechService {
       if (onEnd) onEnd();
       return;
     }
+
+    // Unfreeze speech synthesis engine in Chrome/Safari if paused
+    try {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch (_) { /* ignore */ }
 
     // Small delay after cancel() to allow browser speech engine to clear audio queue
     setTimeout(() => {
@@ -264,7 +277,7 @@ class SpeechService {
       };
 
       speakNext();
-    }, 50);
+    }, 60);
   }
 
   speak(text, langCode = 'hi-IN', onEnd = null, rate = 0.92, pitch = 1.18) {
