@@ -647,17 +647,6 @@ export default function LandingPage() {
           </div>
         </Reveal>
       </section>
-
-      {/* ══ Valley floor — grass line into the footer ════════ */}
-      <div aria-hidden className="relative -mb-px pb-2">
-        <Grass className="block h-16 w-full" />
-      </div>
-
-      <Reveal delay={100} className="relative pb-16">
-        <p className="text-center font-heading text-xl italic text-zinc-400">
-          Kisan ka apna saathi<span className="not-italic text-[#c49a2a]">.</span>
-        </p>
-      </Reveal>
       </div>
     </div>
   );
