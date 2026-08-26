@@ -48,20 +48,14 @@ function IntelCard({ item, onConfirm, onFlag, lang }) {
   const reporter = lang === 'hi' ? item.reporter_hi : item.reporter_en;
 
   return (
-    <article className="community-int__feed-card" aria-label={headline} style={{ borderLeft: 'none' }}>
-      <header className="community-int__feed-card__header" style={{ justifyContent: 'space-between' }}>
-        {item.urgent && (
-          <span className="community-int__feed-urgent" aria-label={t('urgent', lang)}>
-            {t('urgent', lang)}
-          </span>
-        )}
-        <time className="community-int__feed-time" dateTime={new Date(item.timestamp).toISOString()}>
-          <Clock size={11} aria-hidden="true" /> {timeAgo(item.timestamp, lang)}
-        </time>
-      </header>
-
+    <article className="community-int__feed-card" aria-label={headline} style={{ borderLeft: 'none', paddingTop: '16px' }}>
       <div className="community-int__feed-card__body">
-        <h4 className="community-int__feed-headline">{headline}</h4>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+          <h4 className="community-int__feed-headline" style={{ marginTop: 0 }}>{headline}</h4>
+          <time className="community-int__feed-time" dateTime={new Date(item.timestamp).toISOString()} style={{ fontSize: '0.75rem', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
+            {timeAgo(item.timestamp, lang)}
+          </time>
+        </div>
         <p className="community-int__feed-detail">{detail}</p>
       </div>
 
