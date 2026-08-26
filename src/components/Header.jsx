@@ -55,35 +55,33 @@ export default function Header() {
           </span>
         </button>
 
-        {/* Desktop Navigation Items — Fixed whitespace & no flex wrapping */}
-        {showNav && (
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-              const active = activeTab === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => go(id)}
-                  className={cn(
-                    'relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold tracking-tight',
-                    'transition-all duration-500 ease-premium active:scale-[0.97]',
-                    active
-                      ? 'bg-zinc-900 text-white shadow-sm'
-                      : 'text-zinc-500 hover:bg-black/[0.04] hover:text-zinc-900'
-                  )}
-                >
-                  <Icon size={14} strokeWidth={1.5} className="shrink-0" />
-                  <span className="whitespace-nowrap">{label}</span>
-                  {id === 'schemes' && pendingReviewsCount > 0 && (
-                    <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white leading-none ring-2 ring-white">
-                      {pendingReviewsCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        )}
+        {/* Desktop Navigation Items — Always visible */}
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => go(id)}
+                className={cn(
+                  'relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold tracking-tight',
+                  'transition-all duration-500 ease-premium active:scale-[0.97]',
+                  active
+                    ? 'bg-zinc-900 text-white shadow-sm'
+                    : 'text-zinc-500 hover:bg-black/[0.04] hover:text-zinc-900'
+                )}
+              >
+                <Icon size={14} strokeWidth={1.5} className="shrink-0" />
+                <span className="whitespace-nowrap">{label}</span>
+                {id === 'schemes' && pendingReviewsCount > 0 && (
+                  <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white leading-none ring-2 ring-white">
+                    {pendingReviewsCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right Actions Block */}
         <div className="flex shrink-0 items-center gap-2">
