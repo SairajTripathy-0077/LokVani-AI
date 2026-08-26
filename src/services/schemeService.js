@@ -5,6 +5,7 @@ export { PUBLIC_SCHEMES };
 
 /**
  * Calculates eligibility score for a given personal profile.
+ * Strictly disqualifies schemes that fail age, gender, income, land, or occupation bounds.
  */
 export function matchSchemesForProfile(profile) {
   if (!profile) return PUBLIC_SCHEMES.map(s => ({ ...s, matchScore: 100, status: 'Eligible', matchReasons: ['Default catalog view'] }));
@@ -14,66 +15,84 @@ export function matchSchemesForProfile(profile) {
   const land = Number(profile.landHoldingAcres) || 0;
   const occ = profile.occupation || 'Farmer';
   const category = profile.casteCategory || 'General';
-  const gender = profile.gender || 'All';
+  const gender = profile.gender || 'Male';
+  const userState = (profile.state || 'Uttar Pradesh').toLowerCase();
   const isBpl = Boolean(profile.isBpl);
   const isDisability = Boolean(profile.isDisability);
 
   return PUBLIC_SCHEMES.map(scheme => {
     let score = 100;
+    let isDisqualified = false;
     const matchReasons = [];
 
-    // Age check
-    if (age < scheme.minAge || age > scheme.maxAge) {
-      score -= 35;
-      matchReasons.push(`Age criterion (${scheme.minAge}-${scheme.maxAge} yrs required, user is ${age})`);
-    } else {
-      matchReasons.push(`Age (${age} yrs) satisfies eligibility`);
-    }
-
-    // Income check
-    if (income > scheme.maxIncome) {
-      score -= 30;
-      matchReasons.push(`Income ₹${income.toLocaleString('en-IN')} exceeds max limit of ₹${scheme.maxIncome.toLocaleString('en-IN')}`);
-    } else {
-      matchReasons.push(`Annual income within limit (≤ ₹${scheme.maxIncome.toLocaleString('en-IN')})`);
-    }
-
-    // Occupation check
-    if (!scheme.eligibleOccupations.includes('All') && !scheme.eligibleOccupations.includes(occ)) {
-      score -= 25;
-      matchReasons.push(`Occupation '${occ}' not primary target (${scheme.eligibleOccupations.join(', ')})`);
-    } else {
-      matchReasons.push(`Occupation '${occ}' matches scheme target`);
-    }
-
-    // Land holding check
-    if (scheme.maxLandAcres < 99 && land > scheme.maxLandAcres) {
-      score -= 30;
-      matchReasons.push(`Land size (${land} acres) exceeds max limit of ${scheme.maxLandAcres} acres`);
-    }
-
-    // Gender check
+    // 1. Gender check — STRICT HARD BOUND
     if (scheme.genderRequirement !== 'All' && gender !== scheme.genderRequirement) {
-      score -= 40;
-      matchReasons.push(`Gender requirement (${scheme.genderRequirement} required)`);
+      isDisqualified = true;
+      score = 0;
+      matchReasons.push(`Requires ${scheme.genderRequirement} applicant`);
     }
 
-    // Bonus for BPL / Disability
-    if (isBpl && (scheme.category === 'Housing' || scheme.category === 'Healthcare' || scheme.category === 'Financial Inclusion')) {
-      score = Math.min(100, score + 10);
-      matchReasons.push('BPL status grants priority eligibility');
+    // 2. Age check — STRICT HARD BOUND
+    if (!isDisqualified && (age < scheme.minAge || age > scheme.maxAge)) {
+      isDisqualified = true;
+      score = 0;
+      matchReasons.push(`Age (${age} yrs) outside required range ${scheme.minAge}-${scheme.maxAge} yrs`);
+    } else if (!isDisqualified) {
+      matchReasons.push(`Age ${age} yrs is eligible (${scheme.minAge}-${scheme.maxAge} yrs)`);
     }
 
-    if (isDisability && scheme.category === 'Social Security') {
-      score = Math.min(100, score + 10);
-      matchReasons.push('Divyangjan status grants extra priority');
+    // 3. Income check — STRICT HARD BOUND
+    if (!isDisqualified && income > scheme.maxIncome) {
+      isDisqualified = true;
+      score = 0;
+      matchReasons.push(`Income ₹${income.toLocaleString('en-IN')} exceeds limit ₹${scheme.maxIncome.toLocaleString('en-IN')}`);
+    } else if (!isDisqualified) {
+      matchReasons.push(`Income within limit (≤ ₹${scheme.maxIncome.toLocaleString('en-IN')})`);
     }
 
-    score = Math.max(0, Math.min(100, score));
+    // 4. Land holding check — STRICT HARD BOUND
+    if (!isDisqualified && scheme.maxLandAcres < 99 && land > scheme.maxLandAcres) {
+      isDisqualified = true;
+      score = 0;
+      matchReasons.push(`Land (${land} acres) exceeds max limit of ${scheme.maxLandAcres} acres`);
+    }
+
+    // 5. Occupation check — STRICT TARGETING
+    if (!isDisqualified) {
+      if (!scheme.eligibleOccupations.includes('All') && !scheme.eligibleOccupations.includes(occ)) {
+        isDisqualified = true;
+        score = 0;
+        matchReasons.push(`Targeted at ${scheme.eligibleOccupations.join(', ')}`);
+      } else {
+        matchReasons.push(`Occupation '${occ}' matches scheme target`);
+      }
+    }
+
+    // 6. State Specific check
+    if (!isDisqualified && scheme.category === 'State & Regional') {
+      const schemeTitle = (scheme.title_en + ' ' + scheme.title_hi).toLowerCase();
+      if (!schemeTitle.includes(userState) && !schemeTitle.includes('all india')) {
+        score -= 50;
+        matchReasons.push(`State specific scheme outside ${profile.state || 'your state'}`);
+      }
+    }
+
+    // Priority Bonuses for BPL / Disability
+    if (!isDisqualified) {
+      if (isBpl && (scheme.category === 'Housing' || scheme.category === 'Healthcare' || scheme.category === 'Financial Inclusion')) {
+        score = Math.min(100, score + 10);
+        matchReasons.push('BPL status grants priority eligibility');
+      }
+      if (isDisability && scheme.category === 'Social Security') {
+        score = Math.min(100, score + 10);
+        matchReasons.push('Divyangjan status grants extra priority');
+      }
+    }
+
+    score = isDisqualified ? 0 : Math.max(0, Math.min(100, score));
 
     let status = 'Eligible';
-    if (score < 40) status = 'Ineligible';
-    else if (score < 75) status = 'Potentially Eligible';
+    if (score < 75) status = 'Ineligible';
 
     return {
       ...scheme,

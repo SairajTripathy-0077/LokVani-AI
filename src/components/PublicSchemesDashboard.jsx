@@ -78,7 +78,8 @@ export default function PublicSchemesDashboard() {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const matchedSchemes = matchSchemesForProfile(profile);
-  const strongMatches = matchedSchemes.filter(s => s.matchScore >= 70).length;
+  const strictlyMatchedSchemes = matchedSchemes.filter(s => s.status === 'Eligible' && s.matchScore >= 75);
+  const strongMatches = strictlyMatchedSchemes.length;
 
   /* Close modal on Escape */
   useEffect(() => {
@@ -322,55 +323,71 @@ export default function PublicSchemesDashboard() {
 
       {/* ── Matched schemes ─────────────────────────────────── */}
       {activeTab === 'matched' && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-5">
-          {matchedSchemes.map(scheme => (
-            <article
-              key={scheme.id}
-              className="group flex flex-col rounded-3xl border border-black/[0.06] bg-white p-6 transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.1] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7"
-            >
-              <div className="flex-1">
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
-                    {scheme.category}
-                  </span>
-                  <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${
-                    scheme.matchScore >= 75 ? 'bg-[#f4f8f2] text-[#48734f]' : 'bg-[#faf6ec] text-[#a07a1e]'
-                  }`}>
-                    <CheckCircle2 size={11} strokeWidth={1.5} />
-                    {scheme.matchScore}% match
-                  </span>
+        strictlyMatchedSchemes.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-black/[0.1] bg-white p-12 text-center">
+            <Award size={28} strokeWidth={1.25} className="text-amber-500" />
+            <h3 className="font-heading text-base font-semibold text-zinc-900">
+              {language === 'hi' ? 'आपकी प्रोफ़ाइल के लिए कोई सटीक योजना नहीं मिली' : 'No Exact Matches for Current Profile'}
+            </h3>
+            <p className="max-w-md text-sm text-zinc-500">
+              {language === 'hi'
+                ? 'कृपया "प्रोफ़ाइल संपादन" पर जाकर अपनी सही जानकारी भरें या "सभी सार्वजनिक योजनाएं" में खोजें।'
+                : 'Try editing your profile details or browse the full catalog under "All Schemes".'}
+            </p>
+            <button onClick={() => setIsEditingProfile(true)} className="btn-primary mt-2">
+              {language === 'hi' ? 'प्रोफ़ाइल अपडेट करें' : 'Update Profile'}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-5">
+            {strictlyMatchedSchemes.map(scheme => (
+              <article
+                key={scheme.id}
+                className="group flex flex-col rounded-3xl border border-black/[0.06] bg-white p-6 transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.1] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7"
+              >
+                <div className="flex-1">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                      {scheme.category}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#f4f8f2] px-2.5 py-0.5 text-[11px] font-semibold text-[#48734f] tabular-nums">
+                      <CheckCircle2 size={11} strokeWidth={1.5} />
+                      {scheme.matchScore}% {language === 'hi' ? 'योग्य' : 'Match'}
+                    </span>
+                  </div>
+
+                  <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                    {language === 'hi' ? scheme.title_hi : scheme.title_en}
+                  </h3>
+
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                    <Landmark size={12} strokeWidth={1.5} />
+                    <span>{language === 'hi' ? scheme.ministry_hi : scheme.ministry_en}</span>
+                  </p>
+
+                  <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-500">
+                    {language === 'hi' ? scheme.description_hi : scheme.description_en}
+                  </p>
+
+                  {/* Financial Benefit */}
+                  <div className="mt-4 rounded-xl border border-black/[0.05] bg-zinc-50/80 p-3.5">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      {language === 'hi' ? 'लाभ (Benefits)' : 'Benefits'}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-800">
+                      {language === 'hi' ? scheme.benefits_hi : scheme.benefits_en}
+                    </span>
+                  </div>
                 </div>
 
-                <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
-                  {language === 'hi' ? scheme.title_hi : scheme.title_en}
-                </h3>
-
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-zinc-400">
-                  <Landmark size={12} strokeWidth={1.5} />
-                  <span>{language === 'hi' ? scheme.ministry_hi : scheme.ministry_en}</span>
-                </p>
-
-                <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-500">
-                  {language === 'hi' ? scheme.description_hi : scheme.description_en}
-                </p>
-
-                <div className="mt-5 rounded-xl border border-black/[0.05] bg-zinc-50/80 p-4">
-                  <span className="block text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-400">
-                    Benefits
-                  </span>
-                  <span className="mt-1 block text-sm font-medium leading-relaxed text-zinc-700">
-                    {language === 'hi' ? scheme.benefits_hi : scheme.benefits_en}
-                  </span>
-                </div>
-              </div>
-
-              <button onClick={() => setSelectedScheme(scheme)} className="btn-secondary mt-5 w-full">
-                <FileText size={14} strokeWidth={1.5} />
-                <span>{language === 'hi' ? 'दस्तावेज़ व आवेदन देखें' : 'Requirements & apply'}</span>
-              </button>
-            </article>
-          ))}
-        </div>
+                <button onClick={() => setSelectedScheme(scheme)} className="btn-secondary mt-5 w-full">
+                  <FileText size={14} strokeWidth={1.5} />
+                  <span>{language === 'hi' ? 'दस्तावेज़ व आवेदन विवरण' : 'Documents & Process'}</span>
+                </button>
+              </article>
+            ))}
+          </div>
+        )
       )}
 
       {/* ── All schemes directory ───────────────────────────── */}
@@ -513,30 +530,26 @@ export default function PublicSchemesDashboard() {
 
       {/* ── Scheme detail modal ─────────────────────────────── */}
       {selectedScheme && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 p-4 backdrop-blur-sm"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedScheme(null); }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={language === 'hi' ? selectedScheme.title_hi : selectedScheme.title_en}
-            className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[1.75rem] bg-white p-7 shadow-[0_48px_120px_-40px_rgba(24,24,27,0.45)] sm:p-9"
-          >
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+            onClick={() => setSelectedScheme(null)}
+          />
+
+          <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-black/[0.08] bg-white p-6 shadow-2xl transition-all duration-700 ease-premium sm:p-8">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
                   {selectedScheme.category}
                 </span>
-                <h2 className="mt-2.5 text-balance font-heading text-xl font-semibold text-zinc-900">
+                <h2 className="mt-1 font-heading text-xl font-bold text-zinc-900">
                   {language === 'hi' ? selectedScheme.title_hi : selectedScheme.title_en}
                 </h2>
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-zinc-400">
                   <Landmark size={12} strokeWidth={1.5} />
                   <span>{language === 'hi' ? selectedScheme.ministry_hi : selectedScheme.ministry_en}</span>
                 </p>
               </div>
-
               <button
                 onClick={() => setSelectedScheme(null)}
                 aria-label={language === 'hi' ? 'बंद करें' : 'Close dialog'}

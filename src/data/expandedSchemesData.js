@@ -1,6 +1,6 @@
 /**
- * Comprehensive Catalog of 100+ Authentic Indian Government Public Schemes.
- * Covers Central & State Schemes for Farmers, Micro-Vendors, Artisans, Healthcare, Women, Youth & Seniors.
+ * Comprehensive Catalog of 110 Authentic Indian Government Public Schemes.
+ * Includes detailed Step-by-Step Application Process (howToApply) for each scheme.
  */
 
 export const PUBLIC_SCHEMES = [
@@ -15,6 +15,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "देश भर के छोटे और सीमांत किसान परिवारों को ₹6,000 प्रति वर्ष 3 समान किस्तों में प्रत्यक्ष आय सहायता।",
     "benefits_en": "₹6,000 / year (₹2,000 every 4 months via Direct Benefit Transfer)",
     "benefits_hi": "₹6,000 / वर्ष (प्रत्यक्ष लाभ अंतरण के माध्यम से हर 4 महीने में ₹2,000)",
+    "howToApply_en": "1. Visit pmkisan.gov.in or your local Kirana / CSC Center.\n2. Complete Aadhar e-KYC and submit land Khasra/Khatauni papers.\n3. Verification by Village Revenue Officer (Lekhpal) and direct bank transfer.",
+    "howToApply_hi": "1. pmkisan.gov.in या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आधार e-KYC पूरा करें और जमीन का खसरा/खतौनी पेपर जमा करें।\n3. लेखपाल द्वारा सत्यापन के बाद राशि सीधे बैंक खाते में आएगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -51,6 +53,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "माध्यमिक और तृतीयक देखभाल अस्पताल में भर्ती के लिए प्रति परिवार प्रति वर्ष ₹5 लाख तक का स्वास्थ्य बीमा कवर।",
     "benefits_en": "Free cashless treatment up to ₹5,00,000 per year per family",
     "benefits_hi": "प्रति परिवार प्रति वर्ष ₹5,00,000 तक मुफ्त कैशलेस इलाज",
+    "howToApply_en": "1. Check eligibility on beneficiary.ha.gov.in or at any empaneled hospital / CSC kiosk.\n2. Verify identity using Ration Card and Aadhaar biometrics.\n3. Instant Ayushman Card issuance for cashless hospital admission.",
+    "howToApply_hi": "1. beneficiary.ha.gov.in या किसी सूचीबद्ध अस्पताल / सीएससी पर पात्रता जांचें।\n2. राशन कार्ड और आधार बायोमेट्रिक से पहचान सत्यापित करें।\n3. कैशलेस अस्पताल में भर्ती के लिए तुरंत आयुष्मान कार्ड प्राप्त करें।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -91,6 +95,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "घरों को प्रति माह 300 यूनिट मुफ्त बिजली देने के लिए रूफटॉप सोलर स्थापना के लिए ₹78,000 तक की सब्सिडी।",
     "benefits_en": "Subsidy up to ₹78,000 + 300 units free electricity per month",
     "benefits_hi": "₹78,000 तक सब्सिडी + प्रति माह 300 यूनिट मुफ्त बिजली",
+    "howToApply_en": "1. Apply online at pmsuryaghar.gov.in with electricity consumer number.\n2. Choose a registered vendor for rooftop solar installation.\n3. Net-metering approval by DISCOM and direct credit of subsidy into bank account.",
+    "howToApply_hi": "1. pmsuryaghar.gov.in पर बिजली उपभोक्ता नंबर दर्ज करके ऑनलाइन आवेदन करें।\n2. रूफटॉप सोलर लगाने के लिए पंजीकृत विक्रेता चुनें।\n3. डिस्कॉम नेट-मीटरिंग मंजूरी के बाद सब्सिडी राशि सीधे बैंक खाते में जमा होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -131,6 +137,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "प्राकृतिक जोखिमों, कीटों और बीमारियों के कारण उपज के नुकसान के खिलाफ व्यापक फसल बीमा कवर।",
     "benefits_en": "Low premium (1.5% to 2% sum insured) with full financial coverage for crop damage",
     "benefits_hi": "कम प्रीमियम (बीमित राशि का 1.5% से 2%) फसल क्षति के लिए पूर्ण वित्तीय सहायता के साथ",
+    "howToApply_en": "1. Enroll via pmfby.gov.in, nearest bank branch, or village CSC node before cut-off date.\n2. Submit crop sowing certificate and land khasra paper.\n3. In case of crop loss, report within 72 hours on Crop Insurance App for claim payout.",
+    "howToApply_hi": "1. कट-ऑफ तिथि से पहले pmfby.gov.in, बैंक शाखा या ग्राम सीएससी पर नामांकन करें।\n2. फसल बुआई प्रमाण पत्र और खसरा पेपर जमा करें।\n3. नुकसान होने पर 72 घंटे में क्रॉप इंश्योरेंस ऐप पर सूचना दें।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -169,6 +177,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "रेहड़ी-पटरी वालों और छोटे किराना/खुदरा विक्रेताओं के लिए ₹50,000 तक का बिना किसी गारंटी का वर्किंग कैपिटल लोन।",
     "benefits_en": "Interest subsidy @ 7% per annum on timely repayment with cashback incentives",
     "benefits_hi": "समय पर भुगतान करने पर 7% प्रति वर्ष ब्याज सब्सिडी और कैश बैक प्रोत्साहन",
+    "howToApply_en": "1. Register on pmsvanidhi.mohua.gov.in or at nearest CSC center.\n2. Provide Vending Certificate / ULB Recommendation Letter.\n3. Direct collateral-free micro loan disbursement into bank account within 7 days.",
+    "howToApply_hi": "1. pmsvanidhi.mohua.gov.in या निकटतम सीएससी केंद्र पर पंजीकरण करें।\n2. विक्रय प्रमाण पत्र या निकाय का सिफारिश पत्र संलग्न करें।\n3. 7 दिनों में बिना किसी गारंटी के लोन राशि सीधे बैंक खाते में प्राप्त करें।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -206,6 +216,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ग्रामीण क्षेत्रों में बेघर और कच्चे मकान में रहने वालों को मकान निर्माण के लिए ₹1.20 लाख से ₹1.30 लाख की वित्तीय सहायता।",
     "benefits_en": "₹1,20,000 in plains and ₹1,30,000 in hilly states + 90 days MGNREGA wages",
     "benefits_hi": "मैदानी क्षेत्रों में ₹1,20,000 और पहाड़ी राज्यों में ₹1,30,000 + 90 दिन की मनरेगा मजदूरी",
+    "howToApply_en": "1. Selection done via Gram Sabha SECC waitlist.\n2. Geo-tagging of kutcha house location by Awas Sakhi / Gram Sevak.\n3. Direct bank transfer in 3 installments based on geotagged construction stages.",
+    "howToApply_hi": "1. ग्राम सभा SECC प्रतीक्षा सूची से चयन।\n2. आवास सखी / ग्राम सेवक द्वारा कच्चे मकान का जियो-टैगिंग।\n3. निर्माण चरण की जियो-टैगिंग के आधार पर 3 किस्तों में सीधे बैंक भुगतान।",
     "eligibleOccupations": [
       "Farmer",
       "Worker/Laborer",
@@ -246,6 +258,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "उच्च शिक्षा और विवाह के लिए 10 वर्ष से कम उम्र की बालिकाओं के लिए उच्च ब्याज वाली कर-मुक्त बचत योजना।",
     "benefits_en": "Current interest rate of 8.2% per annum, tax exemption under 80C",
     "benefits_hi": "8.2% प्रति वर्ष की उच्च ब्याज दर, 80C के तहत आयकर छूट",
+    "howToApply_en": "1. Visit any Post Office branch or authorized commercial bank.\n2. Fill SSY Account opening form with girl child birth certificate and guardian Aadhaar.\n3. Initial deposit starting from ₹250 to open account.",
+    "howToApply_hi": "1. किसी भी डाकघर या अधिकृत बैंक शाखा में जाएं।\n2. बालिका के जन्म प्रमाण पत्र और अभिभावक के आधार के साथ एसएसवाई फॉर्म भरें।\n3. खाता खोलने के लिए ₹250 की न्यूनतम जमा राशि जमा करें।",
     "eligibleOccupations": [
       "All"
     ],
@@ -279,6 +293,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सब्सिडी वाली ब्याज दरों पर फसल खेती, कटाई के बाद के खर्च और पशुपालन के लिए किसानों को समय पर ऋण प्रदान करता है।",
     "benefits_en": "Concessional credit up to ₹3 Lakh at effective 4% interest rate per annum",
     "benefits_hi": "प्रभावी 4% प्रति वर्ष की दर से ₹3 लाख तक का रियायती ऋण",
+    "howToApply_en": "1. Download 1-page KCC form from pmkisan.gov.in or obtain from local bank branch.\n2. Submit along with land ownership papers (Khasra/Pahani) and Aadhaar.\n3. Bank issues KCC RuPay card within 14 working days.",
+    "howToApply_hi": "1. pmkisan.gov.in से 1-पेज का केसीसी फॉर्म डाउनलोड करें या बैंक शाखा से लें।\n2. जमीन के पेपर (खसरा/पहाणी) और आधार के साथ जमा करें।\n3. बैंक 14 कार्य दिवसों के भीतर केसीसी रुपे कार्ड जारी करता है।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -314,7 +330,9 @@ export const PUBLIC_SCHEMES = [
     "description_en": "End-to-end support for traditional artisans and craftspeople including skill training, toolkit incentive of ₹15,000, and collateral-free credit.",
     "description_hi": "पारंपरिक कारीगरों और शिल्पकारों के लिए कौशल प्रशिक्षण, ₹15,000 के टूलकिट प्रोत्साहन और संपार्श्विक-मुक्त ऋण सहित पूर्ण सहायता।",
     "benefits_en": "₹15,000 e-voucher for toolkits + Collateral free loans up to ₹3 Lakh @ 5% interest",
-    "benefits_hi": "टूलकिट के लिए ₹15,00,0 का ई-वाउचर + 5% ब्याज पर ₹3 लाख तक का गारंटी-मुक्त ऋण",
+    "benefits_hi": "टूलकिट के लिए ₹15,000 का ई-वाउचर + 5% ब्याज पर ₹3 लाख तक का गारंटी-मुक्त ऋण",
+    "howToApply_en": "1. Register at pmvishwakarma.gov.in via CSC center using biometric verification.\n2. Gram Panchayat / Urban Local Body verification of traditional trade.\n3. Issue of Vishwakarma Digital ID Card, training stipend & ₹15,000 toolkit voucher.",
+    "howToApply_hi": "1. बायोमेट्रिक सत्यापन के साथ सीएससी केंद्र द्वारा pmvishwakarma.gov.in पर पंजीकरण करें।\n2. ग्राम पंचायत या शहरी निकाय द्वारा पारंपरिक व्यापार का सत्यापन।\n3. विश्वकर्मा डिजिटल आईडी कार्ड, प्रशिक्षण वजीफा और ₹15,000 टूलकिट वाउचर जारी होना।",
     "eligibleOccupations": [
       "Artisan",
       "Small Merchant",
@@ -354,6 +372,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "अकुशल शारीरिक कार्य करने के इच्छुक ग्रामीण वयस्क परिवारों को प्रति वित्तीय वर्ष में कम से कम 100 दिनों के मजदूरी रोजगार की गारंटी।",
     "benefits_en": "100 days guaranteed wage employment with direct bank payment within 15 days",
     "benefits_hi": "100 दिनों की गारंटीकृत मजदूरी रोजगार और 15 दिनों में सीधे बैंक खाते में भुगतान",
+    "howToApply_en": "1. Apply for Job Card at local Gram Panchayat office.\n2. Issue of Job Card within 15 days of application.\n3. Submit written demand for work to Gram Panchayat; work allocated within 5 km radius.",
+    "howToApply_hi": "1. स्थानीय ग्राम पंचायत कार्यालय में जॉब कार्ड के लिए आवेदन करें।\n2. आवेदन के 15 दिनों के भीतर जॉब कार्ड जारी किया जाता है।\n3. ग्राम पंचायत को काम की लिखित मांग जमा करें; 5 किमी के दायरे में काम दिया जाएगा।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -392,6 +412,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "बकरी, भेड़, मुर्गी पालन और चारा विकास के लिए पूंजीगत सब्सिडी।",
     "benefits_en": "50% capital subsidy up to ₹50 Lakh for farm setup",
     "benefits_hi": "फार्म स्थापना के लिए ₹50 लाख तक 50% पूंजी सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (nlm.udyamimitra.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nlm.udyamimitra.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -428,6 +450,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "क्लस्टर दृष्टिकोण और प्रमाणीकरण के माध्यम से जैविक खेती को बढ़ावा देता है।",
     "benefits_en": "₹50,000 per hectare support over 3 years for organic inputs",
     "benefits_hi": "जैविक इनपुट के लिए 3 वर्षों में ₹50,000 प्रति हेक्टेयर सहायता",
+    "howToApply_en": "1. Visit the official portal (pgsindia-ncof.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pgsindia-ncof.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -464,6 +488,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ग्रिड से जुड़े कृषि पंपों का सौरीकरण और स्टैंडअलोन सोलर पंपों की स्थापना।",
     "benefits_en": "Up to 60% subsidy for installing solar irrigation pumps",
     "benefits_hi": "सोलर सिंचाई पंप लगाने के लिए 60% तक सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (pmkusum.mnre.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmkusum.mnre.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -500,6 +526,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "18 से 40 वर्ष की आयु के छोटे और सीमांत किसानों के लिए स्वैच्छिक पेंशन योजना।",
     "benefits_en": "Guaranteed minimum monthly pension of ₹3,000 after 60 years of age",
     "benefits_hi": "60 वर्ष की आयु के बाद ₹3,000 की गारंटीकृत न्यूनतम मासिक पेंशन",
+    "howToApply_en": "1. Visit the official portal (pmkmy.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmkmy.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -536,6 +564,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "मौजूदा एपीएमसी मंडियों को जोड़ने वाला अखिल भारतीय इलेक्ट्रॉनिक ट्रेडिंग पोर्टल।",
     "benefits_en": "Direct transparent price discovery and online digital payment for produce",
     "benefits_hi": "उपज के लिए प्रत्यक्ष पारदर्शी मूल्य खोज और ऑनलाइन डिजिटल भुगतान",
+    "howToApply_en": "1. Visit the official portal (enam.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (enam.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -572,6 +602,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "कटाई के बाद प्रबंधन अवसंरचना के लिए मध्यम-दीर्घकालिक ऋण वित्तपोषण सुविधा।",
     "benefits_en": "3% per annum interest subvention on loans up to ₹2 Crore for 7 years",
     "benefits_hi": "7 वर्षों के लिए ₹2 करोड़ तक के ऋण पर 3% प्रति वर्ष ब्याज छूट",
+    "howToApply_en": "1. Visit the official portal (agriinfra.dac.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (agriinfra.dac.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -608,6 +640,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सूक्ष्म खाद्य प्रसंस्कर उद्योगों के लिए वित्तीय, तकनीकी और व्यावसायिक सहायता।",
     "benefits_en": "35% credit-linked capital subsidy up to ₹10 Lakh per unit",
     "benefits_hi": "प्रति इकाई ₹10 लाख तक 35% क्रेडिट-लिंक्ड पूंजी सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (pmfme.mofpi.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmfme.mofpi.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -644,6 +678,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "कृषि-उद्यमिता, ऊष्मायन और कृषि अवसंरचना विकास को सुदृढ़ करना।",
     "benefits_en": "Grant-in-aid up to ₹25 Lakh for agri-startups and agribusiness ideas",
     "benefits_hi": "कृषि-स्टार्टअप के लिए ₹25 लाख तक अनुदान सहायता",
+    "howToApply_en": "1. Visit the official portal (rkvy.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (rkvy.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -680,6 +716,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "फल, सब्जी, मसाले और फूलों को कवर करने वाले बागवानी क्षेत्र का समग्र विकास।",
     "benefits_en": "40% to 50% capital subsidy for polyhouse, drip, nursery & cold storage",
     "benefits_hi": "पॉलीहाउस, ड्रिप, नर्सरी और कोल्ड स्टोरेज के लिए 40% से 50% सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (midh.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (midh.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -716,6 +754,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "पौधरोपण से लेकर प्रसंस्करण और विपणन तक बांस मूल्य श्रृंखला को बढ़ावा देता है।",
     "benefits_en": "50% financial assistance up to ₹50,000/ha for non-forest bamboo cultivation",
     "benefits_hi": "गैर-वन बांस खेती के लिए ₹50,000/हेक्टेयर तक 50% वित्तीय सहायता",
+    "howToApply_en": "1. Visit the official portal (nbm.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nbm.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -752,6 +792,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "विशेष प्रशीतित रेल डिब्बों के माध्यम से खराब होने वाली कृषि उपज का त्वरित परिवहन।",
     "benefits_en": "50% freight subsidy on rail transportation of fruits and vegetables",
     "benefits_hi": "फल और सब्जियों के रेल परिवहन पर 50% मालभाड़ा सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (indianrailways.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (indianrailways.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -788,6 +830,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "प्रमाणित गुणवत्ता वाले बीजों का उत्पादन बढ़ाना और बीज अवसंरचना को मजबूत करना।",
     "benefits_en": "Up to 50% subsidy on high-yielding variety foundation seed distribution",
     "benefits_hi": "उच्च उपज वाली किस्म के आधार बीज वितरण पर 50% तक सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (seednet.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (seednet.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -824,6 +868,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "किसानों की अतिरिक्त आय के लिए वैज्ञानिक मधुमक्खी पालन और मीठी क्रांति को बढ़ावा देता है।",
     "benefits_en": "80% subsidy for honeybee hives, colonies and honey extraction equipment",
     "benefits_hi": "मधुमक्खी के छत्ते, कॉलोनियों और शहद निष्कर्षण उपकरण के लिए 80% सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (nbhm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nbhm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -860,6 +906,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सूक्ष्म मत्स्य क्षेत्र का औपचारिकीकरण और मछली पालकों के लिए प्रदर्शन प्रोत्साहन।",
     "benefits_en": "One-time incentive up to ₹15,000 per micro-fisherman for digital adoption",
     "benefits_hi": "डिजिटल अपनाने के लिए प्रति सूक्ष्म मछुआरे ₹15,000 तक का एकमुश्त प्रोत्साहन",
+    "howToApply_en": "1. Visit the official portal (pmmsy.dof.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmmsy.dof.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -896,6 +944,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "जिला स्तर पर क्षेत्र प्रदर्शन, किसान प्रदर्शन भ्रमण और प्रौद्योगिकी हस्तांतरण।",
     "benefits_en": "Free training, soil health advisories, and inter-state exposure visits",
     "benefits_hi": "निःशुल्क प्रशिक्षण, मृदा स्वास्थ्य सलाह और अंतर-राज्यीय प्रदर्शन दौरे",
+    "howToApply_en": "1. Visit the official portal (atma.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (atma.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -932,6 +982,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ड्रिप और स्प्रिंकलर सिंचाई तकनीकों के माध्यम से जल उपयोग दक्षता को बढ़ावा देता है।",
     "benefits_en": "Financial assistance up to 55% for general and 85% for SC/ST small farmers",
     "benefits_hi": "सामान्य किसानों के लिए 55% और एससी/एसटी छोटे किसानों के लिए 85% तक सहायता",
+    "howToApply_en": "1. Visit the official portal (pmksy.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmksy.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -968,6 +1020,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "अनूठा किसान आईडी और फसल रजिस्ट्री प्रदान करने वाला एकीकृत डिजिटल इंफ्रा।",
     "benefits_en": "Instant digital verification for crop loans, subsidies and disaster relief",
     "benefits_hi": "फसल ऋण, सब्सिडी और आपदा राहत के लिए तत्काल डिजिटल सत्यापन",
+    "howToApply_en": "1. Visit the official portal (agristack.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (agristack.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -1004,6 +1058,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "खाद्य तेलों में आत्मनिर्भरता हासिल करने के लिए घरेलू ऑयल पाम खेती को बढ़ावा देता है।",
     "benefits_en": "₹29,000 per hectare assistance for planting material and maintenance",
     "benefits_hi": "पौधरोपण सामग्री और रखरखाव के लिए ₹29,000 प्रति हेक्टेयर सहायता",
+    "howToApply_en": "1. Visit the official portal (nmeo.dac.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nmeo.dac.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -1040,6 +1096,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "रसायन मुक्त भारतीय प्राकृतिक कृषि पद्धति (बीपीकेपी) को बढ़ावा देता है।",
     "benefits_en": "₹15,000 per hectare financial support for natural input resource centers",
     "benefits_hi": "प्राकृतिक इनपुट संसाधन केंद्रों के लिए ₹15,000 प्रति हेक्टेयर सहायता",
+    "howToApply_en": "1. Visit the official portal (naturalfarming.dac.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (naturalfarming.dac.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -1076,6 +1134,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "22 क्षेत्रीय भारतीय भाषाओं में 24/7 विशेषज्ञ कृषि सलाह सेवा।",
     "benefits_en": "Free instant telephone expert guidance on pests, weather, and crop prices",
     "benefits_hi": "कीट, मौसम और फसल मूल्य पर मुफ्त तत्काल टेलीफोन विशेषज्ञ मार्गदर्शन",
+    "howToApply_en": "1. Visit the official portal (dta.dacnet.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (dta.dacnet.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Farmer",
       "Agriculture Worker"
@@ -1112,6 +1172,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "केंद्रों के माध्यम से सस्ती कीमतों पर उच्च गुणवत्ता वाली जेनेरिक दवाएं प्रदान करता है।",
     "benefits_en": "Generic medicines available at 50% to 90% lower cost than branded drugs",
     "benefits_hi": "ब्रांडेड दवाओं की तुलना में 50% से 90% कम कीमत पर जेनेरिक दवाएं उपलब्ध",
+    "howToApply_en": "1. Visit the official portal (janaushadhi.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (janaushadhi.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1147,6 +1209,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सभी अधिसूचित टीबी रोगियों को पोषण संबंधी सहायता के लिए प्रत्यक्ष लाभ अंतरण।",
     "benefits_en": "₹500 per month financial aid for the entire duration of TB treatment",
     "benefits_hi": "टीबी के इलाज की पूरी अवधि के लिए ₹500 प्रति माह वित्तीय सहायता",
+    "howToApply_en": "1. Visit the official portal (nikshay.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nikshay.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1182,6 +1246,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "12 टीका-रोकथाम योग्य बीमारियों के खिलाफ 2 वर्ष तक के बच्चों और गर्भवती महिलाओं का टीकाकरण।",
     "benefits_en": "Free life-saving vaccines at village Anganwadi and PHC health centers",
     "benefits_hi": "गांव के आंगनवाड़ी और पीएचसी स्वास्थ्य केंद्रों पर मुफ्त जीवनरक्षक टीके",
+    "howToApply_en": "1. Visit the official portal (nhm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nhm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1217,6 +1283,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "जिला अस्पतालों में गरीबी रेखा से नीचे (बीपीएल) के मरीजों को मुफ्त हेमोडायलिसिस सेवाएं।",
     "benefits_en": "100% free dialysis sessions for BPL patients at all district government hospitals",
     "benefits_hi": "सभी जिला सरकारी अस्पतालों में बीपीएल रोगियों के लिए 100% मुफ्त डायलिसिस",
+    "howToApply_en": "1. Visit the official portal (nhm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nhm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1252,6 +1320,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "तृतीयक स्वास्थ्य सेवा में क्षेत्रीय असंतुलन को दूर करना और नए एम्स की स्थापना करना।",
     "benefits_en": "Access to super-specialty medical treatment at subsidized rates",
     "benefits_hi": "रियायती दरों पर सुपर-स्पेशलिटी चिकित्सा उपचार तक पहुंच",
+    "howToApply_en": "1. Visit the official portal (pmssy.mohfw.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmssy.mohfw.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1287,6 +1357,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "4 डी (दोष, रोग, कमियां, विकास में देरी) के लिए बाल स्वास्थ्य जांच और प्रारंभिक हस्तक्षेप सेवा।",
     "benefits_en": "Free medical treatment and surgery for children aged 0 to 18 years",
     "benefits_hi": "0 से 18 वर्ष की आयु के बच्चों के लिए मुफ्त चिकित्सा उपचार और सर्जरी",
+    "howToApply_en": "1. Visit the official portal (rbsk.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (rbsk.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1322,6 +1394,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "गरीब गर्भवती महिलाओं के बीच संस्थागत प्रसव को बढ़ावा देने वाला सुरक्षित मातृत्व हस्तक्षेप।",
     "benefits_en": "Cash assistance of ₹1,400 (Rural) and ₹1,000 (Urban) on hospital delivery",
     "benefits_hi": "अस्पताल में प्रसव होने पर ₹1,400 (ग्रामीण) और ₹1,000 (शहरी) नकद सहायता",
+    "howToApply_en": "1. Visit the official portal (nhm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nhm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1357,6 +1431,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सार्वजनिक स्वास्थ्य संस्थानों में बीमार नवजात शिशुओं के लिए पूरी तरह से मुफ्त कैशलेस प्रसव और देखभाल।",
     "benefits_en": "Free drugs, diagnostics, diet, and free transport from home to hospital and back",
     "benefits_hi": "घर से अस्पताल लाने-ले जाने के लिए मुफ्त दवाएं, जांच, भोजन और मुफ्त परिवहन",
+    "howToApply_en": "1. Visit the official portal (nhm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nhm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1392,6 +1468,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "प्राथमिक और उच्च प्राथमिक कक्षाओं में पढ़ने वाले स्कूली बच्चों को पोषण युक्त भोजन सहायता।",
     "benefits_en": "Free hot cooked nutritious meal every school day for children in Govt schools",
     "benefits_hi": "सरकारी स्कूलों में बच्चों के लिए हर स्कूल दिवस पर मुफ्त गर्म पका हुआ पौष्टिक भोजन",
+    "howToApply_en": "1. Visit the official portal (pmposhan.education.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmposhan.education.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1427,6 +1505,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "देश भर में मुफ्त 24/7 टेली-मानसिक स्वास्थ्य परामर्श और मनोवैज्ञानिक सहायता।",
     "benefits_en": "Toll-free 24/7 confidential mental health advice in regional languages",
     "benefits_hi": "क्षेत्रीय भाषाओं में टोल-फ्री 24/7 गोपनीय मानसिक स्वास्थ्य परामर्श",
+    "howToApply_en": "1. Visit the official portal (telemanas.mohfw.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (telemanas.mohfw.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1462,6 +1542,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "बच्चों, किशोरियों, गर्भवती और स्तनपान कराने वाली महिलाओं में एनीमिया की लक्षित कमी।",
     "benefits_en": "Free Iron and Folic Acid (IFA) tablets and deworming treatments",
     "benefits_hi": "मुफ्त आयरन और फॉलिक एसिड (आईएफए) की गोलियां और कृमिनाशक उपचार",
+    "howToApply_en": "1. Visit the official portal (anemiamuktbharat.info) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (anemiamuktbharat.info) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1497,6 +1579,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "स्वास्थ्य रिकॉर्ड और नुस्खों को डिजिटल रूप से सहेजने के लिए अनूठी 14-अंकीय आभा आईडी बनाता है।",
     "benefits_en": "Seamless paperless sharing of medical history across hospitals in India",
     "benefits_hi": "भारत के अस्पतालों में मेडिकल इतिहास का निर्बाध पेपरलेस साझाकरण",
+    "howToApply_en": "1. Visit the official portal (abdm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (abdm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1532,6 +1616,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "मलेरिया, डेंगू, चिकनगुनिया, कालाजार और फाइलेरिया की मुफ्त जांच और इलाज।",
     "benefits_en": "Free Long Lasting Insecticidal Nets (LLINs) and rapid diagnostic kits",
     "benefits_hi": "मुफ्त कीटनाशक युक्त मच्छरदानियां (एलएलआईएन) और त्वरित जांच किट",
+    "howToApply_en": "1. Visit the official portal (nvbdcp.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nvbdcp.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1567,6 +1653,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "आय की परवाह किए बिना 70 वर्ष और उससे अधिक आयु के सभी वरिष्ठ नागरिकों के लिए यूनिवर्सल स्वास्थ्य कवर।",
     "benefits_en": "Dedicated top-up health insurance of ₹5 Lakh per year for seniors aged 70+",
     "benefits_hi": "70+ आयु के वरिष्ठ नागरिकों के लिए ₹5 लाख प्रति वर्ष का समर्पित स्वास्थ्य बीमा",
+    "howToApply_en": "1. Visit the official portal (dashboard.pmjay.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (dashboard.pmjay.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1602,6 +1690,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "दिव्यांगजनों को मोटराइज्ड ट्राईसाइकिल, सुनने की मशीन और कृत्रिम अंग खरीदने में सहायता।",
     "benefits_en": "100% free distribution of durable assistive devices & motorized wheelchairs",
     "benefits_hi": "टिकाऊ सहायक उपकरणों और मोटराइज्ड व्हीलचेयर का 100% मुफ्त वितरण",
+    "howToApply_en": "1. Visit the official portal (depwd.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (depwd.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -1637,6 +1727,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "शून्य बैलेंस बैंक खाते प्रदान करने वाला वित्तीय समावेशन का राष्ट्रीय मिशन।",
     "benefits_en": "Zero balance account + ₹2 Lakh accident insurance + ₹10,000 overdraft facility",
     "benefits_hi": "शून्य बैलेंस खाता + ₹2 लाख दुर्घटना बीमा + ₹10,000 ओवरड्राफ्ट सुविधा",
+    "howToApply_en": "1. Visit the official portal (pmjdy.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmjdy.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1676,6 +1768,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "एससी, एसटी और महिला उद्यमियों को ₹10 लाख से ₹1 करोड़ के बीच बैंक ऋण।",
     "benefits_en": "Collateral-free greenfield business enterprise funding up to ₹1 Crore",
     "benefits_hi": "₹1 करोड़ तक की बिना गारंटी की ग्रीनफील्ड व्यवसाय उद्यम फंडिंग",
+    "howToApply_en": "1. Visit the official portal (standupmitra.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (standupmitra.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1715,6 +1809,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "प्रूफ ऑफ कॉन्सेप्ट, प्रोटोटाइप विकास के लिए शुरुआती चरण के स्टार्टअप को सहायता।",
     "benefits_en": "Grant up to ₹20 Lakh for validation & Convertible Debentures up to ₹50 Lakh",
     "benefits_hi": "सत्यापन के लिए ₹20 लाख तक अनुदान और ₹50 लाख तक डिबेंचर",
+    "howToApply_en": "1. Visit the official portal (seedfund.startupindia.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (seedfund.startupindia.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1754,6 +1850,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सूक्ष्म और छोटे व्यावसायिक उद्यमों को गारंटी-मुक्त ऋण सुविधा।",
     "benefits_en": "Credit guarantee cover up to ₹5 Crore for collateral-free bank loans",
     "benefits_hi": "गारंटी-मुक्त बैंक ऋणों के लिए ₹5 करोड़ तक का क्रेडिट गारंटी कवर",
+    "howToApply_en": "1. Visit the official portal (cgtmse.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (cgtmse.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1793,6 +1891,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सूक्ष्म विनिर्माण और सेवा उद्यम स्थापित करने के लिए क्रेडिट-लिंक्ड सब्सिडी योजना।",
     "benefits_en": "Up to 35% margin money subsidy on project cost up to ₹50 Lakh",
     "benefits_hi": "₹50 लाख तक की परियोजना लागत पर 35% तक मार्जिन मनी सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (kviconline.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (kviconline.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1832,6 +1932,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "पारंपरिक मधुमक्खी पालन, मिट्टी के बर्तन और कताई के माध्यम से ग्रामीण रोजगार।",
     "benefits_en": "Free distribution of electric potter wheels, charkhas and honey boxes",
     "benefits_hi": "इलेक्ट्रिक पॉटर व्हील, चरखे और शहद बक्से का मुफ्त वितरण",
+    "howToApply_en": "1. Visit the official portal (kvic.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (kvic.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1871,6 +1973,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "छोटे सब्जी स्टॉल, चाय की दुकान या सिलाई शुरू करने के लिए बिना गारंटी का छोटा ऋण।",
     "benefits_en": "Quick collateral-free loan up to ₹50,000 at low bank interest rate",
     "benefits_hi": "कम बैंक ब्याज दर पर ₹50,000 तक का त्वरित गारंटी-मुक्त ऋण",
+    "howToApply_en": "1. Visit the official portal (mudra.org.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (mudra.org.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1910,6 +2014,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "मौजूदा छोटे व्यवसायों के विस्तार, मशीनरी या स्टॉक खरीदने के लिए ऋण।",
     "benefits_en": "Working capital and machinery loan up to ₹5,00,000 without collateral",
     "benefits_hi": "बिना गारंटी के ₹5,00,000 तक का वर्किंग कैपिटल और मशीनरी लोन",
+    "howToApply_en": "1. Visit the official portal (mudra.org.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (mudra.org.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1949,6 +2055,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "महत्वपूर्ण विकास चाहने वाले स्थापित छोटे उद्यमों के लिए ऋण।",
     "benefits_en": "Collateral-free loan up to ₹10,00,000 for business expansion",
     "benefits_hi": "व्यावसायिक विस्तार के लिए ₹10,00,000 तक का गारंटी-मुक्त ऋण",
+    "howToApply_en": "1. Visit the official portal (mudra.org.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (mudra.org.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -1988,6 +2096,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "पारंपरिक कारीगरों को प्रतिस्पर्धी और लाभदायक बनाने के लिए क्लस्टरों में व्यवस्थित करना।",
     "benefits_en": "Financial grant up to ₹5 Crore per artisan cluster for common facility centers",
     "benefits_hi": "कॉमन फैसिलिटी सेंटरों के लिए प्रति कारीगर क्लस्टर ₹5 करोड़ तक अनुदान",
+    "howToApply_en": "1. Visit the official portal (sfurti.msme.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (sfurti.msme.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2027,6 +2137,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "नारियल की जटा के प्रसंस्करण, आधुनिक कताई उपकरण और निर्यात सहायता को बढ़ावा।",
     "benefits_en": "Up to 55% subsidy on coir machinery and skill training stipend",
     "benefits_hi": "कायर मशीनरी और कौशल प्रशिक्षण वजीफे पर 55% तक सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (coirboard.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (coirboard.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2066,6 +2178,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "जीरो डिफेक्ट जीरो इफेक्ट निर्माण प्रथाओं को अपनाने के लिए एमएसएमई की सहायता।",
     "benefits_en": "Up to 80% subsidy on ZED certification costs & concessional bank loans",
     "benefits_hi": "जेड प्रमाणन लागत और रियायती बैंक ऋण पर 80% तक सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (zed.msme.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (zed.msme.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2105,6 +2219,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "एमएसएमई के लिए बाजार पहुंच और ऋण में सुधार के लिए विश्व बैंक समर्थित कार्यक्रम।",
     "benefits_en": "Technology upgrading, delayed payment relief and export promotion",
     "benefits_hi": "प्रौद्योगिकी उन्नयन, विलंबित भुगतान राहत और निर्यात संवर्धन",
+    "howToApply_en": "1. Visit the official portal (ramp.msme.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (ramp.msme.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2144,6 +2260,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सरकारी निविदाओं में सूक्ष्म और छोटे उद्यमों को बयाना राशि (ईएमडी) से छूट।",
     "benefits_en": "Free tender sets + EMD exemption + 25% purchase preference in Govt procurement",
     "benefits_hi": "मुफ्त निविदा सेट + ईएमडी छूट + सरकारी खरीद में 25% खरीद वरीयता",
+    "howToApply_en": "1. Visit the official portal (www.nsic.co.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.nsic.co.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2183,6 +2301,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "कॉर्पोरेट खरीदारों से एमएसएमई के व्यापार प्राप्य बिलों को भुनाने का ऑनलाइन प्लेटफॉर्म।",
     "benefits_en": "Instant liquidity against unpaid invoices without collateral requirement",
     "benefits_hi": "बिना गारंटी के बकाया इनवॉइस के एवज में तत्काल नकदी उपलब्धता",
+    "howToApply_en": "1. Visit the official portal (www.rxil.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.rxil.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Small Merchant",
       "Artisan",
@@ -2222,6 +2342,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "भारत में सभी पात्र शहरी परिवारों को बारहमासी पक्के मकान प्रदान करता है।",
     "benefits_en": "Interest subsidy up to ₹2.67 Lakh on home loans for EWS/LIG families",
     "benefits_hi": "ईडब्ल्यूएस/एलआईजी परिवारों के लिए होम लोन पर ₹2.67 लाख तक ब्याज सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (pmay-urban.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmay-urban.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2257,6 +2379,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ग्रामीणों को स्वामित्व संपत्ति कार्ड जारी करने के लिए ड्रोन सर्वेक्षण।",
     "benefits_en": "Official land title card enabling bank loans against rural residential property",
     "benefits_hi": "ग्रामीण आवासीय संपत्ति पर बैंक ऋण सक्षम करने वाला आधिकारिक स्वामित्व कार्ड",
+    "howToApply_en": "1. Visit the official portal (svamitva.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (svamitva.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2292,6 +2416,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "भारतीय गांवों में छह करोड़ ग्रामीण नागरिकों को डिजिटल रूप से साक्षर बनाना।",
     "benefits_en": "Free 20-hour digital training & government certification for rural adults",
     "benefits_hi": "ग्रामीण वयस्कों के लिए मुफ्त 20 घंटे का डिजिटल प्रशिक्षण और प्रमाणन",
+    "howToApply_en": "1. Visit the official portal (www.pmgdisha.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.pmgdisha.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2327,6 +2453,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "प्रत्येक ग्रामीण परिवार को नल का क्रियाशील जल कनेक्शन प्रदान करता है।",
     "benefits_en": "Free piped clean drinking water supply connection to every rural house",
     "benefits_hi": "हर ग्रामीण मकान को मुफ्त नल से साफ पीने के पानी की आपूर्ति का कनेक्शन",
+    "howToApply_en": "1. Visit the official portal (ejalshakti.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (ejalshakti.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2362,6 +2490,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सभी पात्र असंबद्ध ग्रामीण बस्तियों को बारहमासी सड़कों से जोड़ना।",
     "benefits_en": "All-weather paved road connectivity to Mandis, hospitals and schools",
     "benefits_hi": "मंडियों, अस्पतालों और स्कूलों तक बारहमासी पक्की सड़क कनेक्टिविटी",
+    "howToApply_en": "1. Visit the official portal (pmgsy.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmgsy.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2397,6 +2527,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ग्रामीण क्षेत्रों में व्यक्तिगत घरेलू शौचालय निर्माण के लिए वित्तीय प्रोत्साहन।",
     "benefits_en": "Direct Benefit Transfer of ₹12,000 for toilet construction in BPL houses",
     "benefits_hi": "बीपीएल घरों में शौचालय निर्माण के लिए ₹12,000 का सीधा नकद हस्तांतरण",
+    "howToApply_en": "1. Visit the official portal (sbm.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (sbm.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2432,6 +2564,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ग्रामीण आत्मा को बनाए रखते हुए शहरी सुविधाओं के साथ 15-20 गांवों का विकास।",
     "benefits_en": "24/7 power supply, digital connectivity, and agro-processing facilities",
     "benefits_hi": "24/7 बिजली आपूर्ति, डिजिटल कनेक्टिविटी और कृषि-प्रसंस्करण सुविधाएं",
+    "howToApply_en": "1. Visit the official portal (rurban.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (rurban.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2467,6 +2601,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सांसदों के नेतृत्व में चिन्हित ग्राम पंचायतों का समग्र विकास।",
     "benefits_en": "Priority infrastructure development, smart schools, and sanitation",
     "benefits_hi": "प्राथमिकता अवसंरचना विकास, स्मार्ट स्कूल और स्वच्छता",
+    "howToApply_en": "1. Visit the official portal (saanjhi.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (saanjhi.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2502,6 +2638,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "24/7 ग्रामीण बिजली आपूर्ति के लिए कृषि और गैर-कृषि फीडरों का पृथक्करण।",
     "benefits_en": "Reliable uninterrupted electricity for agricultural pumps and rural homes",
     "benefits_hi": "कृषि पंपों और ग्रामीण घरों के लिए विश्वसनीय निर्बाध बिजली",
+    "howToApply_en": "1. Visit the official portal (ddugjy.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (ddugjy.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2537,6 +2675,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "लॉजिस्टिक्स और ग्रामीण केंद्रों को जोड़ने वाली एकीकृत मल्टी-मॉडल अवसंरचना योजना।",
     "benefits_en": "Reduced freight costs and faster transport of rural farm produce to ports",
     "benefits_hi": "कम मालभाड़ा लागत और ग्रामीण कृषि उपज का बंदरगाहों तक त्वरित परिवहन",
+    "howToApply_en": "1. Visit the official portal (pmgatishakti.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmgatishakti.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2572,6 +2712,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "लिंग-पक्षपाती लिंग चयन को रोकना और बालिका के अस्तित्व एवं शिक्षा को सुनिश्चित करना।",
     "benefits_en": "Awareness, school admission drives, and incentives for girl education",
     "benefits_hi": "जागरूकता, स्कूल प्रवेश अभियान और बालिका शिक्षा के लिए प्रोत्साहन",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2607,6 +2749,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "विशेष रूप से महिलाओं और बालिकाओं के लिए डिज़ाइन की गई छोटी बचत योजना।",
     "benefits_en": "Fixed high interest rate of 7.5% per annum for 2-year deposit up to ₹2 Lakh",
     "benefits_hi": "₹2 लाख तक के 2 साल के जमा पर 7.5% प्रति वर्ष की निश्चित उच्च ब्याज दर",
+    "howToApply_en": "1. Visit the official portal (www.indiapost.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.indiapost.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2642,6 +2786,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "छोटे बच्चों और माताओं में बौनापन, अल्पपोषण, एनीमिया को कम करना।",
     "benefits_en": "Free fortified nutrition packets & growth monitoring at Anganwadis",
     "benefits_hi": "आंगनबाड़ियों में मुफ्त फोर्टिफाइड पोषण पैकेट और विकास निगरानी",
+    "howToApply_en": "1. Visit the official portal (poshanabhiyaan.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (poshanabhiyaan.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2677,6 +2823,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "बीपीएल परिवारों की वयस्क महिलाओं को जमा-मुक्त एलपीजी गैस कनेक्शन प्रदान करता है।",
     "benefits_en": "Free LPG connection + 1st cylinder refill + stove free of cost + ₹300 subsidy",
     "benefits_hi": "मुफ्त एलपीजी कनेक्शन + 1st सिलेंडर रिफिल + चूल्हा मुफ्त + ₹300 सब्सिडी",
+    "howToApply_en": "1. Visit the official portal (pmuy.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (pmuy.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2712,6 +2860,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "निजी या सार्वजनिक स्थानों पर हिंसा से प्रभावित महिलाओं को एकीकृत सहायता।",
     "benefits_en": "Free medical, legal, psychological counseling and emergency shelter",
     "benefits_hi": "मुफ्त चिकित्सा, कानूनी, मनोवैज्ञानिक परामर्श और आपातकालीन आश्रय",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2747,6 +2897,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "महिलाओं को कृषि, बागवानी, हस्तशिल्प में रोजगार योग्य कौशल प्रदान करता है।",
     "benefits_en": "Free vocational skill training and self-employment startup kits",
     "benefits_hi": "मुफ्त व्यावसायिक कौशल प्रशिक्षण और स्वरोजगार स्टार्टअप किट",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2782,6 +2934,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "महिलाओं के लिए सरकारी कल्याणकारी योजनाओं और कानूनी साक्षरता का सिंगल विंडो।",
     "benefits_en": "Direct assistance for widow pension, maternity benefits & SHG loans",
     "benefits_hi": "विधवा पेंशन, मातृत्व लाभ और एसएचजी ऋण के लिए सीधी सहायता",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2817,6 +2971,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "गृह नगर से दूर कामकाजी महिलाओं के लिए सुरक्षित और किफायती आवास।",
     "benefits_en": "Subsidized safe lodging and daycare facilities for children of working women",
     "benefits_hi": "कामकाजी महिलाओं के बच्चों के लिए रियायती सुरक्षित आवास और डेकेयर सुविधा",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2852,6 +3008,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "समाज में असाधारण उपलब्धियां हासिल करने वाली महिलाओं के लिए राष्ट्रीय सम्मान।",
     "benefits_en": "National citation honor + ₹2,00,000 cash prize from President of India",
     "benefits_hi": "भारत के राष्ट्रपति द्वारा राष्ट्रीय प्रशस्ति पत्र + ₹2,00,000 नकद पुरस्कार",
+    "howToApply_en": "1. Visit the official portal (awards.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (awards.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2887,6 +3045,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "कठिन परिस्थितियों में महिलाओं के लिए संस्थागत देखभाल, आश्रय, कपड़े और पुनर्वास।",
     "benefits_en": "Free long-term shelter, food, vocational training & legal aid for destitute women",
     "benefits_hi": "बेसहारा महिलाओं के लिए मुफ्त दीर्घकालिक आश्रय, भोजन, कौशल प्रशिक्षण और कानूनी सहायता",
+    "howToApply_en": "1. Visit the official portal (wcd.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (wcd.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All"
     ],
@@ -2922,6 +3082,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "रिक्शा चालक, मोची, घरेलू सहायकों जैसे असंगठित श्रमिकों के लिए स्वैच्छिक पेंशन।",
     "benefits_en": "Minimum assured monthly pension of ₹3,000 after 60 years of age",
     "benefits_hi": "60 वर्ष की आयु के बाद ₹3,000 की न्यूनतम सुनिश्चित मासिक पेंशन",
+    "howToApply_en": "1. Visit the official portal (maandhan.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (maandhan.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -2961,6 +3123,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "गरीबी रेखा से नीचे (बीपीएल) परिवारों के वरिष्ठ नागरिकों के लिए मासिक पेंशन।",
     "benefits_en": "Monthly cash pension transferred directly into senior citizen bank account",
     "benefits_hi": "वरिष्ठ नागरिक बैंक खाते में सीधे स्थानांतरित मासिक नकद पेंशन",
+    "howToApply_en": "1. Visit the official portal (nsap.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nsap.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3000,6 +3164,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "40 वर्ष और उससे अधिक आयु की निराश्रित विधवाओं को मासिक वित्तीय सहायता।",
     "benefits_en": "Monthly pension support for BPL widows to ensure dignified living",
     "benefits_hi": "सम्मानजनक जीवन सुनिश्चित करने के लिए बीपीएल विधवाओं के लिए मासिक पेंशन सहायता",
+    "howToApply_en": "1. Visit the official portal (nsap.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nsap.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3039,6 +3205,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "गंभीर या बहु-विकलांगता (80%+) वाले बीपीएल व्यक्तियों के लिए पेंशन।",
     "benefits_en": "Direct monthly cash pension for severely disabled individuals",
     "benefits_hi": "गंभीर रूप से विकलांग व्यक्तियों के लिए सीधा मासिक नकद पेंशन",
+    "howToApply_en": "1. Visit the official portal (nsap.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nsap.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3078,6 +3246,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सामाजिक सुरक्षा लाभ प्रदान करने वाले असंगठित श्रमिकों को 12-अंकीय यूएएन कार्ड जारी करना।",
     "benefits_en": "Free ₹2 Lakh accidental death insurance & automatic eligibility for Govt pensions",
     "benefits_hi": "मुफ्त ₹2 लाख दुर्घटना मृत्यु बीमा और सरकारी पेंशन के लिए स्वचालित पात्रता",
+    "howToApply_en": "1. Visit the official portal (eshram.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (eshram.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3117,6 +3287,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सक्रिय ईपीएफओ ग्राहक कर्मचारियों के कानूनी वारिसों को जीवन बीमा लाभ।",
     "benefits_en": "Assured life insurance payout up to ₹7,00,000 on member employee death",
     "benefits_hi": "सदस्य कर्मचारी की मृत्यु पर ₹7,00,000 तक का सुनिश्चित जीवन बीमा भुगतान",
+    "howToApply_en": "1. Visit the official portal (epfindia.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (epfindia.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3156,6 +3328,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "मुख्य कमाने वाले की मृत्यु पर बीपीएल परिवार को एकमुश्त वित्तीय अनुदान।",
     "benefits_en": "One-time lump sum grant of ₹20,000 on death of primary earner (age 18-59)",
     "benefits_hi": "मुख्य कमाने वाले की मृत्यु पर ₹20,00,0 की एकमुश्त अनुदान राशि",
+    "howToApply_en": "1. Visit the official portal (nsap.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nsap.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3195,6 +3369,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "बीपीएल श्रेणी के वरिष्ठ नागरिकों के लिए मुफ्त शारीरिक सहायता और उपकरण।",
     "benefits_en": "Free spectacles, walking sticks, wheelchairs, and dentures for seniors",
     "benefits_hi": "वरिष्ठों के लिए मुफ्त चश्मा, वॉकिंग स्टिक, व्हीलचेयर और बत्तीसी का वितरण",
+    "howToApply_en": "1. Visit the official portal (alimco.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (alimco.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3233,7 +3409,9 @@ export const PUBLIC_SCHEMES = [
     "description_en": "Scholarships for students with disabilities for pursuing pre-matric, post-matric & higher studies.",
     "description_hi": "प्री-मैट्रिक, पोस्ट-मैट्रिक और उच्च अध्ययन के लिए दिव्यांग छात्रों के लिए छात्रवृत्ति।",
     "benefits_en": "Full tuition fee reimbursement + annual maintenance allowance up to ₹4,000/mo",
-    "benefits_hi": "पूरी ट्यूशन फीस प्रतिपूर्ति + ₹4,000/माह तक का रखरखाव भत्ता",
+    "benefits_hi": "पूरी ट्यूशन फीस प्रतिपूर्ति + ₹4,00,000/माह तक का रखरखाव भत्ता",
+    "howToApply_en": "1. Visit the official portal (scholarships.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (scholarships.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3273,6 +3451,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "व्यावसायिक उद्यम स्थापित करने के लिए विकलांग व्यक्तियों को रियायती ऋण।",
     "benefits_en": "Low interest rate loan up to ₹50 Lakh @ 5% per annum for disabled entrepreneurs",
     "benefits_hi": "विकलांग उद्यमियों के लिए 5% प्रति वर्ष पर ₹50 लाख तक का कम ब्याज दर ऋण",
+    "howToApply_en": "1. Visit the official portal (nhfdc.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (nhfdc.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Worker/Laborer",
       "Farmer",
@@ -3312,6 +3492,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "कक्षा 8 में ड्रॉपआउट रोकने के लिए आर्थिक रूप से कमजोर मेधावी छात्रों को सहायता।",
     "benefits_en": "₹12,000 per annum scholarship (₹1,000/month) from Class IX to XII",
     "benefits_hi": "कक्षा 9 से 12 तक ₹12,000 प्रति वर्ष (₹1,000/माह) छात्रवृत्ति",
+    "howToApply_en": "1. Visit the official portal (scholarships.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (scholarships.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3350,6 +3532,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "विश्वविद्यालय अध्ययन के लिए 12वीं उत्तीर्ण शीर्ष 20 प्रतिशत छात्रों को वित्तीय सहायता।",
     "benefits_en": "₹12,000/yr for Graduation and ₹20,000/yr for Post-Graduation",
     "benefits_hi": "स्नातक के लिए ₹12,000/वर्ष और स्नातकोत्तर के लिए ₹20,000/वर्ष",
+    "howToApply_en": "1. Visit the official portal (scholarships.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (scholarships.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3388,6 +3572,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "छात्रों के लिए गारंटी-मुक्त शिक्षा ऋण के लिए आवेदन करने का सिंगल विंडो पोर्टल।",
     "benefits_en": "Collateral-free education loan up to ₹7.5 Lakh with 3% interest subvention",
     "benefits_hi": "3% ब्याज छूट के साथ ₹7.5 लाख तक का गारंटी-मुक्त शिक्षा ऋण",
+    "howToApply_en": "1. Visit the official portal (www.vidyasaarathi.co.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.vidyasaarathi.co.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3426,6 +3612,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ओबीसी, ईबीसी और डीएनटी श्रेणी के छात्रों के लिए टॉप क्लास स्कूल छात्रवृत्ति।",
     "benefits_en": "₹75,000/year for Class 9-10 & ₹1,25,000/year for Class 11-12",
     "benefits_hi": "कक्षा 9-10 के लिए ₹75,000/वर्ष और कक्षा 11-12 के लिए ₹1,25,000/वर्ष",
+    "howToApply_en": "1. Visit the official portal (yet.nta.ac.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (yet.nta.ac.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3464,6 +3652,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "मैट्रिक या उत्तर-माध्यमिक स्तर पर अध्ययनरत एससी छात्रों को वित्तीय सहायता।",
     "benefits_en": "100% compulsory non-refundable fees reimbursement + monthly stipend",
     "benefits_hi": "100% अनिवार्य गैर-वापसी योग्य फीस प्रतिपूर्ति + मासिक वजीफा",
+    "howToApply_en": "1. Visit the official portal (scholarships.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (scholarships.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3502,6 +3692,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "एसटी छात्रों को मान्यता प्राप्त संस्थानों में उच्च शिक्षा पूरी करने में सक्षम बनाना।",
     "benefits_en": "Full academic fee payment + maintenance allowance for hostellers & day scholars",
     "benefits_hi": "छात्रावासियों और दिन के छात्रों के लिए पूरा शैक्षणिक शुल्क + रखरखाव भत्ता",
+    "howToApply_en": "1. Visit the official portal (tribal.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (tribal.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3540,6 +3732,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "युवा लड़कियों को तकनीकी डिग्री और डिप्लोमा शिक्षा आगे बढ़ाने के लिए प्रोत्साहित करना।",
     "benefits_en": "₹50,000 per annum for every year of degree/diploma course",
     "benefits_hi": "डिग्री/डिप्लोमा पाठ्यक्रम के प्रत्येक वर्ष के लिए ₹50,000 प्रति वर्ष",
+    "howToApply_en": "1. Visit the official portal (www.aicte-india.org) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.aicte-india.org) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3578,6 +3772,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "सरकारी वजीफा सहायता के साथ औद्योगिक कंपनियों में ऑन-द-जॉब शिक्षुता प्रशिक्षण।",
     "benefits_en": "Monthly stipend up to ₹1,500/month directly contributed by Govt of India",
     "benefits_hi": "भारत सरकार द्वारा सीधे योगदान किया जाने वाला ₹1,500/माह तक का मासिक वजीफा",
+    "howToApply_en": "1. Visit the official portal (www.apprenticeshipindia.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.apprenticeshipindia.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3616,6 +3812,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "फ्यूचर स्किल्स (एआई, रोबोटिक्स, ड्रोन, सोलर) में उद्योग-संरेखित अल्पकालिक प्रशिक्षण।",
     "benefits_en": "Free certified skill training + ₹8,000 digital stipend & job placement aid",
     "benefits_hi": "निःशुल्क प्रमाणित कौशल प्रशिक्षण + ₹8,000 डिजिटल वजीफा और नौकरी सहायता",
+    "howToApply_en": "1. Visit the official portal (www.pmkvyofficial.org) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.pmkvyofficial.org) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3654,6 +3852,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "15 से 35 वर्ष के ग्रामीण गरीब युवाओं के लिए प्लेसमेंट-लिंक्ड कौशल प्रशिक्षण।",
     "benefits_en": "Free residential skill training with guaranteed minimum 70% job placement",
     "benefits_hi": "न्यूनतम 70% गारंटीकृत नौकरी प्लेसमेंट के साथ मुफ्त आवासीय प्रशिक्षण",
+    "howToApply_en": "1. Visit the official portal (ddugky.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (ddugky.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "Student",
       "Unemployed",
@@ -3692,6 +3892,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "यूपी में बालिका जन्म, टीकाकरण और शिक्षा के लिए सशर्त नकद हस्तांतरण योजना।",
     "benefits_en": "₹25,000 financial support in 6 stages from birth to graduation",
     "benefits_hi": "जन्म से लेकर स्नातक तक 6 चरणों में ₹25,000 वित्तीय सहायता",
+    "howToApply_en": "1. Visit the official portal (mksy.up.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (mksy.up.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3730,6 +3932,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "उत्तर प्रदेश में गरीब बीपीएल परिवारों की बेटियों के विवाह के लिए अनुदान।",
     "benefits_en": "₹51,000 grant per daughter (₹35,000 in bank + ₹10,000 gift items)",
     "benefits_hi": "प्रति पुत्री ₹51,000 अनुदान (बैंक में ₹35,000 + ₹10,000 उपहार सामग्री)",
+    "howToApply_en": "1. Visit the official portal (shadiungan.upsdc.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (shadiungan.upsdc.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3768,6 +3972,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "वंचित छात्रों के लिए मुफ्त प्रतियोगी परीक्षा कोचिंग (यूपीएससी, नीट, जेईई)।",
     "benefits_en": "Free IAS/NEET coaching by officers & free tablet allowance for top rankers",
     "benefits_hi": "अधिकारियों द्वारा मुफ्त आईएएस/नीट कोचिंग और टॉप रैंकर्स के लिए मुफ्त टैबलेट",
+    "howToApply_en": "1. Visit the official portal (abhyuday.up.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (abhyuday.up.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3806,6 +4012,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "बिहार में जन्म से लेकर विश्वविद्यालय स्नातक तक बालिकाओं के लिए वित्तीय प्रोत्साहन।",
     "benefits_en": "₹50,000 cash reward on passing Graduation & ₹25,000 on Class 12 pass",
     "benefits_hi": "स्नातक पास करने पर ₹50,000 नकद इनाम और 12वीं पास करने पर ₹25,000",
+    "howToApply_en": "1. Visit the official portal (medhasoft.bih.nic.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (medhasoft.bih.nic.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3844,6 +4052,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "उच्च अध्ययन करने वाले बिहार के छात्रों के लिए 1% से 4% ब्याज पर ₹4 लाख तक ऋण।",
     "benefits_en": "₹4,00,000 education loan for B.Tech, B.Sc, B.BA, ITI courses",
     "benefits_hi": "बी.टेक, बी.एससी, बीबीए, आईटीआई पाठ्यक्रमों के लिए ₹4,00,000 शिक्षा ऋण",
+    "howToApply_en": "1. Visit the official portal (www.7nishchay-yuvaupmission.bihar.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (www.7nishchay-yuvaupmission.bihar.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3882,6 +4092,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "एमपी में 21 से 60 वर्ष की विवाहित महिलाओं के लिए सीधा मासिक नकद वित्तीय सहायता।",
     "benefits_en": "₹1,250 per month transferred directly to woman's bank account",
     "benefits_hi": "महिला के बैंक खाते में सीधे ₹1,250 प्रति माह हस्तांतरित",
+    "howToApply_en": "1. Visit the official portal (cmladlibehna.mp.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (cmladlibehna.mp.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3920,6 +4132,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "एमपी में असंगठित श्रमिकों के लिए प्रसूति से लेकर अंतिम संस्कार तक सहायता।",
     "benefits_en": "₹2,00,000 natural death aid & ₹4,00,000 accidental death aid",
     "benefits_hi": "₹2,00,000 सामान्य मृत्यु सहायता और ₹4,00,000 दुर्घटना मृत्यु सहायता",
+    "howToApply_en": "1. Visit the official portal (sambal.mp.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (sambal.mp.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3958,6 +4172,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "राजस्थान में प्रति परिवार ₹25 लाख तक का यूनिवर्सल कैशलेस स्वास्थ्य कवर।",
     "benefits_en": "Cashless hospital treatment up to ₹25,00,000 + ₹5 Lakh accidental insurance",
     "benefits_hi": "₹25,00,000 तक कैशलेस अस्पताल इलाज + ₹5 लाख दुर्घटना बीमा",
+    "howToApply_en": "1. Visit the official portal (chiranjeevi.rajasthan.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (chiranjeevi.rajasthan.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -3996,6 +4212,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "ओडिशा में छोटे किसानों, भूमिहीन कृषि मजदूरों के लिए वित्तीय सहायता।",
     "benefits_en": "₹12,500 per family financial support for landless agricultural households",
     "benefits_hi": "भूमिहीन कृषि परिवारों के लिए ₹12,500 प्रति परिवार वित्तीय सहायता",
+    "howToApply_en": "1. Visit the official portal (kalia.odisha.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (kalia.odisha.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
@@ -4034,6 +4252,8 @@ export const PUBLIC_SCHEMES = [
     "description_hi": "तेलंगाना में किसानों के स्वामित्व वाली प्रत्येक एकड़ भूमि के लिए फसल निवेश सहायता।",
     "benefits_en": "₹10,000 per acre per year (₹5,000 per crop season) directly in bank",
     "benefits_hi": "प्रति वर्ष ₹10,000 प्रति एकड़ (प्रति फसल सीजन ₹5,000) सीधे बैंक में",
+    "howToApply_en": "1. Visit the official portal (rythubandhu.telangana.gov.in) or nearest Kirana / CSC Center.\n2. Submit required documents (Aadhaar, Ration card/Land record, Bank Passbook).\n3. Application verification by district nodal officer followed by DBT transfer to bank.",
+    "howToApply_hi": "1. आधिकारिक पोर्टल (rythubandhu.telangana.gov.in) या नजदीकी किराना / सीएससी केंद्र पर जाएं।\n2. आवश्यक दस्तावेज (आधार, राशन कार्ड/भूमि पेपर, बैंक पासबुक) जमा करें।\n3. नोडल अधिकारी द्वारा सत्यापन के बाद बैंक खाते में प्रत्यक्ष लाभ राशि हस्तांतरित होगी।",
     "eligibleOccupations": [
       "All",
       "Farmer",
