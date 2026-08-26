@@ -57,8 +57,8 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        heading: ['Fraunces', 'Georgia', 'serif'],
-        body:    ['Instrument Sans', 'ui-sans-serif', '-apple-system', 'sans-serif'],
+        heading: ['Fraunces', 'Tiro Devanagari Hindi', 'Georgia', 'serif'],
+        body:    ['Instrument Sans', 'Noto Sans Devanagari', 'ui-sans-serif', '-apple-system', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },

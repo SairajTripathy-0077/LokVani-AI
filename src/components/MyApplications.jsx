@@ -131,10 +131,10 @@ export default function MyApplications({ userName, userEmail }) {
       <div key={app._id} className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_16px_48px_-32px_rgba(24,24,27,0.18)] sm:p-7">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400 tabular-nums">
               {hi ? 'आवेदन दिनांक' : 'Applied on'} · {new Date(app.appliedAt).toLocaleDateString(hi ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </span>
-            <h3 className="mt-1 font-heading text-lg font-semibold text-zinc-900">
+            <h3 className="mt-1 font-heading text-lg font-semibold text-balance text-zinc-900">
               {hi ? (app.schemeNameHi || app.schemeNameEn) : (app.schemeNameEn || app.schemeNameHi)}
             </h3>
             {app.applicationRefNo && (
@@ -157,7 +157,7 @@ export default function MyApplications({ userName, userEmail }) {
         {!isClosed && (
           <div className="mb-5">
             <div className="mb-2 flex items-center justify-between text-xs">
-              <span className={`flex items-center gap-1.5 font-medium ${breached ? 'text-red-700' : 'text-zinc-600'}`}>
+              <span className={`flex items-center gap-1.5 font-medium tabular-nums ${breached ? 'text-red-700' : 'text-zinc-600'}`}>
                 {breached ? <ShieldAlert size={13} strokeWidth={1.5} /> : <Clock size={13} strokeWidth={1.5} />}
                 {hi ? `${waiting} दिन बीत गए` : `${waiting} ${waiting === 1 ? 'day' : 'days'} waiting`}
               </span>
@@ -212,7 +212,7 @@ export default function MyApplications({ userName, userEmail }) {
                 <span>{hi ? 'शिकायत दर्ज करें' : 'File complaint'}</span>
               </button>
             ) : (
-              <button disabled title={hi ? `${sla - waiting} दिन बाद उपलब्ध` : `Available after ${sla - waiting} more day(s)`} className="btn-secondary inline-flex cursor-not-allowed items-center gap-2 opacity-50">
+              <button disabled title={hi ? `${sla - waiting} दिन बाद उपलब्ध` : `Available after ${sla - waiting} more day(s)`} className="btn-secondary inline-flex cursor-not-allowed items-center gap-2 tabular-nums opacity-50">
                 <AlertTriangle size={14} strokeWidth={1.5} />
                 <span>{hi ? `${sla - waiting} दिन बाद शिकायत संभव` : `Complain in ${sla - waiting}d`}</span>
               </button>
@@ -240,7 +240,7 @@ export default function MyApplications({ userName, userEmail }) {
 
   /* ── View ─────────────────────────────────────────────── */
   return (
-    <section aria-label={hi ? 'मेरे आवेदन' : 'My applications'}>
+    <section aria-label={hi ? 'मेरे आवेदन' : 'My applications'} lang={hi ? 'hi' : 'en'}>
       <header className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h3 className="font-heading text-2xl font-semibold tracking-tight text-zinc-900">
@@ -275,7 +275,7 @@ export default function MyApplications({ userName, userEmail }) {
           <p className="mt-4 text-sm font-medium text-zinc-600">{hi ? 'अभी कोई आवेदन दर्ज नहीं है' : 'No applications tracked yet'}</p>
           <p className="mx-auto mt-2 max-w-[46ch] text-xs leading-relaxed text-zinc-400">
             {hi
-              ? 'किसी योजना में आवेदन करने के बाद "मैंने आवेदन किया" पर क्लिक करें — यहाँ दिन-गणक और शिकायत सुविधा मिलेगी।'
+              ? 'किसी योजना में आवेदन करने के बाद “मैंने आवेदन किया” पर क्लिक करें — यहाँ दिन-गणक और शिकायत सुविधा मिलेगी।'
               : 'After applying to a scheme, tap “I Applied” in its detail view — your day counter and complaint option will appear here.'}
           </p>
         </div>

@@ -260,10 +260,10 @@ export default function UserVoiceApp() {
 
   return (
     <TooltipProvider>
-    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-5 items-start', largeText && 'large-text')}>
+    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3 lg:sticky lg:top-6">
+      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-4 lg:sticky lg:top-10">
         {/* New query */}
         <Button
           className="w-full gap-2 font-bold"
@@ -276,12 +276,12 @@ export default function UserVoiceApp() {
 
         {/* Dialect */}
         <Card className="p-0 overflow-hidden">
-          <div className="px-4 pt-3 pb-1">
+          <div className="px-4 pt-4 pb-2">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5">
               <Globe size={11} /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
             </p>
           </div>
-          <div className="px-3 pb-3">
+          <div className="px-4 pb-4">
             <Select value={dialect} onValueChange={setDialect}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue />
@@ -297,8 +297,8 @@ export default function UserVoiceApp() {
 
         {/* TTS Speed */}
         <Card className="p-0 overflow-hidden">
-          <div className="px-4 py-3">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
+          <div className="px-4 py-4">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5">
               <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
             </p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -333,13 +333,13 @@ export default function UserVoiceApp() {
 
         {/* History */}
         <div>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5 px-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-3 flex items-center gap-1.5 px-1">
             <Clock size={11} /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
           </p>
-          <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-580px)]">
-            <div className="flex flex-col gap-1.5 pr-2">
+          <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-40rem)]">
+            <div className="flex flex-col gap-2 pr-2">
               {queryHistory.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic px-2 py-2">
+                <p className="text-xs text-muted-foreground italic px-1 py-3">
                   {language === 'hi' ? 'कोई इतिहास नहीं' : 'No history yet'}
                 </p>
               ) : queryHistory.map((h) => (
@@ -369,7 +369,7 @@ export default function UserVoiceApp() {
       </aside>
 
       {/* ── Main Panel ──────────────────────────────────────────── */}
-      <div className="flex-1 w-full min-w-0 space-y-4">
+      <div className="flex-1 w-full min-w-0 space-y-6">
 
         {/* Hero / Mic section */}
         <div className="relative overflow-hidden rounded-3xl hero-bg hero-edge grain shadow-[0_32px_80px_-40px_rgba(24,24,27,0.5)]">
@@ -377,7 +377,7 @@ export default function UserVoiceApp() {
           <div className="hero-blob -top-24 -right-20 w-80 h-80 bg-[#d6a83a]/[0.08]" />
           <div className="hero-blob -bottom-28 -left-24 w-96 h-96 bg-[#a3b86b]/[0.09]" style={{ animationDelay: '-3.5s' }} />
 
-          <div className="relative z-10 text-center p-6 sm:p-12">
+          <div className="relative z-10 text-center p-6 sm:p-10 lg:p-12">
             {/* Status pill */}
             <div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.14] text-white/90 text-xs font-semibold tracking-wide mb-6"
@@ -390,7 +390,7 @@ export default function UserVoiceApp() {
               {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
             </div>
 
-            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-white mb-3">
+            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-white mb-4">
               {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
             </h2>
             <p className="text-zinc-400 text-sm sm:text-base max-w-md mx-auto mb-10 leading-relaxed">
@@ -451,7 +451,7 @@ export default function UserVoiceApp() {
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.14em] mb-4">
                 {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Examples'}
               </p>
-              <div className="flex flex-wrap gap-2.5 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center">
                 {DEMO_PRESETS.map((p, i) => {
                   const Icon = p.icon;
                   return (
@@ -480,7 +480,7 @@ export default function UserVoiceApp() {
           <Card className="response-card overflow-hidden border-border/60 shadow-[0_20px_50px_-30px_rgba(24,24,27,0.35)]">
             {/* Header strip */}
             <div className={cn(
-              'px-5 sm:px-7 py-3 flex flex-wrap items-center justify-between gap-3 border-b',
+              'px-5 sm:px-8 py-4 flex flex-wrap items-center justify-between gap-3 border-b',
               activeResult.isHighStakes
                 ? 'bg-amber-50/70 border-amber-200/80'
                 : 'bg-muted/40 border-border/60'
@@ -508,7 +508,7 @@ export default function UserVoiceApp() {
               </div>
             </div>
 
-            <CardContent className="p-5 sm:p-7 space-y-5">
+            <CardContent className="p-5 sm:p-8 space-y-6">
               {/* Query */}
               <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
                 <MessageSquare size={11} />
@@ -518,7 +518,7 @@ export default function UserVoiceApp() {
               {/* Short Answer */}
               <div className="p-5 sm:p-6 rounded-2xl bg-[#f4f8f2] border border-[#c8dcc4] space-y-3">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <p className="text-[10px] font-bold text-[#48734f] uppercase tracking-wider flex items-center gap-1.5">
+                  <p className="text-[10px] font-semibold text-[#48734f] uppercase tracking-[0.12em] flex items-center gap-1.5">
                     <Sparkles size={11} />
                     {language === 'hi' ? 'त्वरित उत्तर' : 'Quick Answer'}
                   </p>
@@ -598,11 +598,11 @@ export default function UserVoiceApp() {
 
               {/* Actionable steps */}
               {activeResult.actionableSteps?.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
                     {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
                   </p>
-                  <div className="space-y-2">
+                  <div className="space-y-2.5">
                     {activeResult.actionableSteps.map((step, i) => (
                       <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border/40">
                         <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
@@ -617,11 +617,11 @@ export default function UserVoiceApp() {
 
               {/* Follow-up questions */}
               {activeResult.followUpQuestions?.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
                     {language === 'hi' ? 'आगे पूछें' : 'Follow-up Questions'}
                   </p>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2.5">
                     {activeResult.followUpQuestions.map((q, i) => (
                       <button
                         key={i}
@@ -653,7 +653,7 @@ export default function UserVoiceApp() {
                   {/* Feedback buttons */}
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-emerald-600">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-emerald-600" aria-label="Helpful">
                         <ThumbsUp size={12} />
                       </Button>
                     </TooltipTrigger>
@@ -661,7 +661,7 @@ export default function UserVoiceApp() {
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" aria-label="Not helpful">
                         <ThumbsDown size={12} />
                       </Button>
                     </TooltipTrigger>
@@ -688,21 +688,21 @@ export default function UserVoiceApp() {
               </Button>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handlePriceReport} className="space-y-3">
+              <form onSubmit={handlePriceReport} className="space-y-4">
                 {[
                   { label: 'Commodity', value: reportItem, set: setReportItem, type: 'text' },
                   { label: 'Rate (₹/kg)', value: reportPrice, set: setReportPrice, type: 'number' },
                   { label: 'Mandi Location', value: reportLocation, set: setReportLocation, type: 'text' },
                 ].map(({ label, value, set, type }) => (
                   <div key={label}>
-                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{label}</label>
+                    <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2">{label}</label>
                     <input
                       type={type} value={value} onChange={e => set(e.target.value)} required
-                      className="w-full h-9 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   </div>
                 ))}
-                <div className="flex gap-2 justify-end pt-2">
+                <div className="flex gap-3 justify-end pt-3">
                   <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>Cancel</Button>
                   <Button type="submit" size="sm" className="gap-1.5"><Send size={13} /> Submit</Button>
                 </div>
