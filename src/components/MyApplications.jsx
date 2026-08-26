@@ -62,7 +62,11 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
     setError('');
     try {
       const res = await fetch(`/api/applications/user/${encodeURIComponent(userId)}`);
-      const json = await res.json();
+      const text = await res.text();
+      let json = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch (_) {}
       if (!res.ok || !json.success) throw new Error(json.error || `Failed to load applications (${res.status})`);
       setApplications(json.data || []);
       if (typeof json.allowEarlyComplaint === 'boolean') {
@@ -86,13 +90,17 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
-      const json = await res.json();
+      const text = await res.text();
+      let json = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch (_) {}
       if (!res.ok || !json.success) throw new Error(json.error || `Failed to file complaint (${res.status})`);
 
       setApplications(prev => prev.map(a => (a._id === application._id ? { ...a, status: 'COMPLAINED', complaints: [...(a.complaints || []), json.complaint] } : a)));
       setComplaintReceipts(prev => ({
         ...prev,
-        [application._id]: { id: json.complaint.complaintId, emailSent: json.emailSent }
+        [application._id]: { id: json.complaint?.complaintId || `LV-CMP-${Date.now()}`, emailSent: json.emailSent }
       }));
     } catch (err) {
       setError(err.message);
@@ -109,7 +117,11 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
-      const json = await res.json();
+      const text = await res.text();
+      let json = {};
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch (_) {}
       if (!res.ok || !json.success) throw new Error(json.error || `Failed to update status (${res.status})`);
       setApplications(prev => prev.map(a => (a._id === application._id ? { ...a, status } : a)));
     } catch (err) {
@@ -268,7 +280,7 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
       <header className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div className="max-w-2xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/60 px-3.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-500">
-            <span className="h-1 w-1 rounded-full bg-[#48734f]" />
+            <span className="h-1 w-1 rounded-full bg-zinc-900" />
             {hi ? 'आवेदन ग्रहण और शिकायत' : 'Grievance Desk'}
           </span>
           <h3 className="mt-5 font-heading text-3xl font-semibold leading-[1.15] tracking-[-0.01em] text-zinc-900">
@@ -323,8 +335,8 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
         </div>
       ) : applications.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-black/[0.12] bg-white px-6 py-16 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f4f8f2]">
-            <Inbox size={24} strokeWidth={1.25} className="text-[#48734f]" />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100">
+            <Inbox size={24} strokeWidth={1.25} className="text-zinc-500" />
           </div>
           <h4 className="mt-5 font-heading text-base font-semibold text-zinc-900">
             {hi ? 'अभी कोई आवेदन दर्ज नहीं है' : 'No applications tracked yet'}
