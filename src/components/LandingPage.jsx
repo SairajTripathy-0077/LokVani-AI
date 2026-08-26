@@ -305,7 +305,7 @@ export default function LandingPage() {
 
   const isHindi = language === 'hi';
 
-  const handleLaunch = () => setActiveTab('voice');
+  const handleLaunch = () => setActiveTab(!isSignedIn ? 'auth' : 'voice');
 
   /* Quiet scatter of farm + product motifs — jittered grid so it
      spreads evenly across every screen, seeded to stay put */
