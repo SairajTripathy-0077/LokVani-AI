@@ -5,7 +5,7 @@ import { processUserSpeechQuery } from '../services/aiCoreEngine';
 import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
-  ChevronDown, ChevronUp, MessageSquare, Gauge, Type, Clock, MapPin,
+  ChevronDown, ChevronUp, MessageSquare, Gauge, Clock, MapPin,
   ThumbsUp, ThumbsDown, Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -101,18 +101,12 @@ export default function UserVoiceApp() {
   const [queryHistory, setQueryHistory]     = useState([]);
   const [showDetailed, setShowDetailed]     = useState(false);
   const [ttsRate, setTtsRate]               = useState(1.0);
-  const [largeText, setLargeText]           = useState(() => localStorage.getItem('lokvani_large_text') === 'true');
   const [showModal, setShowModal]           = useState(false);
   const [reportItem,     setReportItem]     = useState('Tamatar (Tomato)');
   const [reportPrice,    setReportPrice]    = useState('30');
   const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
 
   const abortRef = useRef(null);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('large-text', largeText);
-    localStorage.setItem('lokvani_large_text', String(largeText));
-  }, [largeText]);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -260,7 +254,7 @@ export default function UserVoiceApp() {
 
   return (
     <TooltipProvider>
-    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 sm:pt-10 sm:pb-24 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
+    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 sm:pt-10 sm:pb-24 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <aside className="order-2 lg:order-1 w-full lg:w-[310px] shrink-0 flex flex-col gap-5 lg:sticky lg:top-24 mb-6 lg:mb-0">
@@ -317,26 +311,6 @@ export default function UserVoiceApp() {
                 ))}
               </div>
             </div>
-
-            <button
-              onClick={() => setLargeText(p => !p)}
-              aria-pressed={largeText}
-              className="w-full flex items-center justify-between p-4.5 sm:p-5 hover:bg-zinc-50 transition-colors duration-300 cursor-pointer"
-            >
-              <span className="flex items-center gap-2 text-xs font-semibold text-zinc-800">
-                <Type size={13} className="text-zinc-400" />
-                {language === 'hi' ? 'बड़ा टेक्स्ट' : 'Large Text'}
-              </span>
-              <span className={cn(
-                'relative w-9 h-5 rounded-full transition-colors duration-300 shrink-0',
-                largeText ? 'bg-zinc-900' : 'bg-zinc-200'
-              )}>
-                <span className={cn(
-                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300',
-                  largeText ? 'left-[18px]' : 'left-0.5'
-                )} />
-              </span>
-            </button>
           </div>
         </div>
 
@@ -388,19 +362,20 @@ export default function UserVoiceApp() {
         {/* Hero / Mic section */}
         <div className="relative overflow-hidden rounded-3xl hero-bg grain border border-border/70 shadow-[0_24px_60px_-40px_rgba(24,24,27,0.25)]">
           <div className="relative z-10 text-center p-6 sm:p-10 lg:p-12">
-            {/* Status pill */}
-            <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-border text-foreground/80 text-xs font-semibold tracking-wide mb-6 shadow-sm"
-              role="status"
-              aria-live="polite"
-            >
-              {appState === 'IDLE'      && <><Sparkles size={12} className="text-[#a07a1e]" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
-              {appState === 'LISTENING' && <><Mic size={12} className="text-red-600 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
-              {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
-              {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-[#48734f] animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
-            </div>
+            {/* Status pill (hidden while idle) */}
+            {appState !== 'IDLE' && (
+              <div
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-border text-foreground/80 text-xs font-semibold tracking-wide mb-6 shadow-sm"
+                role="status"
+                aria-live="polite"
+              >
+                {appState === 'LISTENING' && <><Mic size={12} className="text-red-600 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
+                {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
+                {appState === 'SPEAKING'  && <><Volume2 size={12} className="animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
+              </div>
+            )}
 
-            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-foreground mb-4">
+            <h2 className="font-condensed text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-foreground mb-4">
               {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base max-w-md mx-auto mb-10 leading-relaxed">
@@ -544,7 +519,7 @@ export default function UserVoiceApp() {
                       : <><Volume2 size={12} /> {language === 'hi' ? 'सुनें' : 'Play'}</>}
                   </Button>
                 </div>
-                <p className="text-lg sm:text-xl font-bold text-foreground leading-snug">
+                <p className="text-lg sm:text-xl font-bold font-condensed text-foreground leading-snug">
                   {primaryAnswer(activeResult)}
                 </p>
                 {activeResult.shortAnswerEn && activeResult.shortAnswerHi && (
