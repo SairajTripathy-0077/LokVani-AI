@@ -12,6 +12,10 @@ import { useAuth } from './context/AuthContext';
 function MainContent() {
   const { activeTab } = useApp();
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   return (
     <main style={{ minHeight: 'calc(100vh - 140px)' }}>
       {activeTab === 'home' && <LandingPage />}

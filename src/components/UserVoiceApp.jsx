@@ -263,119 +263,122 @@ export default function UserVoiceApp() {
     <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="order-2 lg:order-1 w-full lg:w-64 shrink-0 flex flex-col gap-4 lg:sticky lg:top-10">
+      <aside className="order-2 lg:order-1 w-full lg:w-[310px] shrink-0 flex flex-col gap-5 lg:sticky lg:top-24">
         {/* New query */}
-        <Button
-          className="w-full gap-2 font-bold"
+        <button
           disabled={isProcessing}
           onClick={() => { setActiveResult(null); setTranscript(''); setShowDetailed(false); }}
+          className="group w-full h-11 rounded-full bg-zinc-900 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md hover:bg-zinc-800 transition-all duration-500 ease-premium active:scale-[0.98] disabled:opacity-50 cursor-pointer"
         >
-          <Mic size={15} />
-          {language === 'hi' ? '+ नई पूछताछ' : '+ New Voice Query'}
-        </Button>
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:scale-110">
+            <Mic size={12} strokeWidth={2} />
+          </span>
+          <span>{language === 'hi' ? '+ नई पूछताछ' : '+ New Voice Query'}</span>
+        </button>
 
-        {/* Preferences — one grouped panel */}
-        <Card className="p-0 overflow-hidden">
-          <div className="px-4 py-4">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
-              <Globe size={11} /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
-            </p>
-            <Select value={dialect} onValueChange={setDialect}>
-              <SelectTrigger className="w-full justify-between h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(DIALECT_MAP).map(([code, info]) => (
-                  <SelectItem key={code} value={code} className="text-sm">{info.label}</SelectItem>
+        {/* Preferences — Double-bezel panel */}
+        <div className="rounded-[2rem] bg-zinc-200/40 p-1.5 ring-1 ring-black/[0.06] shadow-[0_16px_40px_-24px_rgba(24,24,27,0.10)]">
+          <div className="rounded-[calc(2rem-6px)] bg-white overflow-hidden divide-y divide-black/[0.05]">
+            <div className="p-4.5 sm:p-5">
+              <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-[0.16em] mb-3 flex items-center gap-1.5">
+                <Globe size={12} className="text-zinc-500" /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
+              </p>
+              <Select value={dialect} onValueChange={setDialect}>
+                <SelectTrigger className="w-full justify-between h-10 text-xs font-semibold rounded-xl border-black/[0.08] bg-zinc-50/80 hover:bg-white hover:border-black/[0.15] transition-all">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-black/[0.08] bg-white/95 backdrop-blur-xl shadow-xl">
+                  {Object.entries(DIALECT_MAP).map(([code, info]) => (
+                    <SelectItem key={code} value={code} className="text-xs font-semibold cursor-pointer">{info.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="p-4.5 sm:p-5">
+              <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-[0.16em] mb-3 flex items-center gap-1.5">
+                <Gauge size={12} className="text-zinc-500" /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
+              </p>
+              <div className="flex gap-1 p-1 rounded-xl bg-zinc-100/90 border border-black/[0.04]">
+                {[0.75, 1.0, 1.25].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setTtsRate(r)}
+                    aria-pressed={ttsRate === r}
+                    className={cn(
+                      'flex-1 h-8 rounded-lg text-xs font-semibold tabular-nums transition-all duration-300 cursor-pointer',
+                      ttsRate === r
+                        ? 'bg-white shadow-2xs text-zinc-900 font-bold'
+                        : 'text-zinc-500 hover:text-zinc-900'
+                    )}
+                  >
+                    {r}×
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          <div className="px-4 py-4">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
-              <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
-            </p>
-            <div className="flex gap-1 p-1 rounded-lg bg-muted">
-              {[0.75, 1.0, 1.25].map(r => (
-                <button
-                  key={r}
-                  onClick={() => setTtsRate(r)}
-                  aria-pressed={ttsRate === r}
-                  className={cn(
-                    'flex-1 h-7 rounded-md text-xs font-semibold tabular-nums transition-all duration-200',
-                    ttsRate === r
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  {r}×
-                </button>
-              ))}
+              </div>
             </div>
-          </div>
 
-          <Separator />
-
-          <button
-            onClick={() => setLargeText(p => !p)}
-            aria-pressed={largeText}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-muted/50 transition-colors"
-          >
-            <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Type size={13} className="text-muted-foreground" />
-              {language === 'hi' ? 'बड़ा टेक्स्ट' : 'Large Text'}
-            </span>
-            <span className={cn(
-              'relative w-9 h-5 rounded-full transition-colors duration-200 shrink-0',
-              largeText ? 'bg-primary' : 'bg-border'
-            )}>
+            <button
+              onClick={() => setLargeText(p => !p)}
+              aria-pressed={largeText}
+              className="w-full flex items-center justify-between p-4.5 sm:p-5 hover:bg-zinc-50 transition-colors duration-300 cursor-pointer"
+            >
+              <span className="flex items-center gap-2 text-xs font-semibold text-zinc-800">
+                <Type size={13} className="text-zinc-400" />
+                {language === 'hi' ? 'बड़ा टेक्स्ट' : 'Large Text'}
+              </span>
               <span className={cn(
-                'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-200',
-                largeText ? 'left-[18px]' : 'left-0.5'
-              )} />
-            </span>
-          </button>
-        </Card>
+                'relative w-9 h-5 rounded-full transition-colors duration-300 shrink-0',
+                largeText ? 'bg-zinc-900' : 'bg-zinc-200'
+              )}>
+                <span className={cn(
+                  'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300',
+                  largeText ? 'left-[18px]' : 'left-0.5'
+                )} />
+              </span>
+            </button>
+          </div>
+        </div>
 
-        <Separator />
-
-        {/* History */}
-        <div>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5 px-1">
-            <Clock size={11} /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
-          </p>
-          <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-40rem)]">
-            <div className="flex flex-col pr-2">
-              {queryHistory.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic px-1 py-3">
-                  {language === 'hi' ? 'कोई इतिहास नहीं' : 'No history yet'}
-                </p>
-              ) : queryHistory.map((h) => (
-                <button
-                  key={h._id}
-                  onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
-                  className={cn(
-                    'text-left py-3 px-3 transition-colors duration-200 flex flex-col gap-1 w-full text-xs rounded-lg',
-                    activeResult?._id === h._id
-                      ? 'bg-primary/[0.07] text-primary font-semibold shadow-[inset_2px_0_0_0] shadow-primary'
-                      : 'text-muted-foreground hover:bg-muted/60'
-                  )}
-                >
-                  <span className="truncate w-full font-semibold text-foreground">{h.transcribedText}</span>
-                  <span className="text-[10px] text-muted-foreground truncate w-full italic">
-                    {primaryAnswer(h)?.slice(0, 55)}…
-                  </span>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock size={9} />
-                    {h.createdAt ? new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
+        {/* Recent Queries History — Double-bezel panel */}
+        <div className="rounded-[2rem] bg-zinc-200/40 p-1.5 ring-1 ring-black/[0.06] shadow-[0_16px_40px_-24px_rgba(24,24,27,0.10)]">
+          <div className="rounded-[calc(2rem-6px)] bg-white p-4.5 sm:p-5">
+            <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-[0.16em] mb-3 flex items-center gap-1.5">
+              <Clock size={12} className="text-zinc-500" /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
+            </p>
+            <ScrollArea className="max-h-56 lg:max-h-[calc(100vh-28rem)]">
+              <div className="flex flex-col gap-1.5 pr-1">
+                {queryHistory.length === 0 ? (
+                  <p className="text-xs text-zinc-400 italic px-2 py-4 text-center">
+                    {language === 'hi' ? 'कोई इतिहास नहीं' : 'No history yet'}
+                  </p>
+                ) : queryHistory.map((h) => {
+                  const active = activeResult?._id === h._id;
+                  return (
+                    <button
+                      key={h._id}
+                      onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
+                      className={cn(
+                        'text-left p-3 transition-all duration-300 flex flex-col gap-1 w-full text-xs rounded-xl border cursor-pointer',
+                        active
+                          ? 'bg-emerald-50/80 border-emerald-500/30 text-emerald-950 font-semibold shadow-2xs'
+                          : 'border-transparent text-zinc-600 hover:border-black/[0.06] hover:bg-zinc-50'
+                      )}
+                    >
+                      <span className="truncate w-full font-semibold text-zinc-900">{h.transcribedText}</span>
+                      <span className="text-[11px] text-zinc-500 truncate w-full italic leading-tight">
+                        {primaryAnswer(h)?.slice(0, 55)}…
+                      </span>
+                      <span className="font-mono text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5 tabular-nums">
+                        <Clock size={10} strokeWidth={1.5} />
+                        {h.createdAt ? new Date(h.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </aside>
 
