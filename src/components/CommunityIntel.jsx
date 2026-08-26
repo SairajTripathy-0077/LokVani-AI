@@ -35,11 +35,13 @@
  *   - API provider names hidden from UI (farmers don't need to see them)
  */
 
-import React, { useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { useReducer, useEffect, useCallback, useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { t } from './community/communityTranslations.js';
 import { fetchLiveMandiRates } from '../services/mandiService';
 import { fetchLiveWeatherData } from '../services/realDataService';
+import { fetchBuyers }          from '../services/buyerService';
+import { fetchTransport, fetchStorage } from '../services/logisticsService';
 
 const REGIONS = ['Azamgarh', 'Gorakhpur', 'Varanasi', 'Lucknow'];
 
@@ -80,6 +82,9 @@ import {
 
 const INITIAL_STATE = {
   intelList:    [],
+  buyers:       [],
+  transport:    [],
+  storage:      [],
   loading:      true,
   submitting:   false,
   showModal:    false,
@@ -108,6 +113,12 @@ function reducer(state, action) {
       return { ...state, loading: true };
     case 'FETCH_SUCCESS':
       return { ...state, loading: false, intelList: action.payload };
+    case 'SET_BUYERS':
+      return { ...state, buyers: action.payload };
+    case 'SET_TRANSPORT':
+      return { ...state, transport: action.payload };
+    case 'SET_STORAGE':
+      return { ...state, storage: action.payload };
     case 'FETCH_ERROR':
       return { ...state, loading: false };
     case 'PREPEND_ITEM':
@@ -169,8 +180,9 @@ export default function CommunityIntel() {
   const { liveWeather, language } = useApp();
   const lang = language || 'hi'; // default hi for farmers
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [showAllPrices, setShowAllPrices] = useState(false);
 
-  const { intelList, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
+  const { intelList, buyers, transport, storage, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
 
   const handleRegionChange = async (city) => {
     dispatch({ type: 'SET_REGION_WEATHER', region: city, weather: regionWeather });
@@ -182,24 +194,7 @@ export default function CommunityIntel() {
   const fetchIntel = useCallback(async () => {
     dispatch({ type: 'FETCH_START' });
     try {
-      let data = [];
-      try {
-        const res = await fetch('/api/intel');
-        if (res.ok) {
-          const text = await res.text();
-          try {
-            const json = JSON.parse(text);
-            if (json.data && json.data.length > 0) data = json.data;
-          } catch (_) {}
-        }
-      } catch (err) {
-        console.warn('API endpoint unavailable, loading public mandi data:', err);
-      }
-
-      if (!data || data.length === 0) {
-        data = await fetchLiveMandiRates();
-      }
-
+      const data = await fetchLiveMandiRates();
       dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
       console.error('Error loading intel dataset:', err);
@@ -209,6 +204,13 @@ export default function CommunityIntel() {
 
   useEffect(() => {
     fetchIntel();
+
+    // Fetch buyers from buyerService (eNAM / data.gov.in / fallback)
+    fetchBuyers().then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
+
+    // Fetch transport & storage from logisticsService
+    fetchTransport().then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+    fetchStorage().then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
   }, [fetchIntel]);
 
   /* ── Form Submission ─────────────────────────────────────────────────────── */
@@ -314,7 +316,7 @@ export default function CommunityIntel() {
           </div>
           <div className="community-int__stat-card" role="listitem">
             <p className="community-int__stat-label">{t('statBuyersLabel', lang)}</p>
-            <p className="community-int__stat-value">{DEMO_BUYERS.length}</p>
+            <p className="community-int__stat-value">{buyers.length || '—'}</p>
             <p className="community-int__stat-sub">{t('statBuyersSub', lang)}</p>
           </div>
         </div>
@@ -377,7 +379,7 @@ export default function CommunityIntel() {
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`sk-${i}`} />)
           ) : filteredList.length > 0 ? (
-            filteredList.map(ci => (
+            (showAllPrices ? filteredList : filteredList.slice(0, 6)).map(ci => (
               <PriceCard key={ci._id || ci.id}
                 item={ci.item} price={ci.price} unit={ci.unit}
                 location={ci.location} trend={ci.trend}
@@ -397,6 +399,18 @@ export default function CommunityIntel() {
             </div>
           )}
         </div>
+        
+        {!loading && filteredList.length > 6 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+            <button
+              onClick={() => setShowAllPrices(!showAllPrices)}
+              className="btn-secondary"
+              style={{ fontSize: '0.9rem', padding: '8px 24px' }}
+            >
+              {showAllPrices ? (lang === 'hi' ? 'कम दिखाएं' : 'Show Less') : (lang === 'hi' ? 'और देखें' : 'See More')}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ────────────────────────────────────────────────────────────────────
@@ -416,7 +430,14 @@ export default function CommunityIntel() {
           </div>
         </div>
         <div className="community-int__buyer-grid">
-          {DEMO_BUYERS.map(buyer => <BuyerCard key={buyer.id} {...buyer} lang={lang} />)}
+          {(buyers.length > 0 ? buyers : []).map((buyer, i) => (
+            <BuyerCard key={buyer.id || `b_${i}`} {...buyer} lang={lang} />
+          ))}
+          {buyers.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', gridColumn: '1/-1', padding: '16px 0' }}>
+              {lang === 'hi' ? 'खरीदार लोड हो रहे हैं…' : 'Loading buyers…'}
+            </p>
+          )}
         </div>
       </section>
 
@@ -447,7 +468,7 @@ export default function CommunityIntel() {
       <FPOPooling lang={lang} />
 
       {/* ── SECTION 7 — Logistics ── */}
-      <LogisticsStorage lang={lang} />
+      <LogisticsStorage lang={lang} transportItems={transport.length > 0 ? transport : undefined} storageItems={storage.length > 0 ? storage : undefined} />
 
       {/* ── SECTION 8 — Trust System ── */}
       <TrustSystem lang={lang} />
