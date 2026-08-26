@@ -33,7 +33,10 @@ const OCCUPATIONS = [
   'Worker/Laborer', 'Student', 'Unemployed', 'Senior Citizen'
 ];
 
-const CATEGORIES = ['Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing', 'Women & Child', 'Social Security'];
+const CATEGORIES = [
+  'Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing',
+  'Women & Child', 'Social Security', 'Education', 'State & Regional'
+];
 
 const inputCls =
   'w-full rounded-xl border border-black/[0.1] bg-zinc-50 px-3.5 py-2.5 text-base sm:text-sm text-zinc-900 tabular-nums transition-colors duration-300 focus:bg-white focus:outline-none';
