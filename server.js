@@ -539,10 +539,22 @@ app.patch('/api/applications/:id/status', async (req, res) => {
 });
 
 // Start Express Server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`===================================================`);
   console.log(`  LokVani AI Backend API listening on port ${PORT}`);
   console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`  CORS Allowed Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
   console.log(`===================================================`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`\n===================================================`);
+    console.log(`  [LokVani Server] Port ${PORT} is already in use.`);
+    console.log(`  Backend API is ALREADY running on http://localhost:${PORT}`);
+    console.log(`===================================================\n`);
+    process.exit(0);
+  } else {
+    console.error('[LokVani Server] Unexpected error:', err);
+  }
 });
