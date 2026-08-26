@@ -250,17 +250,36 @@ export default function UserVoiceApp() {
     if (isSpeaking) stopSpeaking();
     setAppState('LISTENING');
     setTranscript('');
+
     speechService.startListening(
-      (r) => { setTranscript(r.transcript); if (r.isFinal) handleProcessQuery(r.transcript); },
-      (e) => { console.error(e); setAppState('IDLE'); },
+      (r) => {
+        setTranscript(r.transcript);
+        if (r.isFinal && r.transcript.trim()) {
+          handleProcessQuery(r.transcript);
+        }
+      },
+      (e) => {
+        console.warn('[UserVoiceApp] STT Error:', e);
+        setAppState('IDLE');
+      },
+      () => {
+        // onEnd callback when speech recognition completes naturally
+        setAppState((curr) => {
+          if (curr === 'LISTENING') return 'IDLE';
+          return curr;
+        });
+      },
       sttLocale
     );
   }, [isProcessing, isSpeaking, stopSpeaking, sttLocale, handleProcessQuery]);
 
   const handleStopListening = useCallback(() => {
     speechService.stopListening();
-    if (transcript.trim()) handleProcessQuery(transcript);
-    else setAppState('IDLE');
+    if (transcript.trim()) {
+      handleProcessQuery(transcript);
+    } else {
+      setAppState('IDLE');
+    }
   }, [transcript, handleProcessQuery]);
 
   const handlePlayTTS = useCallback((text) => {

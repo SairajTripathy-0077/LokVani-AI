@@ -145,10 +145,16 @@ class SpeechService {
   }
 
   // ── STT ─────────────────────────────────────────────────────────────────
-  startListening(onResult, onError, langCode = 'hi-IN') {
+  startListening(onResult, onError, onEnd = null, langCode = 'hi-IN') {
+    // Support positional signatures: startListening(onResult, onError, langCode)
+    if (typeof onEnd === 'string') {
+      langCode = onEnd;
+      onEnd = null;
+    }
+
     if (!this.recognitionSupported) {
       if (onError) onError(
-        'Voice recognition not supported in this browser. Please use Chrome or Edge, or use Demo Presets.'
+        'Voice recognition not supported in this browser. Please use Chrome or Edge, or use Text Input.'
       );
       return;
     }
@@ -156,6 +162,8 @@ class SpeechService {
     this.stopSpeaking();
 
     try {
+      this.stopListening(); // Abort previous recognition session if active
+
       this.recognition.lang = langCode;
 
       this.recognition.onresult = (event) => {
@@ -170,22 +178,26 @@ class SpeechService {
       };
 
       this.recognition.onerror = (event) => {
-        console.warn('[SpeechService] STT error:', event.error);
-        if (onError && event.error !== 'no-speech') {
-          onError(`Voice recognition error: ${event.error}`);
-        }
+        console.warn('[SpeechService] STT error event:', event.error);
+        if (onError) onError(`Voice recognition event: ${event.error}`);
+      };
+
+      this.recognition.onend = () => {
+        if (onEnd) onEnd();
       };
 
       this.recognition.start();
     } catch (err) {
-      console.error('[SpeechService] Failed to start recognition:', err);
-      if (onError) onError('Microphone access denied or busy. Please allow microphone access.');
+      console.warn('[SpeechService] Failed to start recognition:', err.message);
+      if (onError) onError('Microphone access busy or denied. Please check browser microphone permissions.');
     }
   }
 
   stopListening() {
     if (this.recognition) {
-      try { this.recognition.stop(); } catch (_) { /* already stopped */ }
+      try {
+        this.recognition.abort();
+      } catch (_) { /* already stopped */ }
     }
   }
 
