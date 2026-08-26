@@ -159,6 +159,16 @@ export default function UserVoiceApp() {
   const detailedAnswer = (r) =>
     (dialect === 'en') ? (r?.detailedAnswerEn || r?.detailedAnswerHi) : (r?.detailedAnswerHi || r?.detailedAnswerEn);
 
+  const handlePlayTTS = useCallback((text) => {
+    if (isSpeaking) {
+      stopSpeaking();
+      return;
+    }
+    if (!text) return;
+    setAppState('SPEAKING');
+    speechService.speakText(text, ttsLocale, () => setAppState('IDLE'), ttsRate);
+  }, [isSpeaking, stopSpeaking, ttsLocale, ttsRate]);
+
   // ── Query processing ────────────────────────────────────────────────
   const handleProcessQuery = useCallback(async (queryText) => {
     const trimmed = queryText.trim().slice(0, 500);
@@ -286,16 +296,6 @@ export default function UserVoiceApp() {
       setAppState('IDLE');
     }
   }, [transcript, handleProcessQuery]);
-
-  const handlePlayTTS = useCallback((text) => {
-    if (isSpeaking) {
-      stopSpeaking();
-      return;
-    }
-    if (!text) return;
-    setAppState('SPEAKING');
-    speechService.speakText(text, ttsLocale, () => setAppState('IDLE'), ttsRate);
-  }, [isSpeaking, stopSpeaking, ttsLocale, ttsRate]);
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;
