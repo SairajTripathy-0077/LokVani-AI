@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import { connectDB, isMongoDBConnected } from './db/connection.js';
 import { QueryLog } from './db/models/QueryLog.js';
 import { TrustReview } from './db/models/TrustReview.js';
@@ -10,8 +10,7 @@ import { CommunityIntelModel } from './db/models/CommunityIntel.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
-
-dotenv.config();
+import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -125,7 +124,30 @@ app.post('/api/query', async (req, res) => {
 
     // Run AI Engine through Rotator (sanitized text, optional dialect)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
-    const aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
+    let aiResult = null;
+    let engineSource = 'GEMINI_AI';
+
+    try {
+      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
+    } catch (geminiErr) {
+      console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
+      const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
+      aiResult = {
+        short_answer_hi: fallback.shortAnswerHi,
+        short_answer_en: fallback.shortAnswerEn,
+        detailed_answer_hi: fallback.detailedAnswerHi,
+        detailed_answer_en: fallback.detailedAnswerEn,
+        confidence: fallback.confidence || 'LOW',
+        follow_up_questions: fallback.follow_up_questions || [],
+        domain: fallback.domain || 'AGRI_ADVISORY',
+        is_high_stakes: fallback.isHighStakes || false,
+        risk_category: fallback.riskCategory || 'NONE',
+        trust_note: fallback.trustNote || '',
+        actionable_steps: fallback.actionableSteps || [],
+        apiKeyIndexUsed: -1
+      };
+      engineSource = 'LOCAL_NLP_FALLBACK';
+    }
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
 
@@ -148,7 +170,8 @@ app.post('/api/query', async (req, res) => {
       actionableSteps: aiResult.actionable_steps || [],
       dialect: safeDialect || 'hi',
       status: initialStatus,
-      apiKeyIndexUsed: aiResult.apiKeyIndexUsed || 0,
+      engineSource,
+      apiKeyIndexUsed: aiResult.apiKeyIndexUsed ?? 0,
       createdAt: new Date()
     };
 

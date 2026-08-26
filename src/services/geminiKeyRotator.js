@@ -1,9 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * GeminiKeyRotator — Server-side ONLY.
- * Reads GEMINI_API_KEYS from process.env (comma-separated for rotation/failover).
- * NEVER expose this module or its keys to the browser bundle.
+ * GeminiKeyRotator — Handles API key rotation across server and browser environments.
  */
 class GeminiKeyRotator {
   constructor() {
@@ -14,10 +12,13 @@ class GeminiKeyRotator {
   }
 
   initializeKeys() {
-    // Server-only: only read from process.env (never import.meta.env)
-    const rawKeys = (typeof process !== 'undefined' && process.env)
-      ? (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-      : '';
+    let rawKeys = '';
+    if (typeof process !== 'undefined' && process && process.env) {
+      rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '';
+    }
+    if (!rawKeys && typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
+      rawKeys = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEYS || '';
+    }
 
     if (rawKeys) {
       this.keys = rawKeys.split(',').map(k => k.trim()).filter(Boolean);
@@ -103,7 +104,7 @@ class GeminiKeyRotator {
       if (!active || !active.key) break;
 
       const { key, index } = active;
-      const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-1.5-flash', 'gemini-pro'];
       let lastError = null;
 
       for (const modelName of modelsToTry) {
