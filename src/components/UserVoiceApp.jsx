@@ -260,10 +260,10 @@ export default function UserVoiceApp() {
 
   return (
     <TooltipProvider>
-    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
+    <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16 sm:pt-10 sm:pb-24 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start', largeText && 'large-text')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="order-2 lg:order-1 w-full lg:w-[310px] shrink-0 flex flex-col gap-5 lg:sticky lg:top-24">
+      <aside className="order-2 lg:order-1 w-full lg:w-[310px] shrink-0 flex flex-col gap-5 lg:sticky lg:top-24 mb-6 lg:mb-0">
         {/* New query */}
         <button
           disabled={isProcessing}
@@ -346,7 +346,7 @@ export default function UserVoiceApp() {
             <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-[0.16em] mb-3 flex items-center gap-1.5">
               <Clock size={12} className="text-zinc-500" /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
             </p>
-            <ScrollArea className="max-h-56 lg:max-h-[calc(100vh-28rem)]">
+            <ScrollArea className="max-h-60 overflow-y-auto">
               <div className="flex flex-col gap-1.5 pr-1">
                 {queryHistory.length === 0 ? (
                   <p className="text-xs text-zinc-400 italic px-2 py-4 text-center">
