@@ -78,8 +78,11 @@ export async function fetchLiveMandiPrices(apiKey = null) {
   const defaultDataGovKey = apiKey || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${defaultDataGovKey}&format=json&limit=10`;
-    const response = await fetch(url, { mode: 'cors' }).catch(() => null);
+    const response = await fetch(url, { mode: 'cors', signal: controller.signal }).catch(() => null);
+    clearTimeout(timeoutId);
     
     if (response && response.ok) {
       const text = await response.text();

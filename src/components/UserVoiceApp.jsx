@@ -98,6 +98,7 @@ export default function UserVoiceApp() {
 
   const [appState, setAppState]             = useState('IDLE');
   const [transcript, setTranscript]         = useState('');
+  const [typedQuery, setTypedQuery]         = useState('');
   const [showDetailedMap, setShowDetailedMap] = useState({});
   const [ttsRate, setTtsRate]               = useState(1.0);
   const [largeText, setLargeText]           = useState(() => localStorage.getItem('lokvani_large_text') === 'true');
@@ -180,7 +181,23 @@ export default function UserVoiceApp() {
             dialect: dialectInfo.promptName,
           })
         });
-        if (res.ok) { const j = await res.json(); data = j.data; }
+        if (res.ok) {
+          const j = await res.json();
+          if (j.data) {
+            data = {
+              ...j.data,
+              shortAnswerHi: j.data.shortAnswerHi || j.data.short_answer_hi || '',
+              shortAnswerEn: j.data.shortAnswerEn || j.data.short_answer_en || '',
+              detailedAnswerHi: j.data.detailedAnswerHi || j.data.detailed_answer_hi || '',
+              detailedAnswerEn: j.data.detailedAnswerEn || j.data.detailed_answer_en || '',
+              followUpQuestions: j.data.followUpQuestions || j.data.follow_up_questions || [],
+              isHighStakes: j.data.isHighStakes ?? j.data.is_high_stakes ?? false,
+              riskCategory: j.data.riskCategory || j.data.risk_category || 'NONE',
+              trustNote: j.data.trustNote || j.data.trust_note || '',
+              actionableSteps: j.data.actionableSteps || j.data.actionable_steps || [],
+            };
+          }
+        }
       } catch (e) {
         if (e.name === 'AbortError') return;
         console.warn('Backend offline — using local fallback');
@@ -393,13 +410,13 @@ export default function UserVoiceApp() {
               {language === 'hi' ? 'आपकी बातचीत (Chat Sessions)' : 'Chat Conversations'}
             </p>
             <Badge variant="secondary" className="text-[9px] px-1.5 h-4 font-bold">
-              {conversations.length}
+              {(conversations || []).length}
             </Badge>
           </div>
 
           <ScrollArea className="max-h-60 lg:max-h-[calc(100vh-620px)]">
             <div className="flex flex-col gap-1.5 pr-2">
-              {conversations.map((conv) => {
+              {(conversations || []).map((conv) => {
                 const isActive = conv.id === activeConvId;
                 const msgCount = conv.messages?.length || 0;
                 const lastMsg = conv.messages?.[conv.messages.length - 1];
@@ -455,7 +472,7 @@ export default function UserVoiceApp() {
           </ScrollArea>
 
           {/* Clear All Chats convenience button */}
-          {conversations.length > 1 && (
+          {(conversations || []).length > 1 && (
             <Button
               variant="ghost"
               size="sm"
@@ -520,7 +537,7 @@ export default function UserVoiceApp() {
             <Badge variant="outline" className="text-[10px] font-semibold">
               {activeConversation?.messages?.length || 0} {language === 'hi' ? 'संदेश' : 'messages'}
             </Badge>
-            {conversations.length > 1 && (
+            {(conversations || []).length > 1 && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -811,10 +828,39 @@ export default function UserVoiceApp() {
 
             {/* Live transcript */}
             {transcript && (
-              <p className="text-white/90 text-sm font-semibold italic mb-6 animate-pulse px-4 max-w-md mx-auto">
+              <p className="text-white/90 text-sm font-semibold italic mb-4 animate-pulse px-4 max-w-md mx-auto">
                 "{transcript}"
               </p>
             )}
+
+            {/* Typed Text Input Form (Alternative to Mic) */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (typedQuery.trim() && !isProcessing) {
+                  handleProcessQuery(typedQuery);
+                  setTypedQuery('');
+                }
+              }}
+              className="flex items-center gap-2 max-w-md mx-auto mb-6"
+            >
+              <input
+                type="text"
+                value={typedQuery}
+                onChange={(e) => setTypedQuery(e.target.value)}
+                placeholder={language === 'hi' ? 'यहाँ अपना सवाल लिखें...' : 'Type your question here...'}
+                disabled={isProcessing}
+                className="flex-1 px-4 py-2.5 rounded-full bg-white/10 border border-white/25 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300/50 backdrop-blur-sm transition-all"
+              />
+              <Button
+                type="submit"
+                disabled={isProcessing || !typedQuery.trim()}
+                className="rounded-full bg-amber-400 hover:bg-amber-300 text-zinc-900 font-bold px-4 py-2.5 text-xs gap-1.5 shrink-0 transition-all disabled:opacity-50"
+              >
+                <Send size={14} />
+                {language === 'hi' ? 'भेजें' : 'Send'}
+              </Button>
+            </form>
 
             {/* Demo Presets */}
             <div className="border-t border-white/15 pt-5">
