@@ -285,6 +285,42 @@ app.get('/api/intel', async (req, res) => {
   }
 });
 
+// GET /api/mandi — Proxy data.gov.in Mandi feed to eliminate browser CORS / 403 errors
+app.get('/api/mandi', async (req, res) => {
+  try {
+    const apiKey = process.env.DATA_GOV_API_KEY || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
+    const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${apiKey}&format=json&limit=10`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+
+    const response = await fetch(url, { signal: controller.signal }).catch(() => null);
+    clearTimeout(timer);
+
+    if (response && response.ok) {
+      const data = await response.json().catch(() => null);
+      if (data && data.records && data.records.length > 0) {
+        const records = data.records.map((r, idx) => ({
+          id: `live-${idx}-${Date.now()}`,
+          item: r.commodity || 'Vegetable',
+          price: Math.round(Number(r.modal_price) / 100) || 28,
+          unit: 'kg',
+          location: `${r.market || 'Local'} Mandi (${r.district || 'UP'})`,
+          reporter: 'Agmarknet Live API',
+          timestamp: 'Just now',
+          verified: true,
+          trend: 'up'
+        }));
+        return res.json({ success: true, records });
+      }
+    }
+    return res.json({ success: true, records: [] });
+  } catch (err) {
+    console.warn('[API /api/mandi] Proxy request warning:', err.message);
+    return res.json({ success: true, records: [] });
+  }
+});
+
 app.post('/api/intel', async (req, res) => {
   try {
     const { item, price, unit, location, reportedBy, reporterId, category } = req.body || {};

@@ -74,35 +74,20 @@ function getWeatherDescription(code) {
  * Fetch live Mandi market rates from Govt Data API (or fallback to live Agmarknet proxy)
  * @param {string} apiKey - Data.gov.in API Key (Optional)
  */
-export async function fetchLiveMandiPrices(apiKey = null) {
-  const defaultDataGovKey = apiKey || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
-
+export async function fetchLiveMandiPrices() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${defaultDataGovKey}&format=json&limit=10`;
-    const response = await fetch(url, { mode: 'cors', signal: controller.signal }).catch(() => null);
+    const response = await fetch('/api/mandi', { signal: controller.signal }).catch(() => null);
     clearTimeout(timeoutId);
-    
+
     if (response && response.ok) {
-      const text = await response.text();
-      let result = {};
-      try { result = JSON.parse(text); } catch (_) {}
-      if (result.records && result.records.length > 0) {
-        return result.records.map((r, idx) => ({
-          id: `live-${idx}-${Date.now()}`,
-          item: r.commodity || 'Vegetable',
-          price: Math.round(Number(r.modal_price) / 100) || 28, // Convert Quintal rate to per kg
-          unit: 'kg',
-          location: `${r.market || 'Local'} Mandi (${r.district || 'UP'})`,
-          reporter: 'Agmarknet Live API',
-          timestamp: 'Just now',
-          verified: true,
-          trend: 'up'
-        }));
+      const data = await response.json().catch(() => null);
+      if (data && Array.isArray(data.records) && data.records.length > 0) {
+        return data.records;
       }
     }
-  } catch (err) {
+  } catch (_) {
     // Silently fall back to cached mandi rates
   }
 
