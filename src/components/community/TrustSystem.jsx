@@ -60,16 +60,16 @@ const DEMO_TRUST_PROFILES = [
 ];
 
 const CREDIBILITY_CONFIG = {
-  TRUSTED:  { icon: <ShieldCheck size={14} aria-hidden="true" />, labelKey: 'trusted',  color: '#15803d', bg: '#f0fdf4' },
-  CAUTIOUS: { icon: <ShieldAlert size={14} aria-hidden="true" />, labelKey: 'caution',  color: '#b45309', bg: '#fffbeb' },
-  NEW:      { icon: <Shield size={14} aria-hidden="true" />,      labelKey: 'newEntity', color: '#475569', bg: '#f8fafc' },
+  TRUSTED:  { icon: <ShieldCheck size={14} aria-hidden="true" />, labelKey: 'trusted',  color: 'var(--accent-primary)', bg: 'rgba(72,115,79,0.09)' },
+  CAUTIOUS: { icon: <ShieldAlert size={14} aria-hidden="true" />, labelKey: 'caution',  color: 'var(--text-main)',      bg: 'var(--bg-hover)' },
+  NEW:      { icon: <Shield size={14} aria-hidden="true" />,      labelKey: 'newEntity', color: 'var(--text-muted)',     bg: 'var(--bg-hover)' },
 };
 
 function StarRating({ value, max = 5, size = 14 }) {
   return (
     <span className="community-int__stars" role="img" aria-label={`${value} / ${max} stars`}>
       {Array.from({ length: max }).map((_, i) => (
-        <Star key={i} size={size} aria-hidden="true" fill={i < Math.round(value) ? '#f59e0b' : 'none'} color={i < Math.round(value) ? '#f59e0b' : '#cbd5e1'} />
+        <Star key={i} size={size} aria-hidden="true" fill={i < Math.round(value) ? 'var(--accent-primary)' : 'none'} color={i < Math.round(value) ? 'var(--accent-primary)' : 'var(--border-muted)'} />
       ))}
       <span className="community-int__stars-value">{value.toFixed(1)}</span>
     </span>
@@ -96,7 +96,7 @@ function GrievanceForm({ targetName, onClose, lang }) {
   if (submitted) {
     return (
       <div className="community-int__grievance-success" role="status" aria-live="polite">
-        <ShieldCheck size={32} color="var(--ci-trend-up)" aria-hidden="true" />
+        <ShieldCheck size={32} color="var(--accent-primary)" aria-hidden="true" />
         <h5>{t('grievanceSuccessTitle', lang)}</h5>
         <p>{t('grievanceSuccessMsg', lang)}</p>
         <button type="button" className="btn-secondary" onClick={onClose} style={{ marginTop: '12px', fontSize: '0.85rem' }}>
@@ -110,7 +110,7 @@ function GrievanceForm({ targetName, onClose, lang }) {
     <form className="community-int__grievance-form" onSubmit={handleSubmit} noValidate aria-label={`${t('reportGrievance', lang)} — ${targetName}`}>
       <div className="community-int__field">
         <label className="community-int__label" htmlFor={`gi-type-${targetName}`}>
-          {t('grievanceIssueLabel', lang)} <span style={{ color: 'var(--ci-trend-down)' }}>*</span>
+          {t('grievanceIssueLabel', lang)} <span style={{ color: 'var(--text-muted)' }}>*</span>
         </label>
         <select
           id={`gi-type-${targetName}`}
@@ -127,7 +127,7 @@ function GrievanceForm({ targetName, onClose, lang }) {
 
       <div className="community-int__field">
         <label className="community-int__label" htmlFor={`gi-desc-${targetName}`}>
-          {t('grievanceDescLabel', lang)} <span style={{ color: 'var(--ci-trend-down)' }}>*</span>
+          {t('grievanceDescLabel', lang)} <span style={{ color: 'var(--text-muted)' }}>*</span>
         </label>
         <textarea
           id={`gi-desc-${targetName}`}
@@ -144,7 +144,7 @@ function GrievanceForm({ targetName, onClose, lang }) {
 
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
         <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.85rem' }}>{t('cancelBtn', lang)}</button>
-        <button type="submit" className="btn-primary" style={{ fontSize: '0.85rem', background: 'var(--ci-trend-down)' }}>
+        <button type="submit" className="btn-primary" style={{ fontSize: '0.85rem' }}>
           <Send size={13} aria-hidden="true" /> {t('grievanceSubmitBtn', lang)}
         </button>
       </div>
@@ -233,7 +233,7 @@ export default function TrustSystem({ profiles = DEMO_TRUST_PROFILES, lang = 'en
       <div className="community-int__section-header">
         <div>
           <h3 className="community-int__section-title" id="ci-trust-heading">
-            <ShieldCheck size={18} color="var(--ci-trend-up)" aria-hidden="true" />
+            <ShieldCheck size={18} color="var(--accent-primary)" aria-hidden="true" />
             {t('trustSectionTitle', lang)}
             <span className="community-int__demo-label">{t('demoLabel', lang)}</span>
           </h3>

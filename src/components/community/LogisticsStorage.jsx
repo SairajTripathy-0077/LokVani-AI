@@ -25,17 +25,17 @@ const DEMO_STORAGE = [
 ];
 
 const STATUS_KEY_MAP = { AVAILABLE: 'availableStatus', FILLING: 'fillingStatus', FULL: 'fullStatus' };
-const STATUS_COLOR   = { AVAILABLE: { color: '#15803d', bg: '#f0fdf4' }, FILLING: { color: '#b45309', bg: '#fffbeb' }, FULL: { color: '#64748b', bg: '#f1f5f9' } };
+const STATUS_COLOR   = { AVAILABLE: { color: 'var(--accent-primary)', bg: 'rgba(72,115,79,0.09)' }, FILLING: { color: 'var(--text-main)', bg: 'var(--bg-hover)' }, FULL: { color: 'var(--text-dim)', bg: 'var(--bg-hover)' } };
 
 const STORAGE_TYPE_CFG = {
-  COLD:      { labelKey: 'coldStorage',  icon: <Thermometer size={13} aria-hidden="true" />, color: '#0284c7' },
-  DRY:       { labelKey: 'dryStorage',   icon: <Package size={13} aria-hidden="true" />,     color: '#d97706' },
-  WAREHOUSE: { labelKey: 'warehouse',    icon: <Warehouse size={13} aria-hidden="true" />,   color: '#7c3aed' },
+  COLD:      { labelKey: 'coldStorage',  icon: <Thermometer size={13} aria-hidden="true" />, color: 'var(--accent-primary)' },
+  DRY:       { labelKey: 'dryStorage',   icon: <Package size={13} aria-hidden="true" />,     color: 'var(--text-muted)' },
+  WAREHOUSE: { labelKey: 'warehouse',    icon: <Warehouse size={13} aria-hidden="true" />,   color: 'var(--text-muted)' },
 };
 
 function CapacityBar({ used, total, label }) {
   const pct = Math.min(100, Math.round((used / total) * 100));
-  const bar = pct >= 80 ? '#d97706' : '#2563eb';
+  const bar = 'var(--accent-primary)';
   return (
     <div className="community-int__pool-progress">
       <div className="community-int__pool-progress__bar" role="progressbar" aria-valuenow={used} aria-valuemin={0} aria-valuemax={total} aria-label={label}>
@@ -66,7 +66,7 @@ function BookingForm({ itemName, itemType, onClose, lang }) {
   if (done) {
     return (
       <div className="community-int__grievance-success" role="status" aria-live="polite">
-        <CheckCircle size={28} color="var(--ci-trend-up)" aria-hidden="true" />
+        <CheckCircle size={28} color="var(--accent-primary)" aria-hidden="true" />
         <h5 style={{ margin: '8px 0 4px' }}>{t('bookSuccessTitle', lang)}</h5>
         <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{t('bookSuccessMsg', lang)}</p>
         <button type="button" className="btn-secondary" onClick={onClose} style={{ marginTop: '12px', fontSize: '0.85rem' }}>{t('closeBtn', lang)}</button>
@@ -134,7 +134,7 @@ function TransportCard({ item, lang }) {
         label={`${item.availableSpace}T ${t('available', lang)}`}
       />
       <div className="community-int__pool-progress__labels" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-        <span><strong style={{ color: 'var(--ci-trend-up)' }}>{item.availableSpace}T</strong> {t('available', lang)}</span>
+        <span><strong style={{ color: 'var(--accent-primary)' }}>{item.availableSpace}T</strong> {t('available', lang)}</span>
         <span>{item.totalCapacity}T {lang === 'hi' ? 'कुल' : 'total'}</span>
       </div>
 
@@ -173,7 +173,7 @@ function StorageCard({ item, lang }) {
   return (
     <article className="community-int__logistics-card" aria-label={`${lang === 'hi' ? 'भंडारण' : 'Storage'}: ${name}`}>
       <header className="community-int__logistics-card__header">
-        <div className="community-int__logistics-icon" style={{ color: type.color, background: type.color + '18' }}>
+        <div className="community-int__logistics-icon" style={{ color: type.color, background: 'rgba(72,115,79,0.09)' }}>
           {type.icon}
         </div>
         <div style={{ flex: 1 }}>
@@ -184,7 +184,7 @@ function StorageCard({ item, lang }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
           <span className="community-int__feed-badge" style={{ color: s.color, background: s.bg }}>{sLbl}</span>
-          <span className="community-int__feed-badge" style={{ color: type.color, background: type.color + '15' }}>{type.icon} {typeLbl}</span>
+          <span className="community-int__feed-badge" style={{ color: type.color, background: 'rgba(72,115,79,0.09)' }}>{type.icon} {typeLbl}</span>
         </div>
       </header>
 
@@ -194,7 +194,7 @@ function StorageCard({ item, lang }) {
         label={`${item.availableCapacity.toLocaleString('en-IN')} ${lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}`}
       />
       <div className="community-int__pool-progress__labels" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-        <span><strong style={{ color: 'var(--ci-trend-up)' }}>{item.availableCapacity.toLocaleString('en-IN')}</strong> {lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}</span>
+        <span><strong style={{ color: 'var(--accent-primary)' }}>{item.availableCapacity.toLocaleString('en-IN')}</strong> {lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}</span>
         <span>{item.totalCapacity.toLocaleString('en-IN')} {lang === 'hi' ? 'कुल' : 'total'}</span>
       </div>
 
