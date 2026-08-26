@@ -62,6 +62,10 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
     setError('');
     try {
       const res = await fetch(`/api/applications/user/${encodeURIComponent(userId)}`);
+      if (res.status === 404) {
+        setApplications([]);
+        return;
+      }
       const text = await res.text();
       let json = {};
       try {
