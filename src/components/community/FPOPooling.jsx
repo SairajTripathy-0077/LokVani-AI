@@ -93,14 +93,14 @@ const STATUS_KEY_MAP = {
 };
 
 const STATUS_COLOR = {
-  OPEN:    { color: '#15803d', bg: '#f0fdf4' },
-  FILLING: { color: '#b45309', bg: '#fffbeb' },
-  CLOSED:  { color: '#64748b', bg: '#f1f5f9' },
+  OPEN:    { color: 'var(--accent-primary)', bg: 'rgba(72,115,79,0.09)' },
+  FILLING: { color: 'var(--text-main)',      bg: 'var(--bg-hover)' },
+  CLOSED:  { color: 'var(--text-dim)',       bg: 'var(--bg-hover)' },
 };
 
 function PoolProgressBar({ filled, target, status, lang }) {
   const pct = Math.min(100, Math.round((filled / target) * 100));
-  const barColor = status === 'CLOSED' ? '#64748b' : pct >= 80 ? '#d97706' : '#2563eb';
+  const barColor = status === 'CLOSED' ? 'var(--text-dim)' : 'var(--accent-primary)';
 
   return (
     <div className="community-int__pool-progress">
@@ -116,9 +116,9 @@ function PoolProgressBar({ filled, target, status, lang }) {
       </div>
       <div className="community-int__pool-progress__labels">
         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-          <strong style={{ color: barColor }}>{filled}</strong> / {target} {lang === 'hi' ? 'क्विंटल' : 'qtl'}
+          <strong style={{ color: 'var(--accent-primary)' }}>{filled}</strong> / {target} {lang === 'hi' ? 'क्विंटल' : 'qtl'}
         </span>
-        <span style={{ color: barColor, fontWeight: 700, fontSize: '0.75rem' }}>{pct}% {t('poolFilled', lang)}</span>
+        <span style={{ color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.75rem' }}>{pct}% {t('poolFilled', lang)}</span>
       </div>
     </div>
   );
@@ -149,7 +149,7 @@ function JoinPoolForm({ pool, onJoin, onClose, lang }) {
   if (submitted) {
     return (
       <div className="community-int__grievance-success" role="status" aria-live="polite">
-        <CheckCircle size={28} color="var(--ci-trend-up)" aria-hidden="true" />
+        <CheckCircle size={28} color="var(--accent-primary)" aria-hidden="true" />
         <h5 style={{ margin: '8px 0 4px' }}>{t('joinSuccessTitle', lang)}</h5>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
           {lang === 'hi'

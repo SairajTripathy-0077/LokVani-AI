@@ -8,12 +8,14 @@
  * Commit: feat(community): add scoped community.css design tokens and base styles
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
+
 /* ─── 1. Module-scoped Design Tokens ──────────────────────────────────────── */
 :root {
-  /* Trend Colors */
+  /* Trend Colors — mono sage/zinc theme */
   --ci-trend-up:      #3d6544;   /* Sage-green — price rising  */
-  --ci-trend-down:    #b91c1c;   /* Red   — price falling */
-  --ci-trend-stable:  #a07a1e;   /* Wheat — stable */
+  --ci-trend-down:    #52525b;   /* Zinc — price falling (no red) */
+  --ci-trend-stable:  #71717a;   /* Zinc-muted — stable */
 
   /* Category Chip */
   --ci-tag-bg:        #f4f8f2;
@@ -27,10 +29,10 @@
   --ci-toast-bg:      #1c2419;
   --ci-toast-text:    #f2f4ec;
 
-  /* MSP Warning */
-  --ci-msp-bg:        #fdf6f5;
-  --ci-msp-border:    #f0cfc9;
-  --ci-msp-text:      #b91c1c;
+  /* MSP Warning — mono, no red */
+  --ci-msp-bg:        var(--bg-hover);
+  --ci-msp-border:    var(--border-muted);
+  --ci-msp-text:      var(--text-muted);
 
   /* Sale Window Banner */
   --ci-banner-bg:     linear-gradient(135deg, #f7faf4 0%, #fbf7ec 100%);
@@ -46,6 +48,18 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 20px;
+  font-family: 'Roboto', sans-serif;
+  --font-heading: 'Roboto', sans-serif;
+  --font-body: 'Roboto', sans-serif;
+}
+
+.community-int__page h1,
+.community-int__page h2,
+.community-int__page h3,
+.community-int__page h4,
+.community-int__page h5,
+.community-int__page h6 {
+  font-family: var(--font-heading);
 }
 
 /* ─── 3. Section Dividers ─────────────────────────────────────────────────── */
@@ -748,7 +762,7 @@
 
 /* Urgent feed card gets a left accent border */
 .community-int__feed-card[data-urgent="true"] {
-  border-left: 3px solid var(--ci-trend-down);
+  border-left: 3px solid var(--accent-primary);
 }
 
 .community-int__feed-card__header {
@@ -772,15 +786,12 @@
 
 .community-int__feed-urgent {
   font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--ci-trend-down);
+  font-weight: 700;
+  color: var(--text-muted);
   letter-spacing: 0.06em;
-  animation: ci-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes ci-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+  border: 1px solid var(--border-muted);
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .community-int__feed-time {
@@ -856,26 +867,27 @@
 }
 
 .community-int__feed-action-btn--active {
-  color: var(--ci-trend-up);
-  border-color: var(--ci-trend-up);
-  background: #f0fdf4;
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: rgba(72,115,79,0.09);
 }
 
 .community-int__feed-action-btn--flag:hover:not(:disabled) {
-  color: var(--ci-trend-down);
-  border-color: var(--ci-trend-down);
-  background: #fef2f2;
+  color: var(--text-main);
+  border-color: var(--border-muted);
+  background: var(--bg-hover);
 }
 
 .community-int__feed-action-btn--flagged {
-  color: var(--ci-trend-down);
-  border-color: var(--ci-trend-down);
-  background: #fef2f2;
+  color: var(--text-muted);
+  border-color: var(--border-muted);
+  background: var(--bg-hover);
 }
 
 .community-int__feed-action-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.7;
+  pointer-events: none;
+  opacity: 0.55;
 }
 
 .community-int__feed-action-btn:focus-visible {

@@ -4,26 +4,26 @@
  *
  * Changes from v1: All UI strings from t(). Category labels bilingual. Farmer-friendly
  * confirm/flag button labels. lang prop flows from CommunityIntel parent.
+ * Design update: Mono sage/zinc theme — no red/yellow/purple/blinking animations.
  */
 
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, AlertTriangle, Truck, ThumbsUp, Flag, Zap, Megaphone, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Truck, ThumbsUp, Flag, Zap, Megaphone, Clock, Wifi } from 'lucide-react';
 import { t } from './communityTranslations.js';
 
-/* ── Category Config — labels are resolved at render time from t() ────────── */
+/* ── Mono-theme Category Config ─────────────────────────────────────────── */
 const FEED_CATEGORY_KEYS = {
-  PRICE_ALERT:  { labelKey: 'feedCatPriceAlert', icon: <TrendingUp size={14} aria-hidden="true" />,   color: '#16a34a', bg: '#f0fdf4' },
-  DEMAND_SPIKE: { labelKey: 'feedCatDemand',      icon: <Zap size={14} aria-hidden="true" />,           color: '#7c3aed', bg: '#f5f3ff' },
-  PRICE_DROP:   { labelKey: 'feedCatPriceDrop',   icon: <TrendingDown size={14} aria-hidden="true" />, color: '#dc2626', bg: '#fef2f2' },
-  TRANSPORT:    { labelKey: 'feedCatTransport',   icon: <Truck size={14} aria-hidden="true" />,         color: '#0284c7', bg: '#eff6ff' },
-  WARNING:      { labelKey: 'feedCatWarning',     icon: <AlertTriangle size={14} aria-hidden="true" />, color: '#d97706', bg: '#fffbeb' },
-  ANNOUNCEMENT: { labelKey: 'feedCatAnnouncement',icon: <Megaphone size={14} aria-hidden="true" />,    color: '#475569', bg: '#f8fafc' },
+  PRICE_ALERT:  { labelKey: 'feedCatPriceAlert', icon: <TrendingUp size={14} aria-hidden="true" />,    color: 'var(--accent-primary)', bg: 'rgba(72,115,79,0.09)' },
+  DEMAND_SPIKE: { labelKey: 'feedCatDemand',      icon: <Zap size={14} aria-hidden="true" />,            color: 'var(--text-main)',      bg: 'var(--bg-hover)' },
+  PRICE_DROP:   { labelKey: 'feedCatPriceDrop',   icon: <TrendingDown size={14} aria-hidden="true" />,  color: 'var(--text-muted)',     bg: 'var(--bg-hover)' },
+  TRANSPORT:    { labelKey: 'feedCatTransport',   icon: <Truck size={14} aria-hidden="true" />,          color: 'var(--text-muted)',     bg: 'var(--bg-hover)' },
+  WARNING:      { labelKey: 'feedCatWarning',     icon: <AlertTriangle size={14} aria-hidden="true" />,  color: 'var(--text-main)',      bg: 'var(--bg-hover)' },
+  ANNOUNCEMENT: { labelKey: 'feedCatAnnouncement',icon: <Megaphone size={14} aria-hidden="true" />,     color: 'var(--text-muted)',     bg: 'var(--bg-hover)' },
 };
 
 const FEED_FILTER_KEYS = ['feedFilterAll', 'feedCatPriceAlert', 'feedCatDemand', 'feedCatTransport', 'feedCatWarning', 'feedCatAnnouncement'];
-const FEED_CATEGORY_MAP_KEYS = ['feedCatPriceAlert', 'feedCatDemand', 'feedCatPriceDrop', 'feedCatTransport', 'feedCatWarning', 'feedCatAnnouncement'];
 
-/* ── Demo Seed Data — bilingual headlines/details ─────────────────────────── */
+/* ── Demo Seed Data ───────────────────────────────────────────────────────── */
 export const DEMO_FEED_ITEMS = [
   {
     id: 'feed_001',
@@ -88,7 +88,7 @@ export const DEMO_FEED_ITEMS = [
   {
     id: 'feed_005',
     category: 'WARNING',
-    headline_hi: '⚠️ फर्जी खरीदार अलर्ट — "AgriPremium Traders" असत्यापित',
+    headline_hi: 'फर्जी खरीदार अलर्ट — "AgriPremium Traders" असत्यापित',
     headline_en: 'Fake buyer alert — "AgriPremium Traders" unverified',
     detail_hi: 'कई किसानों ने "AgriPremium Traders" द्वारा अग्रिम भुगतान घोटाले की शिकायत की है। पैसे न भेजें। किराना नोड को रिपोर्ट करें।',
     detail_en: 'Multiple farmers report advance payment scam from "AgriPremium Traders". Do not transfer money. Report to Kirana Node.',
@@ -238,7 +238,7 @@ export default function IntelFeed({ feedItems = DEMO_FEED_ITEMS, onConfirm, onFl
       <div className="community-int__feed-list" aria-live="polite">
         {filtered.length === 0 ? (
           <div className="community-int__empty" role="status">
-            <div className="community-int__empty-icon" aria-hidden="true">📡</div>
+            <Wifi size={30} strokeWidth={1.25} style={{ color: 'var(--text-dim)', marginBottom: 12 }} aria-hidden="true" />
             <h4 className="community-int__empty-title">{t('feedEmptyTitle', lang)}</h4>
             <p className="community-int__empty-sub">{t('feedEmptySub', lang)}</p>
           </div>
