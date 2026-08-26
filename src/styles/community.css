@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400..700;1,400..700&display=swap');
+
 /**
  * community.css
  * Scoped styles for the Community Market Linkage & Intelligence module.
@@ -7,8 +9,6 @@
  *
  * Commit: feat(community): add scoped community.css design tokens and base styles
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
 
 /* ─── 1. Module-scoped Design Tokens ──────────────────────────────────────── */
 :root {
@@ -44,13 +44,15 @@
 }
 
 /* ─── 2. Page Layout ──────────────────────────────────────────────────────── */
+/* Market Intel uses Roboto Condensed as its display face; Devanagari text
+   falls back to Noto Sans Devanagari from the global font stack.             */
 .community-int__page {
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 20px;
-  font-family: 'Roboto', sans-serif;
-  --font-heading: 'Roboto', sans-serif;
-  --font-body: 'Roboto', sans-serif;
+  font-family: 'Roboto Condensed', 'Noto Sans Devanagari', ui-sans-serif, sans-serif;
+  --font-heading: 'Roboto Condensed', 'Noto Sans Devanagari', ui-sans-serif, sans-serif;
+  --font-body: 'Roboto Condensed', 'Noto Sans Devanagari', ui-sans-serif, sans-serif;
 }
 
 .community-int__page h1,
@@ -135,10 +137,11 @@
 
 .community-int__stat-value {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
   font-family: var(--font-heading);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .community-int__stat-sub {
@@ -327,10 +330,11 @@
 
 .community-int__price-card__price {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--accent-cyan);
   font-family: var(--font-heading);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .community-int__price-card__unit {
@@ -345,7 +349,7 @@
   background: var(--ci-tag-bg);
   color: var(--ci-tag-text);
   border-radius: 20px;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -516,7 +520,7 @@
   background: var(--ci-buyer-badge-bg);
   color: var(--ci-buyer-badge-text);
   border-radius: 20px;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -545,6 +549,12 @@
 .community-int__buyer-offer strong {
   color: var(--ci-trend-up);
   font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Numeric alignment for the compare-prices table */
+.community-int__page table {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─── 13. Modal ───────────────────────────────────────────────────────────── */
@@ -705,14 +715,14 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 3px 8px;
   border-radius: 20px;
-  background: #fef9c3;
-  color: #854d0e;
+  background: var(--bg-hover);
+  color: var(--text-muted);
   vertical-align: middle;
 }
 
@@ -778,14 +788,14 @@
   gap: 4px;
   padding: 3px 8px;
   border-radius: 20px;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .community-int__feed-urgent {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.06em;

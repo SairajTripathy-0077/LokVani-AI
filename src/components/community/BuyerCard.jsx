@@ -44,7 +44,12 @@ export default function BuyerCard({
           <Store size={20} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <h4 className="community-int__buyer-card__name">{name}</h4>
+          <h4 className="community-int__buyer-card__name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {name}
+            <span title={badge} aria-label={badge} style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', marginTop: '2px' }}>
+              <CheckCircle size={15} aria-hidden="true" color="var(--accent-primary)" />
+            </span>
+          </h4>
           <p className="community-int__buyer-card__location">
             <MapPin size={12} aria-hidden="true" />
             {location}
@@ -56,12 +61,6 @@ export default function BuyerCard({
           </p>
         </div>
       </div>
-
-      {/* ── Verified badge ── */}
-      <span className="community-int__buyer-badge">
-        <CheckCircle size={11} aria-hidden="true" />
-        {badge}
-      </span>
 
       {/* ── Commodities accepted ── */}
       {commodities.length > 0 && (

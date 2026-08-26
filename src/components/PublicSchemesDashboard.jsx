@@ -159,6 +159,18 @@ export default function PublicSchemesDashboard() {
                 required
                 className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
               />
+=======
+        <section
+          aria-label={language === 'hi' ? 'पात्रता प्रोफाइल' : 'Eligibility profile'}
+          className="mb-8 rounded-[1.75rem] bg-white p-1.5 ring-1 ring-black/[0.06] shadow-[0_32px_80px_-40px_rgba(24,24,27,0.18)]"
+        >
+          <form onSubmit={handleSaveProfile} className="rounded-[calc(1.75rem-6px)] p-7 sm:p-9">
+            <div className="mb-8 flex items-center gap-3 border-b border-black/[0.06] pb-5">
+              <User size={16} strokeWidth={1.25} className="text-zinc-400" />
+              <h3 className="font-condensed text-lg font-semibold text-zinc-900">
+                {language === 'hi' ? 'व्यक्तिगत जानकारी' : 'Personal details'}
+              </h3>
+>>>>>>> 2d756947fb01b93879f89034c33fafa14affec36
             </div>
 
             <div>
@@ -384,25 +396,62 @@ export default function PublicSchemesDashboard() {
 
       {/* 3. TAB 1: MATCHED SCHEMES */}
       {activeTab === 'matched' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {matchedSchemes.map(scheme => (
-            <div
-              key={scheme.id}
-              className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow relative"
-            >
-              <div>
-                <div className="flex justify-between items-start mb-3 gap-2">
-                  <span className="text-xs font-extrabold uppercase text-blue-600 tracking-wider">
-                    {scheme.category}
-                  </span>
+        strictlyMatchedSchemes.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-black/[0.1] bg-white p-12 text-center">
+            <Award size={28} strokeWidth={1.25} className="text-amber-500" />
+            <h3 className="font-condensed text-base font-semibold text-zinc-900">
+              {language === 'hi' ? 'आपकी प्रोफ़ाइल के लिए कोई सटीक योजना नहीं मिली' : 'No Exact Matches for Current Profile'}
+            </h3>
+            <p className="max-w-md text-sm text-zinc-500">
+              {language === 'hi'
+                ? 'कृपया "प्रोफ़ाइल संपादन" पर जाकर अपनी सही जानकारी भरें या "सभी सार्वजनिक योजनाएं" में खोजें।'
+                : 'Try editing your profile details or browse the full catalog under "All Schemes".'}
+            </p>
+            <button onClick={() => setIsEditingProfile(true)} className="btn-primary mt-2">
+              {language === 'hi' ? 'प्रोफ़ाइल अपडेट करें' : 'Update Profile'}
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-5">
+            {strictlyMatchedSchemes.map(scheme => (
+              <article
+                key={scheme.id}
+                className="group flex flex-col rounded-3xl border border-black/[0.06] bg-white p-6 transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.1] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7"
+              >
+                <div className="flex-1">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                      {scheme.category}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#f4f8f2] px-2.5 py-0.5 text-[11px] font-semibold text-[#48734f] tabular-nums">
+                      <CheckCircle2 size={11} strokeWidth={1.5} />
+                      {scheme.matchScore}% {language === 'hi' ? 'योग्य' : 'Match'}
+                    </span>
+                  </div>
 
-                  <span className={`text-xs font-black flex items-center gap-1 ${
-                    scheme.matchScore >= 75
-                      ? 'text-emerald-600'
-                      : 'text-amber-600'
-                  }`}>
-                    <CheckCircle2 className="w-3.5 h-3.5" /> {scheme.matchScore}% Match
-                  </span>
+                  <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
+                    {language === 'hi' ? scheme.title_hi : scheme.title_en}
+                  </h3>
+
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                    <Landmark size={12} strokeWidth={1.5} />
+                    <span>{language === 'hi' ? scheme.ministry_hi : scheme.ministry_en}</span>
+                  </p>
+
+                  <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-500">
+                    {language === 'hi' ? scheme.description_hi : scheme.description_en}
+                  </p>
+
+                  {/* Financial Benefit */}
+                  <div className="mt-4 rounded-xl border border-black/[0.05] bg-zinc-50/80 p-3.5">
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      {language === 'hi' ? 'लाभ (Benefits)' : 'Benefits'}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold leading-relaxed text-zinc-800">
+                      {language === 'hi' ? scheme.benefits_hi : scheme.benefits_en}
+                    </span>
+                  </div>
+>>>>>>> 2d756947fb01b93879f89034c33fafa14affec36
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-900 mb-1 leading-snug">
@@ -477,18 +526,38 @@ export default function PublicSchemesDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAllSchemes.map(scheme => (
-              <div
-                key={scheme.id}
-                className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm"
-              >
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-extrabold uppercase text-blue-600 tracking-wider">
-                      {scheme.category}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500">{scheme.badge}</span>
+          {filteredAllSchemes.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-black/[0.1] py-20 text-center">
+              <Search size={20} strokeWidth={1.25} className="text-zinc-300" />
+              <p className="text-sm text-zinc-400">
+                {language === 'hi' ? 'कोई योजना नहीं मिली — खोज बदलकर देखें।' : 'No schemes found — try a different search or category.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-5">
+              {filteredAllSchemes.map(scheme => (
+                <article
+                  key={scheme.id}
+                  className="group flex flex-col rounded-3xl border border-black/[0.06] bg-white p-6 transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.1] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7"
+                >
+                  <div className="flex-1">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
+                        {scheme.category}
+                      </span>
+                      <span className="shrink-0 rounded-full border border-black/[0.06] bg-zinc-50 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500">
+                        {scheme.badge}
+                      </span>
+                    </div>
+
+                    <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
+                      {language === 'hi' ? scheme.title_hi : scheme.title_en}
+                    </h3>
+
+                    <p className="mt-3 text-pretty text-sm leading-relaxed text-zinc-500">
+                      {language === 'hi' ? scheme.description_hi : scheme.description_en}
+                    </p>
+>>>>>>> 2d756947fb01b93879f89034c33fafa14affec36
                   </div>
 
                   <h3 className="text-base font-bold text-slate-900 mb-2">
@@ -526,45 +595,16 @@ export default function PublicSchemesDashboard() {
           </div>
 
           <form onSubmit={handleAiAsk} className="flex flex-col sm:flex-row gap-3 mb-6">
-            <input
-              type="text"
-              placeholder={language === 'hi' ? "उदा: क्या मुझे 1.5 एकड़ जमीन के साथ PM Kisan योजना मिलेगी?" : "e.g. Am I eligible for PM-Kisan if I own 1.8 acres in UP?"}
-              value={aiQuery}
-              onChange={e => setAiQuery(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
-            />
-            <button type="submit" disabled={isAiLoading} className="btn-primary !px-6">
-              {isAiLoading ? 'Analyzing...' : 'Ask AI'}
-            </button>
-          </form>
-
-          {isAiLoading && (
-            <div className="p-6 text-center text-amber-700 font-semibold text-sm animate-pulse flex items-center justify-center gap-2">
-              <Bot className="w-4 h-4 text-amber-600 animate-spin" />
-              <span>LokVani AI is processing your profile against government scheme guidelines...</span>
-            </div>
-          )}
-
-          {aiResponse && !isAiLoading && (
-            <div className="bg-slate-50 border border-blue-200 rounded-xl p-6 leading-relaxed whitespace-pre-wrap text-sm text-slate-800">
-              <div className="font-bold text-blue-600 mb-2 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4" /> AI Advice Response:
-              </div>
-              {aiResponse}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 5. TAB 4: KIRANA TRUST NODE QUEUE */}
-      {activeTab === 'trust_node' && (
-        <div className="space-y-6">
-          <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldAlert className="w-6 h-6 text-red-400" />
-                <h3 className="font-extrabold text-lg sm:text-xl text-slate-100">
-                  {language === 'hi' ? 'किराना ट्रस्ट नोड — मानव सत्यापन कतार' : 'Kirana Trust Node — Human-in-the-Loop Review Queue'}
+        <div className="rounded-[1.75rem] bg-white p-1.5 ring-1 ring-black/[0.06] shadow-[0_32px_80px_-40px_rgba(24,24,27,0.18)]">
+          <div className="rounded-[calc(1.75rem-6px)] p-7 sm:p-9">
+            <div className="mb-7 flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/[0.07] bg-zinc-50 text-zinc-700">
+                <Bot size={18} strokeWidth={1.25} />
+              </span>
+              <div>
+                <h3 className="font-condensed text-lg font-semibold text-zinc-900">
+                  {language === 'hi' ? 'AI योजना मित्र' : 'AI Scheme Mitra'}
+>>>>>>> 2d756947fb01b93879f89034c33fafa14affec36
                 </h3>
               </div>
               <p className="text-xs text-slate-400 max-w-xl">
@@ -614,7 +654,16 @@ export default function PublicSchemesDashboard() {
         </div>
       )}
 
-      {/* 6. SCHEME DETAILS MODAL */}
+      {/* ── My Applications (tracker + grievance) ───────────── */}
+      {activeTab === 'applications' && (
+        <MyApplications
+          userName={profile.fullName}
+          userEmail={user?.email || ''}
+          onBrowseSchemes={() => setActiveTab('matched')}
+        />
+      )}
+
+      {/* ── Scheme detail modal ─────────────────────────────── */}
       {selectedScheme && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">

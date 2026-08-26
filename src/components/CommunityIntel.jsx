@@ -42,6 +42,8 @@ import { fetchLiveMandiRates } from '../services/mandiService';
 import { fetchLiveWeatherData } from '../services/realDataService';
 import { fetchBuyers }          from '../services/buyerService';
 import { fetchTransport, fetchStorage } from '../services/logisticsService';
+import { fetchLiveNews } from '../services/newsService';
+import LocationPrompt from './common/LocationPrompt.jsx';
 
 const REGIONS = ['Azamgarh', 'Gorakhpur', 'Varanasi', 'Lucknow'];
 
@@ -85,6 +87,7 @@ const INITIAL_STATE = {
   buyers:       [],
   transport:    [],
   storage:      [],
+  news:         [],
   loading:      true,
   submitting:   false,
   showModal:    false,
@@ -119,6 +122,8 @@ function reducer(state, action) {
       return { ...state, transport: action.payload };
     case 'SET_STORAGE':
       return { ...state, storage: action.payload };
+    case 'SET_NEWS':
+      return { ...state, news: action.payload };
     case 'FETCH_ERROR':
       return { ...state, loading: false };
     case 'PREPEND_ITEM':
@@ -177,12 +182,12 @@ function computeStats(intelList) {
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export default function CommunityIntel() {
-  const { liveWeather, language } = useApp();
+  const { liveWeather, language, userLocation } = useApp();
   const lang = language || 'hi'; // default hi for farmers
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const [showAllPrices, setShowAllPrices] = useState(false);
 
-  const { intelList, buyers, transport, storage, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
+  const { intelList, buyers, transport, storage, news, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
 
   const handleRegionChange = async (city) => {
     dispatch({ type: 'SET_REGION_WEATHER', region: city, weather: regionWeather });
@@ -192,26 +197,32 @@ export default function CommunityIntel() {
 
   /* ── Data Fetching ───────────────────────────────────────────────────────── */
   const fetchIntel = useCallback(async () => {
+    if (!userLocation) return;
     dispatch({ type: 'FETCH_START' });
     try {
-      const data = await fetchLiveMandiRates();
+      const data = await fetchLiveMandiRates(userLocation.state);
       dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
       console.error('Error loading intel dataset:', err);
       dispatch({ type: 'FETCH_ERROR' });
     }
-  }, []);
+  }, [userLocation]);
 
   useEffect(() => {
-    fetchIntel();
+    if (userLocation) {
+      fetchIntel();
+      
+      // Fetch buyers from buyerService
+      fetchBuyers(userLocation.state).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
 
-    // Fetch buyers from buyerService (eNAM / data.gov.in / fallback)
-    fetchBuyers().then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
-
-    // Fetch transport & storage from logisticsService
-    fetchTransport().then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
-    fetchStorage().then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
-  }, [fetchIntel]);
+      // Fetch transport & storage from logisticsService
+      fetchTransport(userLocation.state).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+      fetchStorage(userLocation.state).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
+      
+      // Fetch news
+      fetchLiveNews(userLocation.state, userLocation.district).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
+    }
+  }, [fetchIntel, userLocation]);
 
   /* ── Form Submission ─────────────────────────────────────────────────────── */
   const handleSubmit = useCallback(async (formData) => {
@@ -270,237 +281,243 @@ export default function CommunityIntel() {
     // UX Change: aria-label updated to use plain language for screen readers
     <main className="community-int__page" aria-label={lang === 'hi' ? 'सामुदायिक मंडी जानकारी' : 'Local Farming Updates'}>
 
-      {/* ── SECTION 1 — Page Header + Stats ── */}
-      <section className="community-int__section" aria-labelledby="ci-page-heading">
-        <div className="community-int__section-header">
-          <div>
-            <p className="community-int__eyebrow">
-              <Globe size={13} aria-hidden="true" />
-              {t('pageEyebrow', lang)}
-            </p>
-            <h2 id="ci-page-heading" style={{ fontSize: '1.6rem', color: 'var(--text-main)', margin: '4px 0' }}>
-              {t('pageTitle', lang)}
-            </h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '560px', marginTop: '4px', lineHeight: 1.55 }}>
-              {t('pageSubtitle', lang)}
-            </p>
-          </div>
+      {/* ── LOCATION ENGINE ── */}
+      {!userLocation && <LocationPrompt />}
 
-          <button
-            onClick={() => dispatch({ type: 'OPEN_MODAL' })}
-            className="btn-primary"
-            style={{ padding: '9px 18px', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
-            aria-label={t('reportBtn', lang)}
-          >
-            <PlusCircle size={16} aria-hidden="true" />
-            {t('reportBtn', lang)}
-          </button>
-        </div>
+      {userLocation && (
+        <React.Fragment>
+          {/* ── SECTION 1 — Page Header + Stats ── */}
+          <section className="community-int__section" aria-labelledby="ci-page-heading">
+            <div className="community-int__section-header">
+              <div>
+                <p className="community-int__eyebrow">
+                  <Globe size={13} aria-hidden="true" />
+                  {t('pageEyebrow', lang)}
+                </p>
+                <h2 id="ci-page-heading" style={{ fontSize: '1.6rem', color: 'var(--text-main)', margin: '4px 0' }}>
+                  {t('pageTitle', lang)}
+                </h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '560px', marginTop: '4px', lineHeight: 1.55 }}>
+                  {t('pageSubtitle', lang)}
+                </p>
+              </div>
 
-        {/* Stats row — shows quick totals at a glance */}
-        <div className="community-int__stats-row" role="list" aria-label={lang === 'hi' ? 'बाज़ार सारांश' : 'Quick stats'}>
-          <div className="community-int__stat-card" role="listitem">
-            <p className="community-int__stat-label">{t('statTotalLabel', lang)}</p>
-            <p className="community-int__stat-value">{stats.total}</p>
-            <p className="community-int__stat-sub">{t('statTotalSub', lang)}</p>
-          </div>
-          <div className="community-int__stat-card" role="listitem">
-            <p className="community-int__stat-label">{t('statTopLabel', lang)}</p>
-            <p className="community-int__stat-value" style={{ fontSize: '1.1rem', paddingTop: '4px' }}>{stats.topCommodity}</p>
-            <p className="community-int__stat-sub">{t('statTopSub', lang)}</p>
-          </div>
-          <div className="community-int__stat-card" role="listitem">
-            <p className="community-int__stat-label">{t('statAvgLabel', lang)}</p>
-            <p className="community-int__stat-value" style={{ fontSize: '1.2rem', paddingTop: '2px' }}>{stats.avgPriceKg}</p>
-            <p className="community-int__stat-sub">{t('statAvgSub', lang)}</p>
-          </div>
-          <div className="community-int__stat-card" role="listitem">
-            <p className="community-int__stat-label">{t('statBuyersLabel', lang)}</p>
-            <p className="community-int__stat-value">{buyers.length || '—'}</p>
-            <p className="community-int__stat-sub">{t('statBuyersSub', lang)}</p>
-          </div>
-        </div>
-      </section>
+              <button
+                onClick={() => dispatch({ type: 'OPEN_MODAL' })}
+                className="btn-primary"
+                style={{ padding: '9px 18px', fontSize: '0.9rem', whiteSpace: 'nowrap' }}
+                aria-label={t('reportBtn', lang)}
+              >
+                <PlusCircle size={16} aria-hidden="true" />
+                {t('reportBtn', lang)}
+              </button>
+            </div>
 
-      {/* ────────────────────────────────────────────────────────────────────
-          SECTION 2 — Price Intelligence Board
-          ──────────────────────────────────────────────────────────────────── */}
-      <section className="community-int__section" aria-labelledby="ci-prices-heading">
-        <div className="community-int__section-header">
-          <h3 className="community-int__section-title" id="ci-prices-heading">
-            <TrendingUp size={18} color="var(--accent-cyan)" aria-hidden="true" />
-            {t('pricesSectionTitle', lang)}
-            {!loading && (
-              <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-dim)' }}>
-                ({filteredList.length} / {intelList.length})
-              </span>
+            {/* Stats row — shows quick totals at a glance */}
+            <div className="community-int__stats-row" role="list" aria-label={lang === 'hi' ? 'बाज़ार सारांश' : 'Quick stats'}>
+              <div className="community-int__stat-card" role="listitem">
+                <p className="community-int__stat-label">{t('statTotalLabel', lang)}</p>
+                <p className="community-int__stat-value">{stats.total}</p>
+                <p className="community-int__stat-sub">{t('statTotalSub', lang)}</p>
+              </div>
+              <div className="community-int__stat-card" role="listitem">
+                <p className="community-int__stat-label">{t('statTopLabel', lang)}</p>
+                <p className="community-int__stat-value" style={{ fontSize: '1.1rem', paddingTop: '4px' }}>{stats.topCommodity}</p>
+                <p className="community-int__stat-sub">{t('statTopSub', lang)}</p>
+              </div>
+              <div className="community-int__stat-card" role="listitem">
+                <p className="community-int__stat-label">{t('statAvgLabel', lang)}</p>
+                <p className="community-int__stat-value" style={{ fontSize: '1.2rem', paddingTop: '2px' }}>{stats.avgPriceKg}</p>
+                <p className="community-int__stat-sub">{t('statAvgSub', lang)}</p>
+              </div>
+              <div className="community-int__stat-card" role="listitem">
+                <p className="community-int__stat-label">{t('statBuyersLabel', lang)}</p>
+                <p className="community-int__stat-value">{buyers.length || '—'}</p>
+                <p className="community-int__stat-sub">{t('statBuyersSub', lang)}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ────────────────────────────────────────────────────────────────────
+              SECTION 2 — Price Intelligence Board
+              ──────────────────────────────────────────────────────────────────── */}
+          <section className="community-int__section" aria-labelledby="ci-prices-heading">
+            <div className="community-int__section-header">
+              <h3 className="community-int__section-title" id="ci-prices-heading">
+                <TrendingUp size={18} color="var(--accent-cyan)" aria-hidden="true" />
+                {t('pricesSectionTitle', lang)}
+                {!loading && (
+                  <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-dim)' }}>
+                    ({filteredList.length} / {intelList.length})
+                  </span>
+                )}
+              </h3>
+              <button onClick={fetchIntel} className="btn-secondary"
+                style={{ padding: '5px 10px', fontSize: '0.78rem' }}
+                aria-label={t('refreshBtn', lang)} disabled={loading}>
+                <RefreshCw size={13} aria-hidden="true" /> {t('refreshBtn', lang)}
+              </button>
+            </div>
+
+            {/* Sale Window Advisory Banner */}
+            {!loading && intelList.length > 0 && (
+              <SaleWindowBanner intelList={intelList} />
             )}
-          </h3>
-          <button onClick={fetchIntel} className="btn-secondary"
-            style={{ padding: '5px 10px', fontSize: '0.78rem' }}
-            aria-label={t('refreshBtn', lang)} disabled={loading}>
-            <RefreshCw size={13} aria-hidden="true" /> {t('refreshBtn', lang)}
-          </button>
-        </div>
 
-        {/* Sale Window Advisory Banner */}
-        {!loading && intelList.length > 0 && (
-          <SaleWindowBanner intelList={intelList} />
-        )}
+            {/* ── Search + Category Filter Controls */}
+            <div className="community-int__controls" role="search" aria-label={t('searchAriaLabel', lang)}>
+              <div className="community-int__search-wrap">
+                <Search size={15} className="community-int__search-icon" aria-hidden="true" />
+                <input type="search" id="ci-search" className="community-int__search-input"
+                  placeholder={t('searchPlaceholder', lang)}
+                  value={searchQuery}
+                  onChange={e => dispatch({ type: 'SET_SEARCH', payload: e.target.value })}
+                  aria-label={t('searchAriaLabel', lang)}
+                />
+              </div>
+              {/* UX Change: Filter pills use translated labels — no hardcoded English */}
+              <ul className="community-int__filter-pills" role="group" aria-label={lang === 'hi' ? 'श्रेणी से फ़िल्टर करें' : 'Filter by crop type'}>
+                {CATEGORIES_CONFIG.map(cat => (
+                  <li key={cat.key}>
+                    <button type="button"
+                      className={`community-int__pill ${activeCategory === cat.key ? 'community-int__pill--active' : ''}`}
+                      onClick={() => dispatch({ type: 'SET_CATEGORY', payload: cat.key })}
+                      aria-pressed={activeCategory === cat.key}>
+                      {lang === 'hi' ? cat.hi : cat.en}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-        {/* ── Search + Category Filter Controls */}
-        <div className="community-int__controls" role="search" aria-label={t('searchAriaLabel', lang)}>
-          <div className="community-int__search-wrap">
-            <Search size={15} className="community-int__search-icon" aria-hidden="true" />
-            <input type="search" id="ci-search" className="community-int__search-input"
-              placeholder={t('searchPlaceholder', lang)}
-              value={searchQuery}
-              onChange={e => dispatch({ type: 'SET_SEARCH', payload: e.target.value })}
-              aria-label={t('searchAriaLabel', lang)}
-            />
-          </div>
-          {/* UX Change: Filter pills use translated labels — no hardcoded English */}
-          <ul className="community-int__filter-pills" role="group" aria-label={lang === 'hi' ? 'श्रेणी से फ़िल्टर करें' : 'Filter by crop type'}>
-            {CATEGORIES_CONFIG.map(cat => (
-              <li key={cat.key}>
-                <button type="button"
-                  className={`community-int__pill ${activeCategory === cat.key ? 'community-int__pill--active' : ''}`}
-                  onClick={() => dispatch({ type: 'SET_CATEGORY', payload: cat.key })}
-                  aria-pressed={activeCategory === cat.key}>
-                  {lang === 'hi' ? cat.hi : cat.en}
+            {/* Grid — Skeleton | PriceCards | Empty State */}
+            <div className="community-int__grid" aria-busy={loading} aria-live="polite" aria-label={t('pricesSectionTitle', lang)}>
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`sk-${i}`} />)
+              ) : filteredList.length > 0 ? (
+                (showAllPrices ? filteredList : filteredList.slice(0, 6)).map(ci => (
+                  <PriceCard key={ci._id || ci.id}
+                    item={ci.item} price={ci.price} unit={ci.unit}
+                    location={ci.location} trend={ci.trend}
+                    reportedBy={ci.reportedBy} category={ci.category}
+                    createdAt={ci.createdAt} lang={lang}
+                  />
+                ))
+              ) : (
+                <div className="community-int__empty" role="status">
+                  <Inbox size={30} strokeWidth={1.25} style={{ color: 'var(--text-dim)', marginBottom: 12 }} aria-hidden="true" />
+                  <h4 className="community-int__empty-title">{t('emptyTitle', lang)}</h4>
+                  <p className="community-int__empty-sub">
+                    {searchQuery || activeCategory !== 'All'
+                      ? t('emptySubFilter', lang)
+                      : t('emptySubDefault', lang)}
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {!loading && filteredList.length > 6 && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                <button
+                  onClick={() => setShowAllPrices(!showAllPrices)}
+                  className="btn-secondary"
+                  style={{ fontSize: '0.9rem', padding: '8px 24px' }}
+                >
+                  {showAllPrices ? (lang === 'hi' ? 'कम दिखाएं' : 'Show Less') : (lang === 'hi' ? 'और देखें' : 'See More')}
                 </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+              </div>
+            )}
+          </section>
 
-        {/* Grid — Skeleton | PriceCards | Empty State */}
-        <div className="community-int__grid" aria-busy={loading} aria-live="polite" aria-label={t('pricesSectionTitle', lang)}>
-          {loading ? (
-            Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`sk-${i}`} />)
-          ) : filteredList.length > 0 ? (
-            (showAllPrices ? filteredList : filteredList.slice(0, 6)).map(ci => (
-              <PriceCard key={ci._id || ci.id}
-                item={ci.item} price={ci.price} unit={ci.unit}
-                location={ci.location} trend={ci.trend}
-                reportedBy={ci.reportedBy} category={ci.category}
-                createdAt={ci.createdAt} lang={lang}
-              />
-            ))
-          ) : (
-            <div className="community-int__empty" role="status">
-              <Inbox size={30} strokeWidth={1.25} style={{ color: 'var(--text-dim)', marginBottom: 12 }} aria-hidden="true" />
-              <h4 className="community-int__empty-title">{t('emptyTitle', lang)}</h4>
-              <p className="community-int__empty-sub">
-                {searchQuery || activeCategory !== 'All'
-                  ? t('emptySubFilter', lang)
-                  : t('emptySubDefault', lang)}
+          {/* ────────────────────────────────────────────────────────────────────
+              SECTION 3 — Verified Buyer Network
+              ──────────────────────────────────────────────────────────────────── */}
+          <section className="community-int__section" aria-labelledby="ci-buyers-heading">
+            <div className="community-int__section-header">
+              <div>
+                <h3 className="community-int__section-title" id="ci-buyers-heading">
+                  <Users size={18} color="var(--accent-primary)" aria-hidden="true" />
+                  {t('buyersSectionTitle', lang)}
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
+                  {t('buyersSectionSub', lang)}
+                </p>
+              </div>
+            </div>
+            <div className="community-int__buyer-grid">
+              {(buyers.length > 0 ? buyers : []).map((buyer, i) => (
+                <BuyerCard key={buyer.id || `b_${i}`} {...buyer} lang={lang} />
+              ))}
+              {buyers.length === 0 && (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', gridColumn: '1/-1', padding: '16px 0' }}>
+                  {lang === 'hi' ? 'खरीदार लोड हो रहे हैं…' : 'Loading buyers…'}
+                </p>
+              )}
+            </div>
+          </section>
+
+          {/* ────────────────────────────────────────────────────────────────────
+              SECTION 4 — Compare Prices Across Markets
+              UX Change: Section title now uses t() so it respects language setting
+              ──────────────────────────────────────────────────────────────────── */}
+          {!loading && intelList.length > 1 && (
+            <section className="community-int__section" aria-labelledby="ci-compare-heading">
+              <div className="community-int__section-header">
+                <h3 className="community-int__section-title" id="ci-compare-heading">
+                  <BarChart2 size={18} color="var(--accent-gold)" aria-hidden="true" />
+                  {t('compareSectionTitle', lang)}
+                </h3>
+              </div>
+
+              {/* Compare min / avg / max prices per crop across mandis */}
+              <ComparisonTable intelList={intelList} lang={lang} />
+            </section>
+          )}
+
+          {/* ────────────────────────────────────────────────────────────────────
+              SECTION 5 — Real-Time Intel Feed
+              ──────────────────────────────────────────────────────────────────── */}
+          <IntelFeed lang={lang} feedItems={news.length > 0 ? news : undefined} />
+
+          {/* ── SECTION 6 — FPO Pooling ── */}
+          <FPOPooling lang={lang} />
+
+          {/* ── SECTION 7 — Logistics ── */}
+          <LogisticsStorage lang={lang} transportItems={transport.length > 0 ? transport : undefined} storageItems={storage.length > 0 ? storage : undefined} />
+
+          {/* ── SECTION 8 — Trust System ── */}
+          <TrustSystem lang={lang} />
+
+          {/* ────────────────────────────────────────────────────────────────────
+              SECTION 9 — Live Regional Weather
+              UX Change: Section title uses t() to hide API name from farmers
+              ──────────────────────────────────────────────────────────────────── */}
+          <section className="community-int__section" aria-labelledby="ci-weather-heading">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', gap: '8px' }}>
+              <h3 className="community-int__section-title" id="ci-weather-heading" style={{ marginBottom: 0 }}>
+                <CloudSun size={18} color="var(--accent-gold)" aria-hidden="true" />
+                {t('weatherTitle', lang)}
+              </h3>
+              {/* UX Change: Region selector pills labelled clearly for screen readers */}
+              <div style={{ display: 'flex', gap: '4px' }} role="group" aria-label={lang === 'hi' ? 'अपना क्षेत्र चुनें' : 'Choose your area'}>
+                {REGIONS.map(reg => (
+                  <button type="button" key={reg} onClick={() => handleRegionChange(reg)}
+                    className={`community-int__pill ${selectedRegion === reg ? 'community-int__pill--active' : ''}`}
+                    style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '4px' }}
+                    aria-pressed={selectedRegion === reg}>
+                    {reg}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="community-int__weather-box">
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                {regionWeather ? regionWeather.advisory_en : (liveWeather ? liveWeather.advisory_en : t('weatherDefault', lang))}
               </p>
             </div>
-          )}
-        </div>
-        
-        {!loading && filteredList.length > 6 && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-            <button
-              onClick={() => setShowAllPrices(!showAllPrices)}
-              className="btn-secondary"
-              style={{ fontSize: '0.9rem', padding: '8px 24px' }}
-            >
-              {showAllPrices ? (lang === 'hi' ? 'कम दिखाएं' : 'Show Less') : (lang === 'hi' ? 'और देखें' : 'See More')}
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* ────────────────────────────────────────────────────────────────────
-          SECTION 3 — Verified Buyer Network
-          ──────────────────────────────────────────────────────────────────── */}
-      <section className="community-int__section" aria-labelledby="ci-buyers-heading">
-        <div className="community-int__section-header">
-          <div>
-            <h3 className="community-int__section-title" id="ci-buyers-heading">
-              <Users size={18} color="var(--accent-primary)" aria-hidden="true" />
-              {t('buyersSectionTitle', lang)}
-              <span className="community-int__demo-label" aria-label={t('demoLabel', lang)}>{t('demoLabel', lang)}</span>
-            </h3>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
-              {t('buyersSectionSub', lang)}
-            </p>
-          </div>
-        </div>
-        <div className="community-int__buyer-grid">
-          {(buyers.length > 0 ? buyers : []).map((buyer, i) => (
-            <BuyerCard key={buyer.id || `b_${i}`} {...buyer} lang={lang} />
-          ))}
-          {buyers.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', gridColumn: '1/-1', padding: '16px 0' }}>
-              {lang === 'hi' ? 'खरीदार लोड हो रहे हैं…' : 'Loading buyers…'}
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ────────────────────────────────────────────────────────────────────
-          SECTION 4 — Compare Prices Across Markets
-          UX Change: Section title now uses t() so it respects language setting
-          ──────────────────────────────────────────────────────────────────── */}
-      {!loading && intelList.length > 1 && (
-        <section className="community-int__section" aria-labelledby="ci-compare-heading">
-          <div className="community-int__section-header">
-            <h3 className="community-int__section-title" id="ci-compare-heading">
-              <BarChart2 size={18} color="var(--accent-gold)" aria-hidden="true" />
-              {t('compareSectionTitle', lang)}
-            </h3>
-          </div>
-
-          {/* Compare min / avg / max prices per crop across mandis */}
-          <ComparisonTable intelList={intelList} lang={lang} />
-        </section>
+          </section>
+        </React.Fragment>
       )}
-
-      {/* ────────────────────────────────────────────────────────────────────
-          SECTION 5 — Real-Time Intel Feed
-          ──────────────────────────────────────────────────────────────────── */}
-      <IntelFeed lang={lang} />
-
-      {/* ── SECTION 6 — FPO Pooling ── */}
-      <FPOPooling lang={lang} />
-
-      {/* ── SECTION 7 — Logistics ── */}
-      <LogisticsStorage lang={lang} transportItems={transport.length > 0 ? transport : undefined} storageItems={storage.length > 0 ? storage : undefined} />
-
-      {/* ── SECTION 8 — Trust System ── */}
-      <TrustSystem lang={lang} />
-
-      {/* ────────────────────────────────────────────────────────────────────
-          SECTION 9 — Live Regional Weather
-          UX Change: Section title uses t() to hide API name from farmers
-          ──────────────────────────────────────────────────────────────────── */}
-      <section className="community-int__section" aria-labelledby="ci-weather-heading">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', marginBottom: '14px', gap: '8px' }}>
-          <h3 className="community-int__section-title" id="ci-weather-heading" style={{ marginBottom: 0 }}>
-            <CloudSun size={18} color="var(--accent-gold)" aria-hidden="true" />
-            {t('weatherTitle', lang)}
-          </h3>
-          {/* UX Change: Region selector pills labelled clearly for screen readers */}
-          <div style={{ display: 'flex', gap: '4px' }} role="group" aria-label={lang === 'hi' ? 'अपना क्षेत्र चुनें' : 'Choose your area'}>
-            {REGIONS.map(reg => (
-              <button type="button" key={reg} onClick={() => handleRegionChange(reg)}
-                className={`community-int__pill ${selectedRegion === reg ? 'community-int__pill--active' : ''}`}
-                style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '4px' }}
-                aria-pressed={selectedRegion === reg}>
-                {reg}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="community-int__weather-box">
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            {regionWeather ? regionWeather.advisory_en : (liveWeather ? liveWeather.advisory_en : t('weatherDefault', lang))}
-          </p>
-        </div>
-      </section>
 
       {/* ────────────────────────────────────────────────────────────────────
           MODALS & OVERLAYS

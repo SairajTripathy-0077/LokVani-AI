@@ -26,6 +26,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Megaphone, X, Send, AlertCircle } from 'lucide-react';
+import { t } from './communityTranslations.js';
 
 /* ── Initial Form State ───────────────────────────────────────────────────── */
 const INITIAL_FORM = {
@@ -45,21 +46,20 @@ const INITIAL_ERRORS = {
 };
 
 /* ── Validation ──────────────────────────────────────────────────────────── */
-function validate(form) {
+function validate(form, lang) {
   const errors = { item: '', price: '', location: '' };
   let isValid = true;
 
-  // UX Change: Validation messages are plain — "Crop name is required" instead of "Commodity name"
   if (!form.item.trim()) {
-    errors.item = 'Please enter the crop name.';
+    errors.item = t('errorCropRequired', lang);
     isValid = false;
   }
   if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) {
-    errors.price = 'Please enter the price (must be more than 0).';
+    errors.price = t('errorPriceInvalid', lang);
     isValid = false;
   }
   if (!form.location.trim()) {
-    errors.location = 'Please enter the market or location name.';
+    errors.location = t('errorLocationRequired', lang);
     isValid = false;
   }
 
@@ -103,7 +103,7 @@ function useFocusTrap(isOpen, containerRef) {
   }, [isOpen, containerRef]);
 }
 
-export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitting = false }) {
+export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitting = false, lang = 'en' }) {
   const [form, setForm]     = useState(INITIAL_FORM);
   const [errors, setErrors] = useState(INITIAL_ERRORS);
   const containerRef        = useRef(null);
@@ -150,7 +150,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
   /* ── Submit handler ── */
   function handleSubmit(e) {
     e.preventDefault();
-    const { errors: newErrors, isValid } = validate(form);
+    const { errors: newErrors, isValid } = validate(form, lang);
     setErrors(newErrors);
     if (!isValid) return;
 
@@ -186,40 +186,35 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
       >
         {/* ── Modal Header ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-          {/* UX Change: Title changed from "Submit Mandi Price Report" → "Share Today's Crop Price" */}
           <h2 className="community-int__modal-title" id="modal-title">
             <Megaphone size={18} color="var(--accent-cyan)" aria-hidden="true" />
-            Share Today's Crop Price
+            {t('modalTitle', lang)}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={lang === 'hi' ? 'बंद करें' : 'Close'}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', padding: '2px' }}
           >
             <X size={20} />
           </button>
         </div>
-        {/* UX Change: Subtitle shortened to one friendly sentence — no jargon */}
         <p id="modal-desc" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '20px', marginTop: '-10px' }}>
-          Help other farmers by sharing what price you saw today.
-          Fields marked <span aria-hidden="true" style={{ color: 'var(--ci-trend-down)' }}>*</span> are required.
+          {t('modalSubtitle', lang)}
         </p>
 
         <form onSubmit={handleSubmit} noValidate>
           {/* ── Crop Name ── */}
-          {/* UX Change: Label changed from "Crop / Commodity Name" → conversational "What crop did you sell?" */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-item">
-              What crop did you sell?
-              <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
+              {t('cropNameLabel', lang)}
             </label>
             <input
               id="modal-item"
               name="item"
               type="text"
               className={`community-int__input ${errors.item ? 'community-int__input--error' : ''}`}
-              placeholder="e.g. Tomato, Onion, Wheat"
+              placeholder={t('cropNamePlaceholder', lang)}
               value={form.item}
               onChange={handleChange}
               aria-required="true"
@@ -235,9 +230,8 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
           </div>
 
           {/* ── Type of Crop ── */}
-          {/* UX Change: Label changed from "Category" → "Type of Crop" (plain English) */}
           <div className="community-int__field">
-            <label className="community-int__label" htmlFor="modal-category">Type of Crop</label>
+            <label className="community-int__label" htmlFor="modal-category">{t('categoryLabel', lang)}</label>
             <select
               id="modal-category"
               name="category"
@@ -245,25 +239,23 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               value={form.category}
               onChange={handleChange}
             >
-              <option value="">Choose a type</option>
-              <option value="Vegetable">Vegetable</option>
-              <option value="Grain">Grain / Cereal</option>
-              <option value="Pulse">Pulse / Dal</option>
-              <option value="Spice">Spice</option>
-              <option value="Fruit">Fruit</option>
-              <option value="Oilseed">Oilseed</option>
-              <option value="Other">Other</option>
+              <option value="">{t('categoryDefault', lang)}</option>
+              <option value="Vegetable">{t('filterVegetable', lang)}</option>
+              <option value="Grain">{t('filterGrain', lang)}</option>
+              <option value="Pulse">{t('filterPulse', lang)}</option>
+              <option value="Spice">{t('filterSpice', lang)}</option>
+              <option value="Fruit">{t('filterFruit', lang)}</option>
+              <option value="Oilseed">{t('filterOilseed', lang)}</option>
+              <option value="Other">{t('filterOther', lang)}</option>
             </select>
           </div>
 
           {/* ── Price + Unit (side by side) ── */}
-          {/* UX Change: "Price (₹)" → "Price you got (₹)", "Unit" → "Sold per" */}
           <div className="community-int__field">
             <div className="community-int__input-grid" style={{ gridTemplateColumns: '2fr 1fr' }}>
               <div>
                 <label className="community-int__label" htmlFor="modal-price">
-                  Price you got (₹)
-                  <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
+                  {t('priceLabel', lang)}
                 </label>
                 <input
                   id="modal-price"
@@ -272,7 +264,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
                   min="1"
                   step="0.5"
                   className={`community-int__input ${errors.price ? 'community-int__input--error' : ''}`}
-                  placeholder="e.g. 28"
+                  placeholder={lang === 'hi' ? 'जैसे: 28' : 'e.g. 28'}
                   value={form.price}
                   onChange={handleChange}
                   aria-required="true"
@@ -286,7 +278,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
                 )}
               </div>
               <div>
-                <label className="community-int__label" htmlFor="modal-unit">Sold per</label>
+                <label className="community-int__label" htmlFor="modal-unit">{t('unitLabel', lang)}</label>
                 <select
                   id="modal-unit"
                   name="unit"
@@ -295,16 +287,15 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
                   onChange={handleChange}
                 >
                   <option value="kg">kg</option>
-                  <option value="quintal">quintal</option>
+                  <option value="quintal">{lang === 'hi' ? 'क्विंटल' : 'quintal'}</option>
                 </select>
               </div>
             </div>
           </div>
 
           {/* ── Crop Condition (Quality Grade) ── */}
-          {/* UX Change: "Quality Grade" → "Crop Condition"; removed export/import jargon from options */}
           <div className="community-int__field">
-            <label className="community-int__label" htmlFor="modal-grade">Crop Condition</label>
+            <label className="community-int__label" htmlFor="modal-grade">{t('gradeLabel', lang)}</label>
             <select
               id="modal-grade"
               name="qualityGrade"
@@ -312,25 +303,23 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               value={form.qualityGrade}
               onChange={handleChange}
             >
-              <option value="A">Grade A — Very good quality</option>
-              <option value="B">Grade B — Normal quality</option>
-              <option value="C">Grade C — Below normal / home use</option>
+              <option value="A">{t('gradeA', lang)}</option>
+              <option value="B">{t('gradeB', lang)}</option>
+              <option value="C">{t('gradeC', lang)}</option>
             </select>
           </div>
 
           {/* ── Location (Market / Mandi) ── */}
-          {/* UX Change: "Mandi / Location" → question form "Where did you sell?" */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-location">
-              Where did you sell?
-              <span aria-label="required" style={{ color: 'var(--ci-trend-down)', marginLeft: '2px' }}>*</span>
+              {t('mandiLabel', lang)}
             </label>
             <input
               id="modal-location"
               name="location"
               type="text"
               className={`community-int__input ${errors.location ? 'community-int__input--error' : ''}`}
-              placeholder="e.g. Azamgarh Market, Varanasi"
+              placeholder={t('mandiPlaceholder', lang)}
               value={form.location}
               onChange={handleChange}
               aria-required="true"
@@ -347,15 +336,14 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
           {/* ── Your Name (optional) ── */}
           <div className="community-int__field">
             <label className="community-int__label" htmlFor="modal-reporter">
-              Your Name <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>(optional)</span>
+              {t('reporterLabel', lang)}
             </label>
-            {/* UX Change: Removed "(Farmer)" tag from placeholder — redundant for a farmer app */}
             <input
               id="modal-reporter"
               name="reporter"
               type="text"
               className="community-int__input"
-              placeholder="e.g. Ramesh Kumar"
+              placeholder={t('reporterPlaceholder', lang)}
               value={form.reporter}
               onChange={handleChange}
               autoComplete="name"
@@ -363,7 +351,6 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
           </div>
 
           {/* ── Form Actions ── */}
-          {/* UX Change: "Cancel" kept plain; submit button text changed to "Share Information" */}
           <div className="community-int__modal-actions">
             <button
               type="button"
@@ -371,7 +358,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               className="btn-secondary"
               disabled={isSubmitting}
             >
-              Cancel
+              {t('cancelBtn', lang)}
             </button>
             <button
               type="submit"
@@ -382,11 +369,11 @@ export default function SubmitReportModal({ isOpen, onClose, onSubmit, isSubmitt
               {isSubmitting ? (
                 <>
                   <span aria-hidden="true" style={{ display: 'inline-block', width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'ci-spin 0.6s linear infinite' }} />
-                  Sharing…
+                  {t('savingBtn', lang)}
                 </>
               ) : (
                 <>
-                  <Send size={14} aria-hidden="true" /> Share Information
+                  <Send size={14} aria-hidden="true" /> {t('saveReportBtn', lang)}
                 </>
               )}
             </button>
