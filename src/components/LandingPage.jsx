@@ -4,40 +4,45 @@ import { useAuth } from '../context/AuthContext';
 import { Mic, Landmark, Users, ArrowRight } from 'lucide-react';
 import Reveal from './Reveal';
 
-/* ── Parallax (rAF-throttled, transform-only, reduced-motion safe) ── */
+/* ── Parallax — one shared rAF loop, damped lerp toward target ──
+   Soft-chases its target instead of snapping to scroll, so layers
+   feel weighty rather than mechanically glued to the scrollbar.   */
+const _pxItems = new Set();
+let _pxRaf = null;
+
+function _pxTick() {
+  const vh = window.innerHeight || 800;
+  _pxItems.forEach((item) => {
+    if (!item.outer.isConnected) return;
+    const r = item.outer.getBoundingClientRect();
+    if (r.bottom < -300 || r.top > vh + 300) return; // off-screen: rest
+    const target = (r.top + r.height / 2 - vh / 2) * item.speed;
+    item.current += (target - item.current) * 0.08; // ease toward target
+    if (Math.abs(target - item.current) < 0.1) item.current = target;
+    item.inner.style.transform = `translate3d(0, ${item.current.toFixed(2)}px, 0)`;
+  });
+  _pxRaf = requestAnimationFrame(_pxTick);
+}
+
 function Parallax({ speed = 0.1, className = '', innerClassName = '', children }) {
   const outer = useRef(null);
   const inner = useRef(null);
 
   useEffect(() => {
-    const el = outer.current;
-    const target = inner.current;
-    if (!el || !target) return;
+    if (!outer.current || !inner.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
+    const item = { outer: outer.current, inner: inner.current, speed, current: 0 };
+    _pxItems.add(item);
+    if (!_pxRaf) _pxRaf = requestAnimationFrame(_pxTick);
 
-    let ticking = false;
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        const vh = window.innerHeight || 800;
-        if (rect.bottom >= 0 && rect.top <= vh) {
-          const centerOffset = rect.top + rect.height / 2 - vh / 2;
-          const translateY = centerOffset * speed;
-          target.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
-        }
-        ticking = false;
-      });
+    return () => {
+      _pxItems.delete(item);
+      if (_pxItems.size === 0 && _pxRaf) {
+        cancelAnimationFrame(_pxRaf);
+        _pxRaf = null;
+      }
     };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
   }, [speed]);
 
   return (
@@ -102,25 +107,17 @@ function Contours({ className = '' }) {
 /* ── Terraced Ridge Bands — dissolution gradients top & bottom ── */
 function RidgeBand({ layers }) {
   return (
-    <div className="relative w-full overflow-hidden py-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-[#fbfbfa] to-transparent"
-      />
+    <div className="relative w-full overflow-hidden">
       <svg
         viewBox="0 0 1440 220"
         fill="none"
         preserveAspectRatio="none"
-        className="block h-28 w-full sm:h-36 lg:h-44"
+        className="block h-24 w-full sm:h-32 lg:h-40"
       >
         {layers.map((l, i) => (
           <path key={i} d={l.d} fill={l.fill} opacity={l.opacity} />
         ))}
       </svg>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-[#fbfbfa] to-transparent"
-      />
     </div>
   );
 }
@@ -492,15 +489,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ First ridges — far & near, dissolving both ways ═══ */}
+      {/* ══ First ridges — static composition, perfectly aligned ══ */}
       <div aria-hidden className="relative -my-10">
-        <Parallax speed={0.04}>
-          <RidgeBand layers={RIDGE_FAR} />
-        </Parallax>
+        <RidgeBand layers={RIDGE_FAR} />
         <div className="-mt-24">
-          <Parallax speed={0.09}>
-            <RidgeBand layers={RIDGE_MID} />
-          </Parallax>
+          <RidgeBand layers={RIDGE_MID} />
         </div>
       </div>
 
@@ -571,11 +564,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══ Dusk ridges — the land folds toward evening ═══════ */}
+      {/* ══ Dusk ridges — static composition, perfectly aligned ══ */}
       <div aria-hidden className="relative -my-12">
-        <Parallax speed={0.05}>
-          <RidgeBand layers={RIDGE_DUSK} />
-        </Parallax>
+        <RidgeBand layers={RIDGE_DUSK} />
       </div>
 
       {/* ══ Final CTA — dusk in the valley ════════════════════ */}
