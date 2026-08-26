@@ -25,6 +25,7 @@
     "helmet": "^8.0.0",
     "lucide-react": "^0.469.0",
     "mongoose": "^8.9.5",
+    "nodemailer": "^9.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "shadcn": "^4.19.0",
