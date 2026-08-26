@@ -244,6 +244,10 @@ class SpeechService {
     speakNext();
   }
 
+  speak(text, langCode = 'hi-IN', onEnd = null, rate = 0.92, pitch = 1.18) {
+    return this.speakText(text, langCode, onEnd, rate, pitch);
+  }
+
   stopSpeaking() {
     if (this.synthesisSupported) {
       window.speechSynthesis.cancel();
