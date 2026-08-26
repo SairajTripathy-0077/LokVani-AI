@@ -9,20 +9,9 @@
  */
 
 import React from 'react';
-import { MapPin, TrendingUp, TrendingDown, Minus, CheckCircle, AlertTriangle, Leaf, Wheat, Apple, Sprout, Droplet, Box, Flame } from 'lucide-react';
+import { MapPin, TrendingUp, TrendingDown, Minus, CheckCircle, AlertTriangle } from 'lucide-react';
 import { isBelowMSP } from './mspData.js';
 import { t } from './communityTranslations.js';
-
-function getCropIcon(str = '') {
-  const s = str.toLowerCase();
-  if (s.includes('vegetable') || s.includes('सब्ज़ी') || s.includes('tomato') || s.includes('onion') || s.includes('potato') || s.includes('garlic')) return <Leaf size={12} />;
-  if (s.includes('grain') || s.includes('अनाज') || s.includes('wheat') || s.includes('paddy') || s.includes('maize') || s.includes('bajra') || s.includes('barley')) return <Wheat size={12} />;
-  if (s.includes('fruit') || s.includes('फल') || s.includes('apple') || s.includes('mango') || s.includes('banana')) return <Apple size={12} />;
-  if (s.includes('pulse') || s.includes('दाल') || s.includes('arhar') || s.includes('moong') || s.includes('urad') || s.includes('chana')) return <Sprout size={12} />;
-  if (s.includes('oil') || s.includes('तिलहन') || s.includes('soybean') || s.includes('mustard') || s.includes('sunflower') || s.includes('sesame')) return <Droplet size={12} />;
-  if (s.includes('spice') || s.includes('मसाले') || s.includes('chili') || s.includes('turmeric') || s.includes('coriander')) return <Flame size={12} />;
-  return <Box size={12} />;
-}
 
 function relativeTime(date, lang) {
   if (!date) return t('justNow', lang);
@@ -69,11 +58,7 @@ export default function PriceCard({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        {category && (
-          <span className="community-int__tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            {getCropIcon(category)} {category}
-          </span>
-        )}
+        {category && <span className="community-int__tag">{category}</span>}
         <span className={`community-int__trend ${trendCfg.cssClass}`} aria-label={trendCfg.label}>
           {trendCfg.icon} {trendCfg.text}
         </span>

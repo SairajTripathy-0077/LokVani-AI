@@ -21,18 +21,7 @@
  */
 
 import React from 'react';
-import { MapPin, Store, Phone, CheckCircle, Leaf, Wheat, Apple, Sprout, Droplet, Box, Flame } from 'lucide-react';
-
-function getCropIcon(str = '') {
-  const s = str.toLowerCase();
-  if (s.includes('vegetable') || s.includes('सब्ज़ी') || s.includes('tomato') || s.includes('onion') || s.includes('potato') || s.includes('garlic')) return <Leaf size={12} />;
-  if (s.includes('grain') || s.includes('अनाज') || s.includes('wheat') || s.includes('paddy') || s.includes('maize') || s.includes('bajra') || s.includes('barley')) return <Wheat size={12} />;
-  if (s.includes('fruit') || s.includes('फल') || s.includes('apple') || s.includes('mango') || s.includes('banana')) return <Apple size={12} />;
-  if (s.includes('pulse') || s.includes('दाल') || s.includes('arhar') || s.includes('moong') || s.includes('urad') || s.includes('chana')) return <Sprout size={12} />;
-  if (s.includes('oil') || s.includes('तिलहन') || s.includes('soybean') || s.includes('mustard') || s.includes('sunflower') || s.includes('sesame')) return <Droplet size={12} />;
-  if (s.includes('spice') || s.includes('मसाले') || s.includes('chili') || s.includes('turmeric') || s.includes('coriander')) return <Flame size={12} />;
-  return <Box size={12} />;
-}
+import { MapPin, Store, Phone, CheckCircle } from 'lucide-react';
 
 export default function BuyerCard({
   name,
@@ -81,9 +70,7 @@ export default function BuyerCard({
           </p>
           <div className="community-int__buyer-card__commodities">
             {commodities.map((c) => (
-              <span key={c} className="community-int__tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                {getCropIcon(c)} {c}
-              </span>
+              <span key={c} className="community-int__tag">{c}</span>
             ))}
           </div>
         </div>
