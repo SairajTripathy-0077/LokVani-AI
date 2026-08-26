@@ -32,6 +32,50 @@ export function AppProvider({ children }) {
 
   const [liveWeather, setLiveWeather] = useState(null);
 
+  // Location Engine State
+  const [userLocation, setUserLocation] = useState(() => {
+    const saved = localStorage.getItem('lokvani_location');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (userLocation) {
+      localStorage.setItem('lokvani_location', JSON.stringify(userLocation));
+    }
+  }, [userLocation]);
+
+  const requestLocation = async () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by your browser.'));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
+            if (!res.ok) throw new Error('Geocoding failed');
+            const data = await res.json();
+            
+            const state = data.address.state || 'Uttar Pradesh';
+            const district = data.address.state_district || data.address.county || data.address.city || '';
+            
+            const loc = { lat: latitude, lng: longitude, state, district };
+            setUserLocation(loc);
+            resolve(loc);
+          } catch (err) {
+            reject(err);
+          }
+        },
+        (error) => {
+          reject(error);
+        },
+        { enableHighAccuracy: false, timeout: 10000 }
+      );
+    });
+  };
+
   // SECURITY: Clear any legacy API key that may have been stored in localStorage
   useEffect(() => {
     localStorage.removeItem('lokvani_api_key');
@@ -120,6 +164,9 @@ export function AppProvider({ children }) {
       addCommunityIntel,
       liveWeather,
       pendingReviewsCount,
+      userLocation,
+      setUserLocation,
+      requestLocation,
     }}>
       {children}
     </AppContext.Provider>

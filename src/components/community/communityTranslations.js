@@ -26,7 +26,7 @@ const TRANSLATIONS = {
   // UX Change: Removed jargon ("information asymmetry", "crowdsourced") — now one simple sentence
   pageSubtitle:      { hi: 'अपने आस-पास की मंडी के भाव, मौसम की जानकारी और खरीदारों से सीधा जुड़ाव — हर किसान के लिए।', en: 'See today\'s crop prices nearby, get weather updates, and find buyers in your area.' },
   // UX Change: CTA changed from "Report Local Rate" → "Share a Price" (more inviting)
-  reportBtn:         { hi: '📢 भाव रिपोर्ट करें',                         en: '📢 Share a Price' },
+  reportBtn:         { hi: ' भाव रिपोर्ट करें',                         en: ' Share a Price' },
 
   /* ── Stats Row ───────────────────────────────────────────────────────── */
   statTotalLabel:    { hi: 'कुल रिपोर्ट',                                en: 'Price Reports' },
@@ -69,7 +69,7 @@ const TRANSLATIONS = {
   trendLabelUp:      { hi: 'भाव ट्रेंड: बढ़ रहा है',                       en: 'Price trend: rising' },
   trendLabelDown:    { hi: 'भाव ट्रेंड: गिर रहा है',                       en: 'Price trend: falling' },
   trendLabelStable:  { hi: 'भाव ट्रेंड: स्थिर है',                         en: 'Price trend: stable' },
-  verifiedBadge:     { hi: '✓ सत्यापित',                                   en: '✓ Verified' },
+  verifiedBadge:     { hi: ' सत्यापित',                                   en: ' Verified' },
   mspWarning:        { hi: 'सरकारी MSP से कम भाव — बेचने से पहले जांचें', en: 'Price below Government MSP — verify before selling' },
   reportedBy:        { hi: 'द्वारा',                                        en: 'by' },
   justNow:           { hi: 'अभी-अभी',                                       en: 'Just now' },
@@ -78,7 +78,7 @@ const TRANSLATIONS = {
   daysAgo:           { hi: 'दिन पहले',                                     en: 'd ago' },
 
   /* ── Sale Window Banner ──────────────────────────────────────────────── */
-  bannerTitle:       { hi: '🌟 अभी बेचने का सबसे अच्छा मौका',              en: 'Best Sale Windows Right Now' },
+  bannerTitle:       { hi: ' अभी बेचने का सबसे अच्छा मौका',              en: 'Best Sale Windows Right Now' },
   bannerSell:        { hi: 'बेचें',                                         en: 'Sell' },
   bannerAt:          { hi: 'पर',                                            en: 'at' },
   bannerFor:         { hi: 'के लिए',                                        en: 'for' },
@@ -106,7 +106,7 @@ const TRANSLATIONS = {
   // UX Change: "Real-Time Community Intel Feed" → "Latest News from Your Area"
   feedSectionTitle:  { hi: 'लाइव खबरें और सूचनाएं',                         en: 'Latest News from Your Area' },
   // UX Change: Removed technical language ("crowdsourced", "demand signals", "intel") — rewritten for farmers
-  feedSectionSub:    { hi: 'आपके क्षेत्र से भाव की खबरें, मांग की जानकारी और बाज़ार की हकीकत — सही लगे तो "सही" दबाएं, गलत लगे तो "रिपोर्ट" करें।', en: 'Price news and updates shared by farmers in your area. Tap ✓ if it looks right, or flag it if something seems wrong.' },
+  feedSectionSub:    { hi: 'आपके क्षेत्र से भाव की खबरें, मांग की जानकारी और बाज़ार की हकीकत — सही लगे तो "सही" दबाएं, गलत लगे तो "रिपोर्ट" करें।', en: 'Price news and updates shared by farmers in your area. Tap  if it looks right, or flag it if something seems wrong.' },
   feedFilterAll:     { hi: 'सभी',                                            en: 'All' },
   feedCatPriceAlert: { hi: 'भाव अलर्ट',                                     en: 'Price Alert' },
   feedCatDemand:     { hi: 'मांग बढ़ी',                                      en: 'Demand Spike' },
@@ -165,15 +165,15 @@ const TRANSLATIONS = {
   poolDeadline:      { hi: 'अंतिम तिथि',                                      en: 'Deadline' },
   poolQuality:       { hi: 'गुणवत्ता',                                        en: 'Quality' },
   poolFull:          { hi: 'पूरा भर गया',                                     en: 'Pool Full' },
-  addVolumeBtn:      { hi: '📦 मेरी फसल जोड़ें',                              en: '📦 Add My Volume' },
+  addVolumeBtn:      { hi: ' मेरी फसल जोड़ें',                              en: ' Add My Volume' },
   joinFormTitle:     { hi: 'अपनी फसल का वजन दर्ज करें',                       en: 'Register Your Volume' },
   joinVolLabel:      { hi: 'आपकी मात्रा (क्विंटल)',                            en: 'Your Volume (qtl)' },
   joinNameLabel:     { hi: 'आपका नाम',                                         en: 'Your Name' },
   joinNamePlaceholder:{ hi: 'जैसे: रमेश कुमार (किसान)',                       en: 'e.g. Ramesh Kumar (Farmer)' },
-  joinConfirmBtn:    { hi: '✅ मात्रा दर्ज करें',                              en: 'Confirm My Volume' },
-  joinSuccessTitle:  { hi: 'आप शामिल हो गए! 🎉',                              en: "You're In!" },
+  joinConfirmBtn:    { hi: ' मात्रा दर्ज करें',                              en: 'Confirm My Volume' },
+  joinSuccessTitle:  { hi: 'आप शामिल हो गए! ',                              en: "You're In!" },
   joinSuccessMsg:    { hi: 'आपकी फसल इस पूल में जोड़ दी गई है। समन्वयक जल्द ही संपर्क करेंगे।', en: 'Your harvest has been added to this pool. The coordinator will contact you before the deadline.' },
-  poolCloseFormBtn:  { hi: '✕ बंद करें',                                       en: '✕ Close' },
+  poolCloseFormBtn:  { hi: ' बंद करें',                                       en: ' Close' },
   perQtl:            { hi: '/क्विंटल',                                         en: '/quintal' },
   remaining:         { hi: 'क्विंटल बाकी है',                                  en: 'qtl remaining' },
 
@@ -182,8 +182,8 @@ const TRANSLATIONS = {
   logisticsSectionTitle:{ hi: 'परिवहन और भंडारण',                              en: 'Transport & Storage' },
   // UX Change: Removed "post-harvest losses", "coordinate deliveries" — plain benefit-focused sentence
   logisticsSectionSub:  { hi: 'ट्रक में जगह साझा करें, कोल्ड स्टोरेज बुक करें और अपनी फसल को नुकसान से बचाएं।', en: 'Share a truck or book storage space to keep your crop safe and get it to market.' },
-  tabTransport:      { hi: '🚛 ट्रांसपोर्ट',                                  en: '🚛 Transport' },
-  tabStorage:        { hi: '🏭 भंडारण',                                        en: '🏭 Storage' },
+  tabTransport:      { hi: ' ट्रांसपोर्ट',                                  en: ' Transport' },
+  tabStorage:        { hi: ' भंडारण',                                        en: ' Storage' },
   available:         { hi: 'उपलब्ध',                                           en: 'available' },
   availableStatus:   { hi: 'उपलब्ध है',                                        en: 'Available' },
   fillingStatus:     { hi: 'लगभग भर गया',                                      en: 'Almost Full' },
@@ -195,8 +195,8 @@ const TRANSLATIONS = {
   ratePerQtl:        { hi: '₹/क्विंटल',                                        en: '₹/qtl' },
   ratePerBagDay:     { hi: '₹/बोरा/दिन',                                       en: '₹/bag/day' },
   minDays:           { hi: 'न्यूनतम दिन',                                       en: 'Min. days' },
-  bookSpace:         { hi: '🚛 जगह बुक करें',                                  en: '🚛 Book Space' },
-  bookStorage:       { hi: '🏭 भंडारण बुक करें',                               en: '🏭 Book Storage' },
+  bookSpace:         { hi: ' जगह बुक करें',                                  en: ' Book Space' },
+  bookStorage:       { hi: ' भंडारण बुक करें',                               en: ' Book Storage' },
   noSpace:           { hi: 'जगह नहीं है',                                       en: 'No Space' },
   fullyBooked:       { hi: 'पूरा बुक है',                                       en: 'Fully Booked' },
   bookFormTonnage:   { hi: 'वजन (टन)',                                           en: 'Tonnage (tonnes)' },
@@ -204,8 +204,8 @@ const TRANSLATIONS = {
   bookFormDate:      { hi: 'पसंदीदा तारीख',                                     en: 'Preferred Date' },
   bookFormName:      { hi: 'आपका नाम',                                           en: 'Your Name' },
   bookFormNamePlaceholder:{ hi: 'जैसे: रमेश कुमार',                             en: 'e.g. Ramesh Kumar' },
-  bookConfirmBtn:    { hi: '✅ बुकिंग पक्की करें',                               en: 'Confirm Booking' },
-  bookSuccessTitle:  { hi: 'बुकिंग अनुरोध भेजा गया! ✅',                        en: 'Slot Requested!' },
+  bookConfirmBtn:    { hi: ' बुकिंग पक्की करें',                               en: 'Confirm Booking' },
+  bookSuccessTitle:  { hi: 'बुकिंग अनुरोध भेजा गया! ',                        en: 'Slot Requested!' },
   bookSuccessMsg:    { hi: 'आपका अनुरोध भेज दिया गया है। समन्वयक 24 घंटों में किराना नोड के ज़रिए पुष्टि करेंगे।', en: 'Your booking request has been sent. The coordinator will confirm within 24 hours via Kirana Node.' },
 
   /* ── Submit Report Modal ─────────────────────────────────────────────── */
@@ -232,10 +232,10 @@ const TRANSLATIONS = {
   reporterLabel:     { hi: 'आपका नाम (वैकल्पिक)',                                en: 'Your Name (optional)' },
   reporterPlaceholder:{ hi: 'जैसे: रमेश कुमार (किसान)',                         en: 'e.g. Ramesh Kumar' },
   // UX Change: "Save Report" → "Share Information" (matches user request)
-  saveReportBtn:     { hi: '💾 रिपोर्ट सहेजें',                                 en: 'Share Information' },
+  saveReportBtn:     { hi: ' रिपोर्ट सहेजें',                                 en: 'Share Information' },
   savingBtn:         { hi: 'सहेजा जा रहा है…',                                  en: 'Sharing…' },
   // UX Change: Friendlier toast messages
-  toastSuccess:      { hi: 'भाव रिपोर्ट सफलतापूर्वक जमा हो गई! ✅',             en: 'Price shared! Thank you ✅' },
+  toastSuccess:      { hi: 'भाव रिपोर्ट सफलतापूर्वक जमा हो गई! ',             en: 'Price shared! Thank you ' },
   toastError:        { hi: 'रिपोर्ट जमा नहीं हो सकी। फिर से कोशिश करें।',      en: 'Could not share. Please try again.' },
 
   /* ── Validation errors ───────────────────────────────────────────────── */
