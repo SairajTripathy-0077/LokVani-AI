@@ -593,11 +593,11 @@ const server = app.listen(PORT, () => {
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.log(`\n===================================================`);
-    console.log(`  [LokVani Server] Port ${PORT} is already in use.`);
-    console.log(`  Backend API is ALREADY running on http://localhost:${PORT}`);
-    console.log(`===================================================\n`);
-    process.exit(0);
+    console.warn(`[LokVani Server] Port ${PORT} is occupied. Retrying connection in 1.5s...`);
+    setTimeout(() => {
+      try { server.close(); } catch (_) {}
+      app.listen(PORT);
+    }, 1500);
   } else {
     console.error('[LokVani Server] Unexpected error:', err);
   }
