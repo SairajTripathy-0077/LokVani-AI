@@ -35,7 +35,7 @@
  *   - API provider names hidden from UI (farmers don't need to see them)
  */
 
-import React, { useReducer, useEffect, useCallback, useMemo } from 'react';
+import React, { useReducer, useEffect, useCallback, useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { t } from './community/communityTranslations.js';
 import { fetchLiveMandiRates } from '../services/mandiService';
@@ -180,6 +180,7 @@ export default function CommunityIntel() {
   const { liveWeather, language } = useApp();
   const lang = language || 'hi'; // default hi for farmers
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  const [showAllPrices, setShowAllPrices] = useState(false);
 
   const { intelList, buyers, transport, storage, loading, submitting, showModal, toast, searchQuery, activeCategory, selectedRegion, regionWeather } = state;
 
@@ -378,7 +379,7 @@ export default function CommunityIntel() {
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={`sk-${i}`} />)
           ) : filteredList.length > 0 ? (
-            filteredList.map(ci => (
+            (showAllPrices ? filteredList : filteredList.slice(0, 6)).map(ci => (
               <PriceCard key={ci._id || ci.id}
                 item={ci.item} price={ci.price} unit={ci.unit}
                 location={ci.location} trend={ci.trend}
@@ -398,6 +399,18 @@ export default function CommunityIntel() {
             </div>
           )}
         </div>
+        
+        {!loading && filteredList.length > 6 && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+            <button
+              onClick={() => setShowAllPrices(!showAllPrices)}
+              className="btn-secondary"
+              style={{ fontSize: '0.9rem', padding: '8px 24px' }}
+            >
+              {showAllPrices ? (lang === 'hi' ? 'कम दिखाएं' : 'Show Less') : (lang === 'hi' ? 'और देखें' : 'See More')}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ────────────────────────────────────────────────────────────────────
