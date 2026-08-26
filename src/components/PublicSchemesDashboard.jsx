@@ -115,7 +115,11 @@ export default function PublicSchemesDashboard() {
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/applications/user/${encodeURIComponent(userId)}`)
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) return null;
+        const text = await res.text();
+        try { return JSON.parse(text); } catch (e) { return null; }
+      })
       .then(json => {
         if (!cancelled && json?.success) {
           setAppliedSchemeIds(new Set((json.data || []).map(a => a.schemeId)));
@@ -153,7 +157,9 @@ export default function PublicSchemesDashboard() {
           grievanceEmail: selectedScheme.grievanceEmail || DEFAULT_GRIEVANCE_EMAIL
         })
       });
-      const json = await res.json();
+      const text = await res.text();
+      let json = {};
+      try { json = JSON.parse(text); } catch (e) {}
       if (!res.ok || !json.success) {
         // 409 = already applied — treat as success state
         if (res.status === 409) {
@@ -161,7 +167,7 @@ export default function PublicSchemesDashboard() {
           setApplyState('done');
           return;
         }
-        throw new Error(json.error || 'Failed to record application');
+        throw new Error(json.error || `Failed to record application (${res.status})`);
       }
       setAppliedSchemeIds(prev => new Set([...prev, selectedScheme.id]));
       setApplyState('done');

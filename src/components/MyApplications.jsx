@@ -51,8 +51,10 @@ export default function MyApplications({ userName, userEmail }) {
     setError('');
     try {
       const res = await fetch(`/api/applications/user/${encodeURIComponent(userId)}`);
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to load');
+      const text = await res.text();
+      let json = {};
+      try { json = JSON.parse(text); } catch (e) {}
+      if (!res.ok || !json.success) throw new Error(json.error || `Failed to load applications (${res.status})`);
       setApplications(json.data || []);
       if (typeof json.allowEarlyComplaint === 'boolean') {
         setAllowEarlyComplaint(json.allowEarlyComplaint);
@@ -75,8 +77,10 @@ export default function MyApplications({ userName, userEmail }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to file complaint');
+      const text = await res.text();
+      let json = {};
+      try { json = JSON.parse(text); } catch (e) {}
+      if (!res.ok || !json.success) throw new Error(json.error || `Failed to file complaint (${res.status})`);
 
       setApplications(prev => prev.map(a => (a._id === application._id ? { ...a, status: 'COMPLAINED', complaints: [...(a.complaints || []), json.complaint] } : a)));
       setComplaintReceipts(prev => ({
@@ -98,8 +102,10 @@ export default function MyApplications({ userName, userEmail }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error || 'Failed to update');
+      const text = await res.text();
+      let json = {};
+      try { json = JSON.parse(text); } catch (e) {}
+      if (!res.ok || !json.success) throw new Error(json.error || `Failed to update status (${res.status})`);
       setApplications(prev => prev.map(a => (a._id === application._id ? { ...a, status } : a)));
     } catch (err) {
       setError(err.message);

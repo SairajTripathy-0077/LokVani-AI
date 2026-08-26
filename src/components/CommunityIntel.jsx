@@ -186,8 +186,11 @@ export default function CommunityIntel() {
       try {
         const res = await fetch('/api/intel');
         if (res.ok) {
-          const json = await res.json();
-          if (json.data && json.data.length > 0) data = json.data;
+          const text = await res.text();
+          try {
+            const json = JSON.parse(text);
+            if (json.data && json.data.length > 0) data = json.data;
+          } catch (_) {}
         }
       } catch (err) {
         console.warn('API endpoint unavailable, loading public mandi data:', err);
@@ -217,8 +220,10 @@ export default function CommunityIntel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
+      const text = await res.text();
+      let json = {};
+      try { json = JSON.parse(text); } catch (_) {}
+      if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
       dispatch({ type: 'PREPEND_ITEM', payload: json.data });
       dispatch({ type: 'CLOSE_MODAL' });
       dispatch({ type: 'SHOW_TOAST', message: 'Price report submitted successfully!', toastType: 'success' });

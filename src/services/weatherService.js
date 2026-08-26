@@ -9,7 +9,9 @@ export async function fetchLiveWeatherAndAdvisory(lat = 26.068, lon = 83.184) {
     const response = await fetch(url);
     if (!response.ok) throw new Error('Open-Meteo API request failed');
 
-    const data = await response.json();
+    const text = await response.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch (_) {}
     const current = data.current_weather || {};
     const temp = current.temperature || 30;
     const windSpeed = current.windspeed || 12;

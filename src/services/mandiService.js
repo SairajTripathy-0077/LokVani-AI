@@ -18,10 +18,13 @@ export async function fetchLiveMandiRates() {
   try {
     const res = await fetch('/api/intel');
     if (res.ok) {
-      const json = await res.json();
-      if (json.data && json.data.length > 0) {
-        return json.data;
-      }
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        if (json.data && json.data.length > 0) {
+          return json.data;
+        }
+      } catch (_) {}
     }
   } catch (err) {
     console.warn('API connection fallback to public dataset:', err);

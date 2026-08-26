@@ -207,6 +207,13 @@
   .mic-btn.speaking  { background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 8px 32px rgba(16,185,129,.5); border-color: rgba(167,243,208,.6); }
   .mic-btn.processing{ background: linear-gradient(135deg,#8b5cf6,#7c3aed); cursor: not-allowed; }
 
+  /* Halo ring behind the mic — quiet, always-on depth */
+  .mic-halo {
+    position: absolute; inset: -14px; border-radius: 50%;
+    border: 1px dashed rgba(255,255,255,.18);
+    pointer-events: none;
+  }
+
   /* ── Waveform ─────────────────────────────────────────── */
   .waveform { display:flex; align-items:center; gap:3px; height:30px; }
   .waveform-bar { width:4px; height:100%; border-radius:2px; background:currentColor; transform-origin:bottom; }
@@ -229,7 +236,18 @@
 
   /* ── Voice panel — night field ─────────────────────────── */
   .hero-bg {
-    background: linear-gradient(165deg, #202a1c 0%, #28331f 55%, #1a2118 100%);
+    background:
+      radial-gradient(120% 90% at 85% -10%, rgba(214, 168, 58, 0.14) 0%, transparent 50%),
+      radial-gradient(90% 80% at 0% 110%, rgba(72, 115, 79, 0.35) 0%, transparent 55%),
+      linear-gradient(165deg, #1f281b 0%, #27321e 55%, #182015 100%);
+  }
+  .hero-edge::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,.08), transparent 18%);
   }
 
   .hero-blob {
@@ -271,6 +289,16 @@
     pointer-events: none;
     opacity: 0.035;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Reduced motion: stop all decorative animation ────── */
+  @media (prefers-reduced-motion: reduce) {
+    .mic-ring, .mic-ring-2, .waveform-bar { animation: none !important; }
+    .mic-ring, .mic-ring-2 { display: none; }
+    .hero-blob, .response-card { animation: none !important; }
+    .skeleton { animation: none; }
+    .animate-pulse, .animate-bounce, .animate-spin { animation-duration: 0s !important; }
+    html { scroll-behavior: auto; }
   }
 }
 

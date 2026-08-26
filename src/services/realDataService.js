@@ -24,8 +24,11 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Weather API HTTP error: ${response.status}`);
     
-    const data = await response.json();
+    const text = await response.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch (_) {}
     const current = data.current_weather;
+    if (!current) throw new Error('Invalid weather data structure');
     const dailyRain = data.daily?.precipitation_sum?.[0] || 0;
 
     return {
@@ -79,7 +82,9 @@ export async function fetchLiveMandiPrices(apiKey = null) {
     const response = await fetch(url, { mode: 'cors' }).catch(() => null);
     
     if (response && response.ok) {
-      const result = await response.json();
+      const text = await response.text();
+      let result = {};
+      try { result = JSON.parse(text); } catch (_) {}
       if (result.records && result.records.length > 0) {
         return result.records.map((r, idx) => ({
           id: `live-${idx}-${Date.now()}`,

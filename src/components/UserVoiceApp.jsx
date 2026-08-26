@@ -117,7 +117,13 @@ export default function UserVoiceApp() {
   const fetchHistory = useCallback(async () => {
     try {
       const res = await fetch('/api/user/queries/user_demo_1');
-      if (res.ok) { const j = await res.json(); if (j.data?.length) setQueryHistory(j.data); }
+      if (res.ok) {
+        const text = await res.text();
+        try {
+          const j = JSON.parse(text);
+          if (j.data?.length) setQueryHistory(j.data);
+        } catch (_) {}
+      }
     } catch (_) {}
   }, []);
 
@@ -160,7 +166,13 @@ export default function UserVoiceApp() {
             dialect: dialectInfo.promptName,
           })
         });
-        if (res.ok) { const j = await res.json(); data = j.data; }
+        if (res.ok) {
+          const text = await res.text();
+          try {
+            const j = JSON.parse(text);
+            data = j.data;
+          } catch (_) {}
+        }
       } catch (e) {
         if (e.name === 'AbortError') return;
         console.warn('Backend offline — using local fallback');
@@ -251,7 +263,7 @@ export default function UserVoiceApp() {
     <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col lg:flex-row gap-5 items-start', largeText && 'large-text')}>
 
       {/* ── Sidebar ─────────────────────────────────────────────── */}
-      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3">
+      <aside className="w-full lg:w-64 shrink-0 flex flex-col gap-3 lg:sticky lg:top-6">
         {/* New query */}
         <Button
           className="w-full gap-2 font-bold"
@@ -265,7 +277,7 @@ export default function UserVoiceApp() {
         {/* Dialect */}
         <Card className="p-0 overflow-hidden">
           <div className="px-4 pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5">
               <Globe size={11} /> {language === 'hi' ? 'भाषा / बोली' : 'Language / Dialect'}
             </p>
           </div>
@@ -286,7 +298,7 @@ export default function UserVoiceApp() {
         {/* TTS Speed */}
         <Card className="p-0 overflow-hidden">
           <div className="px-4 py-3">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2.5 flex items-center gap-1.5">
               <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
             </p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -321,7 +333,7 @@ export default function UserVoiceApp() {
 
         {/* History */}
         <div>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5 px-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] mb-2 flex items-center gap-1.5 px-1">
             <Clock size={11} /> {language === 'hi' ? 'पिछले सवाल' : 'Recent Queries'}
           </p>
           <ScrollArea className="max-h-52 lg:max-h-[calc(100vh-580px)]">
@@ -335,10 +347,10 @@ export default function UserVoiceApp() {
                   key={h._id}
                   onClick={() => { setActiveResult(h); setTranscript(''); setShowDetailed(false); }}
                   className={cn(
-                    'text-left p-3 rounded-xl transition-all flex flex-col gap-1 w-full text-xs border',
+                    'text-left p-3 rounded-xl transition-all duration-200 flex flex-col gap-1 w-full text-xs border',
                     activeResult?._id === h._id
-                      ? 'bg-primary/10 border-primary/30 text-primary font-bold'
-                      : 'text-muted-foreground hover:bg-muted/60 border-transparent hover:border-border/50'
+                      ? 'bg-primary/[0.07] border-primary/25 text-primary font-semibold shadow-[inset_2px_0_0_0] shadow-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 border-border/40 hover:border-border'
                   )}
                 >
                   <span className="truncate w-full font-semibold text-foreground">{h.transcribedText}</span>
@@ -360,32 +372,37 @@ export default function UserVoiceApp() {
       <div className="flex-1 w-full min-w-0 space-y-4">
 
         {/* Hero / Mic section */}
-        <div className="relative overflow-hidden rounded-3xl hero-bg shadow-[0_32px_80px_-40px_rgba(24,24,27,0.4)]">
+        <div className="relative overflow-hidden rounded-3xl hero-bg hero-edge grain shadow-[0_32px_80px_-40px_rgba(24,24,27,0.5)]">
           {/* Bg blobs */}
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/[0.04] pointer-events-none" />
-          <div className="absolute -bottom-20 -left-16 w-72 h-72 rounded-full bg-[#a3b86b]/[0.06] pointer-events-none" />
+          <div className="hero-blob -top-24 -right-20 w-80 h-80 bg-[#d6a83a]/[0.08]" />
+          <div className="hero-blob -bottom-28 -left-24 w-96 h-96 bg-[#a3b86b]/[0.09]" style={{ animationDelay: '-3.5s' }} />
 
-          <div className="relative z-10 text-center p-6 sm:p-10">
+          <div className="relative z-10 text-center p-6 sm:p-12">
             {/* Status pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.07] border border-white/[0.12] text-white/90 text-xs font-medium mb-5">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.14] text-white/90 text-xs font-semibold tracking-wide mb-6"
+              role="status"
+              aria-live="polite"
+            >
               {appState === 'IDLE'      && <><Sparkles size={12} className="text-[#d6a83a]" /> {language === 'hi' ? 'तैयार है' : 'Ready'}</>}
               {appState === 'LISTENING' && <><Mic size={12} className="text-orange-300 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
               {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'Processing…'}</>}
               {appState === 'SPEAKING'  && <><Volume2 size={12} className="text-emerald-300 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'Speaking…'}</>}
             </div>
 
-            <h2 className="font-heading text-2xl sm:text-3xl font-semibold tracking-[-0.01em] text-white mb-2">
+            <h2 className="font-heading text-3xl sm:text-[2.75rem] leading-[1.1] font-semibold tracking-[-0.015em] text-white mb-3">
               {language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice'}
             </h2>
-            <p className="text-zinc-400 text-sm max-w-sm mx-auto mb-8 leading-relaxed">
+            <p className="text-zinc-400 text-sm sm:text-base max-w-md mx-auto mb-10 leading-relaxed">
               {language === 'hi'
                 ? 'मंडी भाव, सरकारी योजनाएं, फसल सलाह — अपनी भाषा में'
                 : 'Mandi rates, schemes, crop advisory — in your own dialect'}
             </p>
 
             {/* Mic Button */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               <div className={cn('mic-wrap', appState === 'LISTENING' && 'listening')}>
+                <div className="mic-halo" />
                 {(appState === 'LISTENING') && (
                   <>
                     <div className="mic-ring" />
@@ -421,17 +438,20 @@ export default function UserVoiceApp() {
 
             {/* Live transcript */}
             {transcript && (
-              <p className="text-white/90 text-sm font-semibold italic mb-6 animate-pulse px-4 max-w-md mx-auto">
+              <p
+                className="text-white/90 text-sm font-medium italic mb-8 px-6 py-3 max-w-md mx-auto rounded-2xl bg-white/[0.06] border border-white/[0.12] leading-relaxed"
+                aria-live="polite"
+              >
                 "{transcript}"
               </p>
             )}
 
             {/* Demo Presets */}
-            <div className="border-t border-white/[0.1] pt-5">
-              <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3">
+            <div className="border-t border-white/[0.08] pt-6">
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-[0.14em] mb-4">
                 {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Examples'}
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-2.5 justify-center">
                 {DEMO_PRESETS.map((p, i) => {
                   const Icon = p.icon;
                   return (
@@ -440,9 +460,9 @@ export default function UserVoiceApp() {
                       id={`preset-${i}`}
                       onClick={() => handlePresetSelect(p)}
                       disabled={isProcessing}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.07] hover:bg-white/[0.14] text-white text-xs font-medium border border-white/[0.12] transition-all duration-500 ease-premium active:scale-[0.97] disabled:opacity-40"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] hover:bg-white/[0.13] hover:border-white/[0.22] text-white/95 text-xs font-medium border border-white/[0.12] transition-all duration-300 ease-premium active:scale-[0.97] disabled:opacity-40"
                     >
-                      <Icon size={12} className="text-[#d6a83a]" />
+                      <Icon size={13} className="text-[#d6a83a]" />
                       {language === 'hi' ? p.label_hi : p.label_en}
                     </button>
                   );
@@ -457,21 +477,21 @@ export default function UserVoiceApp() {
 
         {/* Result Card */}
         {!isProcessing && activeResult && (
-          <Card className="response-card overflow-hidden border-border/60 shadow-md">
+          <Card className="response-card overflow-hidden border-border/60 shadow-[0_20px_50px_-30px_rgba(24,24,27,0.35)]">
             {/* Header strip */}
             <div className={cn(
               'px-5 sm:px-7 py-3 flex flex-wrap items-center justify-between gap-3 border-b',
               activeResult.isHighStakes
-                ? 'bg-amber-50 border-amber-200'
-                : 'bg-emerald-50 border-emerald-200'
+                ? 'bg-amber-50/70 border-amber-200/80'
+                : 'bg-muted/40 border-border/60'
             )}>
               <div className="flex items-center gap-2">
                 {activeResult.isHighStakes
                   ? <AlertTriangle size={15} className="text-amber-600" />
-                  : <CheckCircle2 size={15} className="text-emerald-600" />
+                  : <CheckCircle2 size={15} className="text-[#48734f]" />
                 }
-                <span className={cn('text-xs font-bold uppercase tracking-wider',
-                  activeResult.isHighStakes ? 'text-amber-700' : 'text-emerald-700'
+                <span className={cn('text-xs font-semibold uppercase tracking-[0.1em]',
+                  activeResult.isHighStakes ? 'text-amber-700' : 'text-[#48734f]'
                 )}>
                   {activeResult.isHighStakes
                     ? (language === 'hi' ? 'समीक्षा आवश्यक' : 'Needs Review')
@@ -656,11 +676,14 @@ export default function UserVoiceApp() {
 
       {/* ── Price Report Modal ───────────────────────────────────── */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-sm w-full shadow-2xl">
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <Card className="max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-300 ease-premium">
             <CardHeader className="flex-row items-center justify-between pb-3">
               <h3 className="text-base font-bold">Report Local Mandi Rate</h3>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowModal(false)}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setShowModal(false)} aria-label="Close">
                 <X size={16} />
               </Button>
             </CardHeader>
