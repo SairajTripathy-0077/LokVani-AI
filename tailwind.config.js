@@ -59,6 +59,7 @@ export default {
       fontFamily: {
         heading: ['Fraunces', 'Tiro Devanagari Hindi', 'Georgia', 'serif'],
         body:    ['Instrument Sans', 'Noto Sans Devanagari', 'ui-sans-serif', '-apple-system', 'sans-serif'],
+        condensed: ['Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
