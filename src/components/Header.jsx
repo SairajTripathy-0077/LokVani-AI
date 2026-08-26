@@ -18,6 +18,8 @@ export default function Header() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  const showNav = isSignedIn;
+
   const go = (tab) => {
     setActiveTab(tab);
     setMobileOpen(false);
@@ -53,33 +55,35 @@ export default function Header() {
           </span>
         </button>
 
-        {/* Desktop Navigation Items — Always visible */}
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
-            const active = activeTab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => go(id)}
-                className={cn(
-                  'relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold tracking-tight',
-                  'transition-all duration-500 ease-premium active:scale-[0.97]',
-                  active
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'text-zinc-500 hover:bg-black/[0.04] hover:text-zinc-900'
-                )}
-              >
-                <Icon size={14} strokeWidth={1.5} className="shrink-0" />
-                <span className="whitespace-nowrap">{label}</span>
-                {id === 'schemes' && pendingReviewsCount > 0 && (
-                  <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white leading-none ring-2 ring-white">
-                    {pendingReviewsCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Desktop Navigation Items — Visible only after sign in */}
+        {showNav && (
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+            {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => go(id)}
+                  className={cn(
+                    'relative flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold tracking-tight',
+                    'transition-all duration-500 ease-premium active:scale-[0.97]',
+                    active
+                      ? 'bg-zinc-900 text-white shadow-sm'
+                      : 'text-zinc-500 hover:bg-black/[0.04] hover:text-zinc-900'
+                  )}
+                >
+                  <Icon size={14} strokeWidth={1.5} className="shrink-0" />
+                  <span className="whitespace-nowrap">{label}</span>
+                  {id === 'schemes' && pendingReviewsCount > 0 && (
+                    <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white leading-none ring-2 ring-white">
+                      {pendingReviewsCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         {/* Right Actions Block */}
         <div className="flex shrink-0 items-center gap-2">
@@ -151,27 +155,29 @@ export default function Header() {
           )}
 
           {/* Hamburger — morphs to X for mobile viewports */}
-          <button
-            onClick={() => setMobileOpen(o => !o)}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
-            className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors duration-500 hover:bg-black/[0.04] lg:hidden"
-          >
-            <span
-              className={cn(
-                'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
-                'transition-all duration-500 ease-premium',
-                mobileOpen ? 'rotate-45' : '-translate-y-[3px]'
-              )}
-            />
-            <span
-              className={cn(
-                'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
-                'transition-all duration-500 ease-premium',
-                mobileOpen ? '-rotate-45' : 'translate-y-[3px]'
-              )}
-            />
-          </button>
+          {showNav && (
+            <button
+              onClick={() => setMobileOpen(o => !o)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              className="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-colors duration-500 hover:bg-black/[0.04] lg:hidden"
+            >
+              <span
+                className={cn(
+                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                  'transition-all duration-500 ease-premium',
+                  mobileOpen ? 'rotate-45' : '-translate-y-[3px]'
+                )}
+              />
+              <span
+                className={cn(
+                  'absolute h-[1.5px] w-[16px] rounded-full bg-zinc-800',
+                  'transition-all duration-500 ease-premium',
+                  mobileOpen ? '-rotate-45' : 'translate-y-[3px]'
+                )}
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -193,48 +199,50 @@ export default function Header() {
           <X size={20} strokeWidth={2} />
         </button>
 
-        <nav className="flex flex-col gap-7" aria-label="Mobile">
-          {NAV_ITEMS.map(({ id, label, icon: Icon }, i) => {
-            const active = activeTab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => go(id)}
-                tabIndex={mobileOpen ? 0 : -1}
-                style={{ transitionDelay: mobileOpen ? `${120 + i * 70}ms` : '0ms' }}
-                className={cn(
-                  'group flex w-max cursor-pointer items-center gap-4 text-left',
-                  'transition-all duration-700 ease-premium',
-                  mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                )}
-              >
-                <span
+        {showNav && (
+          <nav className="flex flex-col gap-7" aria-label="Mobile">
+            {NAV_ITEMS.map(({ id, label, icon: Icon }, i) => {
+              const active = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => go(id)}
+                  tabIndex={mobileOpen ? 0 : -1}
+                  style={{ transitionDelay: mobileOpen ? `${120 + i * 70}ms` : '0ms' }}
                   className={cn(
-                    'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-500',
-                    active
-                      ? 'border-zinc-900 bg-zinc-900 text-white'
-                      : 'border-black/[0.08] bg-white text-zinc-500 group-hover:border-emerald-200 group-hover:text-emerald-800'
+                    'group flex w-max cursor-pointer items-center gap-4 text-left',
+                    'transition-all duration-700 ease-premium',
+                    mobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
                   )}
                 >
-                  <Icon size={17} strokeWidth={1.25} />
-                </span>
-                <span
-                  className={cn(
-                    'text-2xl font-semibold tracking-tight',
-                    active ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'
-                  )}
-                >
-                  {label}
-                </span>
-                {id === 'schemes' && pendingReviewsCount > 0 && (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                    {pendingReviewsCount}
+                  <span
+                    className={cn(
+                      'flex h-11 w-11 items-center justify-center rounded-full border transition-colors duration-500',
+                      active
+                        ? 'border-zinc-900 bg-zinc-900 text-white'
+                        : 'border-black/[0.08] bg-white text-zinc-500 group-hover:border-emerald-200 group-hover:text-emerald-800'
+                    )}
+                  >
+                    <Icon size={17} strokeWidth={1.25} />
                   </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+                  <span
+                    className={cn(
+                      'text-2xl font-semibold tracking-tight',
+                      active ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'
+                    )}
+                  >
+                    {label}
+                  </span>
+                  {id === 'schemes' && pendingReviewsCount > 0 && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                      {pendingReviewsCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
 
         <button
           onClick={() => setLanguage(l => l === 'hi' ? 'en' : 'hi')}

@@ -226,7 +226,7 @@ export default function PublicSchemesDashboard() {
             <span className="h-1 w-1 rounded-full bg-emerald-700" />
             {language === 'hi' ? 'सार्वजनिक योजना इंजन' : 'Public Scheme Intelligence'}
           </span>
-          <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.01em] text-zinc-900 sm:text-[2.4rem]">
+          <h2 className="mt-5 font-condensed text-balance text-3xl font-semibold leading-[1.15] tracking-normal text-zinc-900 sm:text-[2.4rem]">
             {language === 'hi'
               ? 'आपके लिए कौन सी योजनाएं हैं?'
               : 'Find every scheme you qualify for.'}
@@ -257,7 +257,7 @@ export default function PublicSchemesDashboard() {
           <form onSubmit={handleSaveProfile} className="rounded-[calc(1.75rem-6px)] p-7 sm:p-9">
             <div className="mb-8 flex items-center gap-3 border-b border-black/[0.06] pb-5">
               <User size={16} strokeWidth={1.25} className="text-zinc-400" />
-              <h3 className="font-heading text-lg font-semibold text-zinc-900">
+              <h3 className="font-condensed text-lg font-semibold text-zinc-900">
                 {language === 'hi' ? 'व्यक्तिगत जानकारी' : 'Personal details'}
               </h3>
             </div>
@@ -415,7 +415,7 @@ export default function PublicSchemesDashboard() {
         strictlyMatchedSchemes.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-black/[0.1] bg-white p-12 text-center">
             <Award size={28} strokeWidth={1.25} className="text-amber-500" />
-            <h3 className="font-heading text-base font-semibold text-zinc-900">
+            <h3 className="font-condensed text-base font-semibold text-zinc-900">
               {language === 'hi' ? 'आपकी प्रोफ़ाइल के लिए कोई सटीक योजना नहीं मिली' : 'No Exact Matches for Current Profile'}
             </h3>
             <p className="max-w-md text-sm text-zinc-500">
@@ -445,7 +445,7 @@ export default function PublicSchemesDashboard() {
                     </span>
                   </div>
 
-                  <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                  <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
                     {language === 'hi' ? scheme.title_hi : scheme.title_en}
                   </h3>
 
@@ -537,7 +537,7 @@ export default function PublicSchemesDashboard() {
                       </span>
                     </div>
 
-                    <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                    <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
                       {language === 'hi' ? scheme.title_hi : scheme.title_en}
                     </h3>
 
@@ -565,7 +565,7 @@ export default function PublicSchemesDashboard() {
                 <Bot size={18} strokeWidth={1.25} />
               </span>
               <div>
-                <h3 className="font-heading text-lg font-semibold text-zinc-900">
+                <h3 className="font-condensed text-lg font-semibold text-zinc-900">
                   {language === 'hi' ? 'AI योजना मित्र' : 'AI Scheme Mitra'}
                 </h3>
                 <p className="mt-1 max-w-lg text-pretty text-[13px] leading-relaxed text-zinc-500">
@@ -619,7 +619,11 @@ export default function PublicSchemesDashboard() {
 
       {/* ── My Applications (tracker + grievance) ───────────── */}
       {activeTab === 'applications' && (
-        <MyApplications userName={profile.fullName} userEmail={user?.email || ''} />
+        <MyApplications
+          userName={profile.fullName}
+          userEmail={user?.email || ''}
+          onBrowseSchemes={() => setActiveTab('matched')}
+        />
       )}
 
       {/* ── Scheme detail modal ─────────────────────────────── */}
@@ -636,7 +640,7 @@ export default function PublicSchemesDashboard() {
                 <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
                   {selectedScheme.category}
                 </span>
-                <h2 className="mt-1 font-heading text-xl font-bold text-zinc-900">
+                <h2 className="mt-1 font-condensed text-xl font-bold text-zinc-900">
                   {language === 'hi' ? selectedScheme.title_hi : selectedScheme.title_en}
                 </h2>
                 <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-zinc-400">

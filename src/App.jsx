@@ -11,10 +11,17 @@ import { useAuth } from './context/AuthContext';
 
 function MainContent() {
   const { activeTab } = useApp();
+  const { isSignedIn } = useAuth();
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [activeTab]);
+
+  // Enforce Sign-In for Voice App, Public Schemes, and Community Intel tabs
+  const isProtectedTab = ['voice', 'schemes', 'intel'].includes(activeTab);
+  if (isProtectedTab && !isSignedIn) {
+    return <AuthPage />;
+  }
 
   return (
     <main style={{ minHeight: 'calc(100vh - 140px)' }}>
