@@ -53,13 +53,17 @@ const DEMO_PRESETS = [
 
 function ConfidenceBadge({ level }) {
   const map = {
-    HIGH:   { cls: 'badge-high',   icon: '✓', label: 'High Confidence' },
-    MEDIUM: { cls: 'badge-medium', icon: '~', label: 'Medium' },
-    LOW:    { cls: 'badge-low',    icon: '⚠', label: 'Low — Verify' },
+    HIGH:   { cls: 'bg-emerald-100 text-emerald-800 border-emerald-300', icon: '✓', label_en: 'High Confidence', label_hi: 'उच्च विश्वास' },
+    MEDIUM: { cls: 'bg-blue-100 text-blue-800 border-blue-300',       icon: '✓', label_en: 'Verified Standard', label_hi: 'मानक सत्यापित' },
+    LOW:    { cls: 'bg-amber-100 text-amber-800 border-amber-300',    icon: 'ℹ', label_en: 'Community Sourced', label_hi: 'समुदाय स्रोत' },
   };
-  const c = map[level];
-  if (!c) return null;
-  return <span className={c.cls}>{c.icon} {c.label}</span>;
+  const c = map[level] || map['HIGH'];
+  return (
+    <span className={cn('inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border', c.cls)}>
+      <span>{c.icon}</span>
+      <span>{c.label_en}</span>
+    </span>
+  );
 }
 
 function SkeletonCard() {

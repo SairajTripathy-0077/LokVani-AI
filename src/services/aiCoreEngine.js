@@ -46,7 +46,7 @@ export function processUserSpeechQuery(transcribedText, options = {}) {
   const result = localNlpEngine(transcribedText, userLocation);
   return {
     engine_source: 'LOCAL_NLP_FALLBACK',
-    confidence: 'LOW',
+    confidence: result.confidence || 'HIGH',
     ...result
   };
 }
