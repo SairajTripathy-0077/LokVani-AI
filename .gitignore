@@ -25,3 +25,11 @@ dist-ssr
 
 .env
 .env.local
+
+# Agent & AI tool directories & lockfiles
+.agents
+.claude
+.gemini
+.copilot
+skills-lock.json
+

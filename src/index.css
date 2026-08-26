@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @tailwind base;
 @tailwind components;
@@ -16,18 +14,18 @@
     --card-foreground:       15  23  42;
     --popover:               255 255 255;
     --popover-foreground:    15  23  42;
-    --primary:               79  70  229;
-    --primary-foreground:    255 255 255;
-    --secondary:             238 242 255;
-    --secondary-foreground:  55  48  163;
+    --primary:               24  24  27;
+    --primary-foreground:    250 250 250;
+    --secondary:             244 248 242;
+    --secondary-foreground:  72  115 79;
     --muted:                 241 245 249;
     --muted-foreground:      100 116 139;
-    --accent:                238 242 255;
-    --accent-foreground:     55  48  163;
+    --accent:                244 248 242;
+    --accent-foreground:     72  115 79;
     --destructive:           239 68  68;
-    --border:                226 232 240;
-    --input:                 226 232 240;
-    --ring:                  79  70  229;
+    --border:                228 228 224;
+    --input:                 228 228 224;
+    --ring:                  72  115 79;
     --radius:                0.75rem;
     --sidebar:               248 250 252;
     --sidebar-foreground:    15  23  42;
@@ -37,6 +35,24 @@
     --sidebar-accent-foreground: 55 48 163;
     --sidebar-border:        226 232 240;
     --sidebar-ring:          79  70  229;
+
+    /* ── LokVani semantic tokens (design system) ── */
+    --font-heading: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, serif;
+    --font-body: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
+    --radius-sm: 12px;
+
+    --bg-main:        #fbfbfa;
+    --bg-surface:     #ffffff;
+    --bg-hover:       #f4f4f2;
+    --border-subtle:  rgba(24, 24, 27, 0.07);
+    --border-muted:   rgba(24, 24, 27, 0.13);
+    --text-main:      #18181b;
+    --text-muted:     #52525b;
+    --text-dim:       #71717a;
+
+    --accent-primary: #48734f;   /* field sage */
+    --accent-gold:    #a07a1e;   /* wheat */
+    --accent-cyan:    #48734f;   /* legacy alias → sage */
   }
 
   .dark {
@@ -74,13 +90,29 @@
 
   body {
     @apply bg-background text-foreground antialiased min-h-screen;
-    font-family: 'Inter', -apple-system, sans-serif;
-    background-color: #f1f5f9;
+    font-family: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
+    background-color: #fbfbfa;
+    letter-spacing: -0.006em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Geist', -apple-system, sans-serif;
-    @apply tracking-tight font-bold;
+  .font-heading {
+    font-family: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, 'Times New Roman', serif;
+    font-variation-settings: 'opsz' 72, 'SOFT' 40;
+  }
+
+  .font-condensed {
+    font-family: 'Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', sans-serif !important;
+  }
+
+  ::selection { background: rgba(79,70,229,.12); }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid rgba(72, 115, 79, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
   .large-text { font-size: 1.15rem !important; }
@@ -120,9 +152,21 @@
   50%  { background-position: 100% 50%; }
   100% { background-position: 0%   50%; }
 }
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 0.9;  }
+}
 
 /* ── Components ──────────────────────────────────────────────── */
 @layer components {
+  /* ── Shared buttons (used across app) ─────────────────── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white cursor-pointer transition-all duration-500 ease-premium hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-black/[0.1] bg-white px-5 py-2.5 text-sm font-medium text-zinc-800 cursor-pointer transition-all duration-500 ease-premium hover:border-black/[0.2] hover:bg-zinc-50 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
   /* ── Mic Button System ─────────────────────────────────── */
   .mic-wrap {
     position: relative;
@@ -134,13 +178,13 @@
   }
   .mic-ring {
     position: absolute; inset: 0; border-radius: 50%;
-    background: rgba(99,102,241,.3);
+    background: rgba(72,115,79,.3);
     animation: mic-ring 1.8s ease-out infinite;
     pointer-events: none;
   }
   .mic-ring-2 {
     position: absolute; inset: 0; border-radius: 50%;
-    background: rgba(99,102,241,.15);
+    background: rgba(72,115,79,.15);
     animation: mic-ring-2 1.8s ease-out .5s infinite;
     pointer-events: none;
   }
@@ -154,16 +198,23 @@
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: transform .2s, box-shadow .2s;
-    background: linear-gradient(135deg, #6366f1, #4338ca);
-    box-shadow: 0 8px 32px rgba(99,102,241,.45), 0 2px 8px rgba(99,102,241,.25);
+    background: linear-gradient(135deg, #48734f, #2e4630);
+    box-shadow: 0 8px 32px rgba(72,115,79,.45), 0 2px 8px rgba(72,115,79,.25);
     color: white;
   }
-  .mic-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 12px 40px rgba(99,102,241,.55); }
+  .mic-btn:hover:not(:disabled) { transform: scale(1.07); box-shadow: 0 12px 40px rgba(72,115,79,.55); }
   .mic-btn:active:not(:disabled) { transform: scale(.95); }
   .mic-btn:disabled { opacity: .5; cursor: not-allowed; }
   .mic-btn.listening { background: linear-gradient(135deg,#ef4444,#dc2626); box-shadow: 0 8px 32px rgba(239,68,68,.5); border-color: rgba(254,202,202,.6); }
   .mic-btn.speaking  { background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 8px 32px rgba(16,185,129,.5); border-color: rgba(167,243,208,.6); }
   .mic-btn.processing{ background: linear-gradient(135deg,#8b5cf6,#7c3aed); cursor: not-allowed; }
+
+  /* Halo ring behind the mic — quiet, always-on depth */
+  .mic-halo {
+    position: absolute; inset: -14px; border-radius: 50%;
+    border: 1px dashed rgba(24, 24, 27, 0.15);
+    pointer-events: none;
+  }
 
   /* ── Waveform ─────────────────────────────────────────── */
   .waveform { display:flex; align-items:center; gap:3px; height:30px; }
@@ -176,7 +227,7 @@
 
   /* ── Skeleton ─────────────────────────────────────────── */
   .skeleton {
-    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background: linear-gradient(90deg, #e8e8e4 25%, #f7f7f5 50%, #e8e8e4 75%);
     background-size: 600px 100%;
     animation: shimmer 1.4s infinite linear;
     border-radius: 8px;
@@ -185,11 +236,9 @@
   /* ── Response card ────────────────────────────────────── */
   .response-card { animation: fadeUp .35s ease both; }
 
-  /* ── Hero gradient ────────────────────────────────────── */
+  /* ── Voice panel — light field ─────────────────────────── */
   .hero-bg {
-    background: linear-gradient(135deg, #312e81 0%, #4338ca 35%, #4f46e5 60%, #3730a3 100%);
-    background-size: 300% 300%;
-    animation: gradShift 10s ease infinite;
+    background-color: #f4f6ef;
   }
 
   .hero-blob {
@@ -202,10 +251,50 @@
   .badge-high   { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-200; }
   .badge-medium { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-amber-100   text-amber-800   border border-amber-200;   }
   .badge-low    { @apply text-xs font-semibold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 bg-red-100     text-red-800     border border-red-200;     }
+
+  /* ── Premium motion ───────────────────────────────────── */
+  .ease-premium { transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1); }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 1s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    will-change: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* ── Film grain (fixed overlay only) ──────────────────── */
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Reduced motion: stop all decorative animation ────── */
+  @media (prefers-reduced-motion: reduce) {
+    .mic-ring, .mic-ring-2, .waveform-bar { animation: none !important; }
+    .mic-ring, .mic-ring-2 { display: none; }
+    .hero-blob, .response-card { animation: none !important; }
+    .skeleton { animation: none; }
+    .animate-pulse, .animate-bounce, .animate-spin { animation-duration: 0s !important; }
+    html { scroll-behavior: auto; }
+  }
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #d4d4d0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }

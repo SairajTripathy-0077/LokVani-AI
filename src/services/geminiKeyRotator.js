@@ -1,22 +1,24 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * GeminiKeyRotator — Server-side ONLY.
- * Reads GEMINI_API_KEYS from process.env (comma-separated for rotation/failover).
- * Configured with maxOutputTokens to optimize token usage & response speed.
+ * GeminiKeyRotator — Handles API key rotation across server and browser environments.
  */
 class GeminiKeyRotator {
   constructor() {
     this.keys = [];
     this.currentIndex = 0;
-    this.keyCooldowns = new Map();
+    this.keyCooldowns = new Map(); // key -> cooldown expiry timestamp
     this.initializeKeys();
   }
 
   initializeKeys() {
-    const rawKeys = (typeof process !== 'undefined' && process.env)
-      ? (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
-      : '';
+    let rawKeys = '';
+    if (typeof process !== 'undefined' && process && process.env) {
+      rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '';
+    }
+    if (!rawKeys && typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
+      rawKeys = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEYS || '';
+    }
 
     if (rawKeys) {
       this.keys = rawKeys.split(',').map(k => k.trim()).filter(Boolean);
@@ -51,10 +53,12 @@ class GeminiKeyRotator {
         return { key, index: this.currentIndex };
       }
 
+      // Key is in cooldown, try next
       this.currentIndex = (this.currentIndex + 1) % this.keys.length;
       attempts++;
     }
 
+    // All keys in cooldown — return first anyway to avoid complete failure
     return { key: this.keys[0], index: 0 };
   }
 
@@ -65,6 +69,7 @@ class GeminiKeyRotator {
       errorMessage.includes('QUOTA_EXCEEDED') ||
       errorMessage.includes('403');
 
+    // 2-minute cooldown for rate limits, 30s for general errors
     const cooldownMs = isRateLimitOrQuota ? 120000 : 30000;
     this.keyCooldowns.set(key, Date.now() + cooldownMs);
 
@@ -99,22 +104,14 @@ class GeminiKeyRotator {
       if (!active || !active.key) break;
 
       const { key, index } = active;
-      const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-pro'];
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-1.5-flash', 'gemini-pro'];
       let lastError = null;
 
       for (const modelName of modelsToTry) {
         try {
           const genAI = new GoogleGenerativeAI(key);
-          // Token-optimized generation config: maxOutputTokens capped at 550 to prevent token bloat
-          const model = genAI.getGenerativeModel({
-            model: modelName,
-            generationConfig: {
-              maxOutputTokens: 550,
-              temperature: 0.2,
-            }
-          });
-
-          const fullPrompt = `${systemPrompt}\nUser Query: "${userPrompt}"`;
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const fullPrompt = `${systemPrompt}\n\nUser Query: "${userPrompt}"`;
 
           const response = await model.generateContent(fullPrompt);
           const text = response.response.text();
@@ -127,10 +124,11 @@ class GeminiKeyRotator {
           };
         } catch (err) {
           lastError = err;
+          // 404 = model not found, try the next model
           if (err.message && (err.message.includes('404') || err.message.includes('not found'))) {
             continue;
           }
-          break;
+          break; // different error (rate limit, bad key) — don't try other models with this key
         }
       }
 

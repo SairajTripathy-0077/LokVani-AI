@@ -24,8 +24,11 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Weather API HTTP error: ${response.status}`);
     
-    const data = await response.json();
+    const text = await response.text();
+    let data = {};
+    try { data = JSON.parse(text); } catch (_) {}
     const current = data.current_weather;
+    if (!current) throw new Error('Invalid weather data structure');
     const dailyRain = data.daily?.precipitation_sum?.[0] || 0;
 
     return {
@@ -76,10 +79,12 @@ export async function fetchLiveMandiPrices(apiKey = null) {
 
   try {
     const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${defaultDataGovKey}&format=json&limit=10`;
-    const response = await fetch(url);
+    const response = await fetch(url, { mode: 'cors' }).catch(() => null);
     
-    if (response.ok) {
-      const result = await response.json();
+    if (response && response.ok) {
+      const text = await response.text();
+      let result = {};
+      try { result = JSON.parse(text); } catch (_) {}
       if (result.records && result.records.length > 0) {
         return result.records.map((r, idx) => ({
           id: `live-${idx}-${Date.now()}`,
@@ -95,7 +100,7 @@ export async function fetchLiveMandiPrices(apiKey = null) {
       }
     }
   } catch (err) {
-    console.warn('Agmarknet Live API fetch failed or rate limited:', err.message);
+    // Silently fall back to cached mandi rates
   }
 
   // Fallback to real-time daily updated market rates

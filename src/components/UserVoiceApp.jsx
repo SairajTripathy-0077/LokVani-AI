@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import DistressCard from './DistressCard';
 
 // ─── Dialect Map ────────────────────────────────────────────────────────────
 const DIALECT_MAP = {
@@ -727,6 +728,11 @@ export default function UserVoiceApp() {
             <div ref={messagesEndRef} />
           </div>
         )}
+
+        {/* ── Distress Prediction Module Card ── */}
+        <div className="mb-6">
+          <DistressCard cropType="wheat" cropStage="vegetative" daysToLoanDue={15} />
+        </div>
 
         {/* ── Microphone Hero / Input Section ─────────────────────── */}
         <div className="relative overflow-hidden rounded-2xl hero-bg shadow-xl shadow-indigo-900/20">

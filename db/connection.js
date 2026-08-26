@@ -23,7 +23,7 @@ export async function connectDB() {
   try {
     // Attempt Mongoose connection with 3-second timeout
     await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 15000,
     });
 
     isConnected = true;

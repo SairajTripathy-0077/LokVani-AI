@@ -2,11 +2,10 @@
  * LokVani AI — Browser-Native Web Speech API Service
  * Handles STT (Speech-to-Text) and TTS (Text-to-Speech) with multi-dialect support.
  *
- * Improvements:
- * - Fixes Chrome/Edge getVoices() empty-list bug via voiceschanged event + caching
- * - Splits long TTS text into sentence-sized chunks queued sequentially (avoids truncation)
- * - Smarter voice selection: exact locale → language-family → default
- * - Exposes playback speed (rate) control
+ * Voice Enhancements:
+ * - Prioritizes natural female voices (Google UK/US Female, Microsoft Zira/Heera/Swara, Samantha, Victoria, Veena)
+ * - Pitch tuned to 1.18 for natural female voice synthesis
+ * - Splits long TTS text into sentence-sized chunks queued sequentially
  * - Pub/Sub speaking state listeners for instant UI sync & stopping voice playback
  */
 
@@ -21,6 +20,7 @@ class SpeechService {
     this._voicesLoaded = false;
     this._isSpeaking = false;
     this._speakingListeners = new Set();
+    this.voiceGender = 'female'; // Default to female voice
 
     if (this.recognitionSupported) {
       this.recognition = new SpeechRecognition();
@@ -51,18 +51,61 @@ class SpeechService {
     return this._cachedVoices;
   }
 
-  selectVoice(langCode) {
+  /**
+   * Select a high-quality female voice matching the target language.
+   * Priority: explicit female voice in target locale → female voice in lang family → fallback
+   */
+  selectVoice(langCode, preferredGender = 'female') {
     const voices = this.getVoices();
     if (!voices.length) return null;
 
     const langPrefix = langCode.split('-')[0].toLowerCase();
-    const exact = voices.find(v => v.lang.toLowerCase() === langCode.toLowerCase());
+    const isEnglish = langPrefix === 'en';
+
+    // Female voice identifiers across Windows, macOS, iOS, Android, and Chrome
+    const femaleKeywords = [
+      'female', 'zira', 'hazel', 'susan', 'heera', 'veena', 'swara', 'samantha',
+      'victoria', 'karen', 'moira', 'fiona', 'neerja', 'kalpana', 'google uk english female',
+      'google us english', 'natural'
+    ];
+
+    // Filter candidate voices for requested locale or language family
+    const candidates = voices.filter(v =>
+      v.lang.toLowerCase() === langCode.toLowerCase() ||
+      v.lang.toLowerCase().startsWith(langPrefix)
+    );
+
+    if (preferredGender === 'female') {
+      // 1. Look for explicit female voice in requested language candidates
+      const femaleMatch = candidates.find(v =>
+        femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
+      );
+      if (femaleMatch) return femaleMatch;
+
+      // 2. If English, search all English female voices across regions (UK, US, IN, AU)
+      if (isEnglish) {
+        const enFemale = voices.find(v =>
+          v.lang.toLowerCase().startsWith('en') &&
+          femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
+        );
+        if (enFemale) return enFemale;
+      }
+
+      // 3. Look for any voice with 'female' in description/name anywhere
+      const anyFemale = voices.find(v =>
+        femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
+      );
+      if (anyFemale && isEnglish) return anyFemale;
+    }
+
+    // Fallback: exact locale match → language prefix match → first candidate
+    const exact = candidates.find(v => v.lang.toLowerCase() === langCode.toLowerCase());
     if (exact) return exact;
 
-    const family = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+    const family = candidates.find(v => v.lang.toLowerCase().startsWith(langPrefix));
     if (family) return family;
 
-    return null;
+    return candidates[0] || null;
   }
 
   _splitIntoChunks(text) {
@@ -86,7 +129,6 @@ class SpeechService {
   // ── Listener Subscription ──────────────────────────────────────────────
   onSpeakingStateChange(listener) {
     this._speakingListeners.add(listener);
-    // Send initial state
     listener(this._isSpeaking);
     return () => this._speakingListeners.delete(listener);
   }
@@ -111,7 +153,6 @@ class SpeechService {
       return;
     }
 
-    // Stop speaking if currently outputting voice
     this.stopSpeaking();
 
     try {
@@ -149,7 +190,7 @@ class SpeechService {
   }
 
   // ── TTS ─────────────────────────────────────────────────────────────────
-  speakText(text, langCode = 'hi-IN', onEnd = null, rate = 0.92) {
+  speakText(text, langCode = 'hi-IN', onEnd = null, rate = 0.92, pitch = 1.18) {
     if (!this.synthesisSupported) {
       if (onEnd) onEnd();
       return;
@@ -162,7 +203,8 @@ class SpeechService {
       return;
     }
 
-    const voice = this.selectVoice(langCode);
+    // Select female voice for speech synthesis
+    const voice = this.selectVoice(langCode, this.voiceGender);
     const chunks = this._splitIntoChunks(text);
     let chunkIndex = 0;
 
@@ -178,7 +220,8 @@ class SpeechService {
       const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
       utterance.lang = langCode;
       utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
-      utterance.pitch = 1.0;
+      // Pitch tuned to 1.18 for female voice tone
+      utterance.pitch = pitch;
 
       if (voice) utterance.voice = voice;
 

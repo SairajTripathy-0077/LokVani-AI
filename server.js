@@ -1,17 +1,18 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import { connectDB, isMongoDBConnected } from './db/connection.js';
 import { QueryLog } from './db/models/QueryLog.js';
 import { TrustReview } from './db/models/TrustReview.js';
 import { CommunityIntelModel } from './db/models/CommunityIntel.js';
+import { SchemeApplication } from './db/models/SchemeApplication.js';
+import { sendGrievanceEmail, generateComplaintId, getGrievanceEmail } from './db/grievanceMailer.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
-
-dotenv.config();
+import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -69,6 +70,12 @@ let memoryCommunityIntel = [
   { _id: 'intel_4', item: 'Gehun (Wheat)', price: 2400, unit: 'quintal', location: 'Azamgarh Main Mandi', trend: 'stable', reportedBy: 'Kirana Operator', createdAt: new Date() }
 ];
 
+// In-Memory Fallback for Scheme Applications (if MongoDB is disconnected)
+let memorySchemeApplications = [];
+
+const APPLICATION_STATUSES = ['WAITING', 'COMPLAINED', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
+const COMPLAINT_COOLDOWN_DAYS = 7;
+
 // Initialize Database Connection
 connectDB().catch(console.error);
 
@@ -125,7 +132,30 @@ app.post('/api/query', async (req, res) => {
 
     // Run AI Engine through Rotator (sanitized text, optional dialect)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
-    const aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
+    let aiResult = null;
+    let engineSource = 'GEMINI_AI';
+
+    try {
+      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
+    } catch (geminiErr) {
+      console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
+      const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
+      aiResult = {
+        short_answer_hi: fallback.shortAnswerHi,
+        short_answer_en: fallback.shortAnswerEn,
+        detailed_answer_hi: fallback.detailedAnswerHi,
+        detailed_answer_en: fallback.detailedAnswerEn,
+        confidence: fallback.confidence || 'LOW',
+        follow_up_questions: fallback.follow_up_questions || [],
+        domain: fallback.domain || 'AGRI_ADVISORY',
+        is_high_stakes: fallback.isHighStakes || false,
+        risk_category: fallback.riskCategory || 'NONE',
+        trust_note: fallback.trustNote || '',
+        actionable_steps: fallback.actionableSteps || [],
+        apiKeyIndexUsed: -1
+      };
+      engineSource = 'LOCAL_NLP_FALLBACK';
+    }
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
 
@@ -148,7 +178,8 @@ app.post('/api/query', async (req, res) => {
       actionableSteps: aiResult.actionable_steps || [],
       dialect: safeDialect || 'hi',
       status: initialStatus,
-      apiKeyIndexUsed: aiResult.apiKeyIndexUsed || 0,
+      engineSource,
+      apiKeyIndexUsed: aiResult.apiKeyIndexUsed ?? 0,
       createdAt: new Date()
     };
 
@@ -302,11 +333,228 @@ app.get('/api/user/queries/:userId', async (req, res) => {
   }
 });
 
+// ─── 7. Verified Buyer Network (GET /api/buyers) ──────────────────────────────
+// STATUS: Stub — returns static demo data.
+// TODO (Team Lead): Create a Buyer mongoose model in db/models/Buyer.js and
+//   replace the static array below with a real DB query:
+//   const buyers = await BuyerModel.find({ region: req.query.region }).limit(20);
+//
+// The response shape intentionally matches the BuyerCard.jsx props interface
+// so the frontend can swap to live data without any component changes.
+app.get('/api/buyers', (req, res) => {
+  const DEMO_BUYERS = [
+    { id: 'buyer_001', name: 'FreshKart Foods Pvt. Ltd.', location: 'Lucknow, UP', distance: '62 km', commodities: ['Tomato', 'Onion', 'Potato', 'Garlic'], offerPrice: 2400, offerUnit: 'quintal', badge: 'FPO Partner', contactInfo: '***-***-7890' },
+    { id: 'buyer_002', name: 'Azamgarh APMC Warehouse', location: 'Azamgarh, UP', distance: '5 km', commodities: ['Wheat', 'Paddy', 'Maize', 'Bajra'], offerPrice: 2310, offerUnit: 'quintal', badge: 'APMC Registered', contactInfo: '***-***-4421' },
+    { id: 'buyer_003', name: 'Kisaan Connect Cooperative', location: 'Varanasi, UP', distance: '88 km', commodities: ['Arhar', 'Moong', 'Urad', 'Chana'], offerPrice: 7600, offerUnit: 'quintal', badge: 'FPO Partner', contactInfo: '***-***-3312' },
+    { id: 'buyer_004', name: 'Spice Route Exports', location: 'Gorakhpur, UP', distance: '110 km', commodities: ['Turmeric', 'Chili', 'Coriander', 'Sesame'], offerPrice: null, offerUnit: 'quintal', badge: 'Export Certified', contactInfo: '***-***-0065' },
+    { id: 'buyer_005', name: 'Agro-Nutrient Foods', location: 'Allahabad, UP', distance: '145 km', commodities: ['Soybean', 'Mustard', 'Sunflower'], offerPrice: 4950, offerUnit: 'quintal', badge: 'Verified Buyer', contactInfo: '***-***-6677' },
+    { id: 'buyer_006', name: 'GrainMart Direct', location: 'Mau, UP', distance: '28 km', commodities: ['Wheat', 'Paddy', 'Barley'], offerPrice: 2290, offerUnit: 'quintal', badge: 'Verified Buyer', contactInfo: '***-***-9801' },
+  ];
+  return res.json({ success: true, data: DEMO_BUYERS, isStub: true });
+});
+
+// ─── 8. Scheme Applications: Apply (POST /api/applications) ──────────────────
+app.post('/api/applications', async (req, res) => {
+  try {
+    const { userId, userEmail, userName, schemeId, schemeNameEn, schemeNameHi,
+            ministryEn, applicationRefNo, appliedAt, slaDays, grievanceEmail } = req.body || {};
+
+    if (!userId || !schemeId) {
+      return res.status(400).json({ error: 'Missing required fields: userId, schemeId.' });
+    }
+
+    const payload = {
+      userId: String(userId).slice(0, 128),
+      userEmail: sanitizeInput(userEmail).slice(0, 200),
+      userName: sanitizeInput(userName).slice(0, 120),
+      schemeId: String(schemeId).slice(0, 100),
+      schemeNameEn: sanitizeInput(schemeNameEn).slice(0, 200),
+      schemeNameHi: sanitizeInput(schemeNameHi).slice(0, 200),
+      ministryEn: sanitizeInput(ministryEn).slice(0, 200),
+      applicationRefNo: sanitizeInput(applicationRefNo).slice(0, 100),
+      appliedAt: appliedAt ? new Date(appliedAt) : new Date(),
+      slaDays: Number(slaDays) > 0 ? Number(slaDays) : 30,
+      grievanceEmail: sanitizeInput(grievanceEmail).slice(0, 200),
+      status: 'WAITING'
+    };
+
+    // Duplicate check: same user + same scheme
+    if (isMongoDBConnected()) {
+      const existing = await SchemeApplication.findOne({ userId: payload.userId, schemeId: payload.schemeId });
+      if (existing) {
+        return res.status(409).json({ error: 'Application already recorded for this scheme.', data: existing });
+      }
+      const created = await SchemeApplication.create(payload);
+      return res.status(201).json({ success: true, data: created });
+    }
+
+    const existingMem = memorySchemeApplications.find(
+      a => a.userId === payload.userId && a.schemeId === payload.schemeId
+    );
+    if (existingMem) {
+      return res.status(409).json({ error: 'Application already recorded for this scheme.', data: existingMem });
+    }
+    const createdMem = { _id: `app_${Date.now()}`, ...payload, complaints: [], createdAt: new Date() };
+    memorySchemeApplications.unshift(createdMem);
+    return res.status(201).json({ success: true, data: createdMem });
+  } catch (error) {
+    console.error('[API POST /api/applications Error]:', error);
+    return res.status(500).json({ error: 'Failed to record application.' });
+  }
+});
+
+// ─── 9. Get User Applications (GET /api/applications/user/:userId) ───────────
+app.get('/api/applications/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    // TESTING BYPASS flag surfaced so the frontend can unlock the Complain button
+    const allowEarlyComplaint = process.env.ALLOW_EARLY_COMPLAINT === 'true';
+    if (isMongoDBConnected()) {
+      const apps = await SchemeApplication.find({ userId }).sort({ appliedAt: -1 });
+      return res.json({ success: true, data: apps, allowEarlyComplaint });
+    }
+    const apps = memorySchemeApplications.filter(a => a.userId === userId)
+      .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+    return res.json({ success: true, data: apps, allowEarlyComplaint });
+  } catch (error) {
+    console.error('[API GET /api/applications Error]:', error);
+    return res.status(500).json({ error: 'Failed to fetch applications.' });
+  }
+});
+
+// ─── 10. File Grievance Complaint (POST /api/applications/:id/complaint) ─────
+const complaintLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: { error: 'Too many complaints filed. Please wait before trying again.' }
+});
+
+app.post('/api/applications/:id/complaint', complaintLimiter, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { note } = req.body || {};
+
+    let application = null;
+    if (isMongoDBConnected()) {
+      application = await SchemeApplication.findById(id);
+    } else {
+      application = memorySchemeApplications.find(a => String(a._id) === String(id));
+    }
+
+    if (!application) {
+      return res.status(404).json({ error: 'Application not found.' });
+    }
+    if (['APPROVED', 'REJECTED', 'WITHDRAWN'].includes(application.status)) {
+      return res.status(400).json({ error: 'This application is already closed.' });
+    }
+
+    const daysElapsed = Math.floor((Date.now() - new Date(application.appliedAt).getTime()) / 86400000);
+
+    // TESTING BYPASS: set ALLOW_EARLY_COMPLAINT=true in .env to unlock complaints immediately
+    const earlyComplaintAllowed = process.env.ALLOW_EARLY_COMPLAINT === 'true';
+
+    if (!earlyComplaintAllowed && daysElapsed < application.slaDays) {
+      return res.status(400).json({
+        error: `SLA not yet breached. You can file a complaint after ${application.slaDays} days of waiting.`,
+        daysElapsed,
+        slaDays: application.slaDays
+      });
+    }
+
+    const recentComplaint = earlyComplaintAllowed
+      ? null
+      : (application.complaints || []).find(c =>
+          (Date.now() - new Date(c.sentAt).getTime()) < COMPLAINT_COOLDOWN_DAYS * 86400000
+        );
+    if (recentComplaint) {
+      return res.status(429).json({
+        error: 'A complaint was already filed within the last 7 days.',
+        complaint: recentComplaint
+      });
+    }
+
+    const complaintId = generateComplaintId();
+    const mailResult = await sendGrievanceEmail({ application, daysElapsed, complaintId });
+
+    const complaintEntry = {
+      complaintId,
+      sentTo: mailResult.to || getGrievanceEmail(application.grievanceEmail),
+      ccTo: mailResult.cc || '',
+      sentAt: new Date(),
+      daysElapsed,
+      emailSent: Boolean(mailResult.emailSent),
+      note: sanitizeInput(note).slice(0, 500)
+    };
+
+    application.status = 'COMPLAINED';
+    application.complaints = [...(application.complaints || []), complaintEntry];
+
+    let saved;
+    if (isMongoDBConnected()) {
+      saved = await SchemeApplication.findByIdAndUpdate(
+        id,
+        { status: 'COMPLAINED', $push: { complaints: complaintEntry } },
+        { new: true }
+      );
+    } else {
+      saved = application;
+    }
+
+    return res.json({
+      success: true,
+      data: { ...saved.toObject?.() ?? saved },
+      complaint: complaintEntry,
+      emailSent: mailResult.emailSent,
+      ...(mailResult.emailSent ? {} : { warning: 'SMTP is not configured or delivery failed — complaint logged locally only.' })
+    });
+  } catch (error) {
+    console.error('[API POST /api/applications/:id/complaint Error]:', error);
+    return res.status(500).json({ error: 'Failed to file grievance complaint.' });
+  }
+});
+
+// ─── 11. Update Application Status (PATCH /api/applications/:id/status) ──────
+app.patch('/api/applications/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body || {};
+
+    if (!APPLICATION_STATUSES.includes(status)) {
+      return res.status(400).json({ error: `Invalid status. Allowed: ${APPLICATION_STATUSES.join(', ')}` });
+    }
+
+    if (isMongoDBConnected()) {
+      const updated = await SchemeApplication.findByIdAndUpdate(id, { status }, { new: true });
+      if (!updated) return res.status(404).json({ error: 'Application not found.' });
+      return res.json({ success: true, data: updated });
+    }
+
+    const item = memorySchemeApplications.find(a => String(a._id) === String(id));
+    if (item) item.status = status;
+    return res.json({ success: true, data: item || { _id: id, status } });
+  } catch (error) {
+    console.error('[API PATCH /api/applications/:id/status Error]:', error);
+    return res.status(500).json({ error: 'Failed to update application status.' });
+  }
+});
+
 // Start Express Server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`===================================================`);
   console.log(`  LokVani AI Backend API listening on port ${PORT}`);
   console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`  CORS Allowed Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
   console.log(`===================================================`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`\n===================================================`);
+    console.log(`  [LokVani Server] Port ${PORT} is already in use.`);
+    console.log(`  Backend API is ALREADY running on http://localhost:${PORT}`);
+    console.log(`===================================================\n`);
+    process.exit(0);
+  } else {
+    console.error('[LokVani Server] Unexpected error:', err);
+  }
 });

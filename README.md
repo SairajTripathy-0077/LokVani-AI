@@ -68,6 +68,22 @@ Over 500 million non-smartphone users and underserved citizens in India are excl
 
 ---
 
+## 🌾 Distress Prediction Module
+
+LokVani AI includes a fourth additive pillar: an offline-first **Distress Prediction Module** that quantifies agricultural and financial risk for farmers by analyzing weather deviations, Mandi commodity price drops, crop growth stage sensitivity, and loan repayment schedules.
+
+### Key Architecture:
+- **Pure Scoring Engine (`src/engine/distressEngine.js`)**: Implements continuous severity math, crop-stage multipliers (`stageSensitivity.json`), non-linear interaction bonus, loan proximity multiplier, and trend velocity analysis.
+- **Explainable Plain-Language Reasons**: Generates zero-jargon spoken reasons (`spokenReasons`) enforced by automated Vitest blocklist checks (`%`, `deviation`, `multiplier`, `score`, `threshold`, `factor`).
+- **ICAR-Style Advisory Templates**: Grounded guidance snippets for drought, price crash, and loan repayment situations.
+- **Two-Tier Routing**:
+  - `ADVISORY`: Displayed in farmer voice app view (`<DistressCard />`).
+  - `URGENT`: Automatically routed to Kirana Trust Node review queue (`PENDING_TRUST_REVIEW`) with `DISTRESS_ALERT` tag for human-in-the-loop operator approval.
+- **Self-Check Test Suite**: Run engine test suite via `npm run test:engine`.
+- **Feature Flag**: Controlled via `VITE_ENABLE_DISTRESS=true` in `.env`.
+
+---
+
 ## 📜 License & Track Info
 
 Built with ❤️ for **AI for Public Good** | OOSC Hackathon.

@@ -20,7 +20,8 @@ import {
   X,
   MapPin,
   Sprout,
-  IndianRupee
+  IndianRupee,
+  ShieldAlert
 } from 'lucide-react';
 
 const STATES_LIST = [
@@ -36,7 +37,7 @@ const OCCUPATIONS = [
 const CATEGORIES = ['Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing', 'Women & Child', 'Social Security'];
 
 export default function PublicSchemesDashboard() {
-  const { language } = useApp();
+  const { language, queries, approveQuery, pendingReviewsCount } = useApp();
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('lokvani_user_profile');
@@ -362,6 +363,23 @@ export default function PublicSchemesDashboard() {
           <Sparkles className="w-5 h-5 text-amber-500" />
           <span>{language === 'hi' ? 'AI योजना मित्र' : 'AI Scheme Assistant'}</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('trust_node')}
+          className={`flex items-center gap-2 py-3 border-b-2 text-sm sm:text-base font-bold whitespace-nowrap transition-all ${
+            activeTab === 'trust_node'
+              ? 'border-red-600 text-red-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ShieldAlert className="w-5 h-5 text-red-500" />
+          <span>{language === 'hi' ? 'किराना ट्रस्ट नोड समीक्षा' : 'Kirana Trust Node Queue'}</span>
+          {pendingReviewsCount > 0 && (
+            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {pendingReviewsCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* 3. TAB 1: MATCHED SCHEMES */}
@@ -535,6 +553,64 @@ export default function PublicSchemesDashboard() {
               {aiResponse}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 5. TAB 4: KIRANA TRUST NODE QUEUE */}
+      {activeTab === 'trust_node' && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldAlert className="w-6 h-6 text-red-400" />
+                <h3 className="font-extrabold text-lg sm:text-xl text-slate-100">
+                  {language === 'hi' ? 'किराना ट्रस्ट नोड — मानव सत्यापन कतार' : 'Kirana Trust Node — Human-in-the-Loop Review Queue'}
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 max-w-xl">
+                {language === 'hi'
+                  ? 'उच्च जोखिम वाली सलाह और संकट पूर्वाभास सूचनाओं को 1-क्लिक में सत्यापित या संशोधित करें।'
+                  : 'Review high-stakes scheme queries and urgent agricultural distress predictions before final release to farmer voice apps.'}
+              </p>
+            </div>
+            <span className="text-xs font-mono bg-red-950/80 text-red-300 border border-red-800/60 px-3 py-1.5 rounded-xl font-bold">
+              {pendingReviewsCount} Pending Items
+            </span>
+          </div>
+
+          {/* Urgent Distress Alert Queue Item */}
+          <div className="bg-gradient-to-br from-red-950/40 via-slate-900 to-slate-950 border-2 border-red-500/50 rounded-2xl p-6 text-white shadow-xl">
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-black border border-red-500/40 uppercase tracking-wider">
+                  DISTRESS_ALERT (URGENT)
+                </span>
+                <span className="text-xs text-slate-400 font-mono">Node #Azamgarh-402</span>
+              </div>
+              <span className="text-xs text-amber-400 font-bold bg-amber-950/50 px-2.5 py-1 rounded-lg border border-amber-800/50">
+                Score: 78 / 100
+              </span>
+            </div>
+            <h4 className="font-bold text-base sm:text-lg text-slate-100 mb-1">
+              {language === 'hi' ? 'सूखा एवं फसल क्षति जोखिम चेतावनी — गेहूं (फूल आने की स्थिति)' : 'Drought & Price Crash Risk Warning — Wheat (Flowering Stage)'}
+            </h4>
+            <p className="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+              {language === 'hi'
+                ? 'बारिश 45% कम और मंडी भाव में 25% की गिरावट दर्ज की गई। KCC लोन की किश्त 10 दिनों में देय है।'
+                : 'Rainfall 45% below normal and Mandi price dropped by 25%. KCC loan repayment due in 10 days.'}
+            </p>
+            <div className="flex items-center justify-between pt-4 border-t border-slate-800 flex-wrap gap-3">
+              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Tagged PENDING_TRUST_REVIEW
+              </span>
+              <button
+                onClick={() => alert(language === 'hi' ? 'सफलतापूर्वक सत्यापित और किसान ऐप पर प्रेषित।' : 'Distress alert verified and released to farmer voice app.')}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-2 transition shadow-lg shadow-emerald-950/40"
+              >
+                <CheckCircle2 className="w-4 h-4" /> 1-Click Approve & Verify
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
