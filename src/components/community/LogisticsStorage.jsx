@@ -173,6 +173,17 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
         <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.78rem', padding: '3px 12px', marginTop: '4px' }}>
           {t('closeBtn', lang)}
         </button>
+        {onViewBookings && (
+          <button 
+            type="button" 
+            className="btn-primary" 
+            onClick={() => { onClose(); onViewBookings(); }} 
+            style={{ fontSize: '0.78rem', padding: '3px 12px', marginTop: '4px', marginLeft: '6px' }}
+          >
+            <FileCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+            {lang === 'hi' ? 'मेरी बुकिंग्स में देखें →' : 'View in My Bookings →'}
+          </button>
+        )}
       </div>
     );
   }
@@ -350,14 +361,23 @@ function ListVehicleModal({ isOpen, onClose, onAdd, lang }) {
   );
 }
 
-function TransportCard({ item, onBook, lang }) {
+function TransportCard({ item, onBook, onViewBookings, userBookings = [], lang }) {
   const [showForm, setShowForm] = useState(false);
   const s    = STATUS_COLOR[item.status]   || STATUS_COLOR.FULL;
   const sLbl = t(STATUS_KEY_MAP[item.status] || 'fullStatus', lang);
   const route = lang === 'hi' ? item.route_hi : item.route_en;
 
+  const myBooking = userBookings.find(b => b.itemId === item.id);
+
   return (
-    <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: myBooking ? '1.5px solid var(--accent-primary, #15803d)' : '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {myBooking && (
+        <div style={{ background: '#ecfdf5', color: '#047857', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>✓ {lang === 'hi' ? `आपकी बुकिंग: ${myBooking.quantity} टन` : `Your Booking: ${myBooking.quantity} Tonne`}</span>
+          <span>{myBooking.bookingId}</span>
+        </div>
+      )}
+
       <header className="community-int__logistics-card__header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div className="community-int__logistics-icon" style={{ width: '38px', height: '38px', background: 'rgba(72,115,79,0.09)', color: 'var(--accent-primary, #15803d)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <Truck size={18} />
@@ -392,18 +412,18 @@ function TransportCard({ item, onBook, lang }) {
           onClick={() => setShowForm(true)}
           disabled={item.status === 'FULL'}>
           <Truck size={13} aria-hidden="true" />
-          {item.status === 'FULL' ? t('noSpace', lang) : t('bookSpace', lang)}
+          {item.status === 'FULL' ? t('noSpace', lang) : (myBooking ? (lang === 'hi' ? 'और जगह बुक करें' : 'Book More Space') : t('bookSpace', lang))}
         </button>
       ) : (
         <div className="community-int__pool-form-wrap" style={{ marginTop: '8px', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '12px' }}>
-          <BookingForm item={item} itemType="transport" onBook={onBook} onClose={() => setShowForm(false)} lang={lang} />
+          <BookingForm item={item} itemType="transport" onBook={onBook} onViewBookings={onViewBookings} onClose={() => setShowForm(false)} lang={lang} />
         </div>
       )}
     </article>
   );
 }
 
-function StorageCard({ item, onBook, lang }) {
+function StorageCard({ item, onBook, onViewBookings, userBookings = [], lang }) {
   const [showForm, setShowForm] = useState(false);
   const s      = STATUS_COLOR[item.status]           || STATUS_COLOR.FULL;
   const sLbl   = t(STATUS_KEY_MAP[item.status] || 'fullStatus', lang);
@@ -411,8 +431,17 @@ function StorageCard({ item, onBook, lang }) {
   const name   = lang === 'hi' ? item.facilityName_hi : item.facilityName_en;
   const typeLbl = t(type.labelKey, lang);
 
+  const myBooking = userBookings.find(b => b.itemId === item.id);
+
   return (
-    <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: myBooking ? '1.5px solid var(--accent-primary, #15803d)' : '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {myBooking && (
+        <div style={{ background: '#ecfdf5', color: '#047857', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>✓ {lang === 'hi' ? `आपकी बुकिंग: ${myBooking.quantity} बोरे` : `Your Booking: ${myBooking.quantity} Bags`}</span>
+          <span>{myBooking.bookingId}</span>
+        </div>
+      )}
+
       <header className="community-int__logistics-card__header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div className="community-int__logistics-icon" style={{ width: '38px', height: '38px', color: type.color, background: 'rgba(72,115,79,0.09)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {type.icon}
@@ -452,11 +481,11 @@ function StorageCard({ item, onBook, lang }) {
           onClick={() => setShowForm(true)}
           disabled={item.status === 'FULL'}>
           <Warehouse size={13} aria-hidden="true" />
-          {item.status === 'FULL' ? t('fullyBooked', lang) : t('bookStorage', lang)}
+          {item.status === 'FULL' ? t('fullyBooked', lang) : (myBooking ? (lang === 'hi' ? 'और बोरे जोड़ें' : 'Book More Bags') : t('bookStorage', lang))}
         </button>
       ) : (
         <div className="community-int__pool-form-wrap" style={{ marginTop: '8px', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '12px' }}>
-          <BookingForm item={item} itemType="storage" onBook={onBook} onClose={() => setShowForm(false)} lang={lang} />
+          <BookingForm item={item} itemType="storage" onBook={onBook} onViewBookings={onViewBookings} onClose={() => setShowForm(false)} lang={lang} />
         </div>
       )}
     </article>
@@ -566,15 +595,20 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
           style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
           {t('tabStorage', lang)} ({availSt} {t('available', lang)})
         </button>
-        {userBookings.length > 0 && (
-          <button role="tab" type="button"
-            className={`community-int__pill ${activeTab === 'bookings' ? 'community-int__pill--active' : ''}`}
-            onClick={() => setActiveTab('bookings')}
-            style={{ padding: '8px 18px', fontSize: '0.85rem', color: 'var(--accent-primary, #15803d)', fontWeight: 700 }}>
-            <FileCheck size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            {lang === 'hi' ? `मेरी बुकिंग्स (${userBookings.length})` : `My Bookings (${userBookings.length})`}
-          </button>
-        )}
+        <button role="tab" type="button"
+          className={`community-int__pill ${activeTab === 'bookings' ? 'community-int__pill--active' : ''}`}
+          onClick={() => setActiveTab('bookings')}
+          style={{ 
+            padding: '8px 18px', 
+            fontSize: '0.85rem', 
+            color: userBookings.length > 0 ? '#15803d' : 'inherit', 
+            fontWeight: userBookings.length > 0 ? 700 : 500,
+            borderColor: userBookings.length > 0 ? '#86efac' : undefined,
+            background: userBookings.length > 0 && activeTab !== 'bookings' ? '#f0fdf4' : undefined
+          }}>
+          <FileCheck size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+          {lang === 'hi' ? `मेरी बुकिंग्स (${userBookings.length})` : `My Bookings (${userBookings.length})`}
+        </button>
       </div>
 
       {/* Transport Tab */}
@@ -602,7 +636,16 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
           </div>
         ) : (
           <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-            {transportList.map(item => <TransportCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
+            {transportList.map(item => (
+              <TransportCard 
+                key={item.id} 
+                item={item} 
+                onBook={handleBookPass} 
+                onViewBookings={() => setActiveTab('bookings')}
+                userBookings={userBookings}
+                lang={lang} 
+              />
+            ))}
           </div>
         )
       )}
@@ -623,7 +666,16 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
           </div>
         ) : (
           <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-            {storageList.map(item => <StorageCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
+            {storageList.map(item => (
+              <StorageCard 
+                key={item.id} 
+                item={item} 
+                onBook={handleBookPass} 
+                onViewBookings={() => setActiveTab('bookings')}
+                userBookings={userBookings}
+                lang={lang} 
+              />
+            ))}
           </div>
         )
       )}
