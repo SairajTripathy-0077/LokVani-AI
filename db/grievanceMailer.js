@@ -118,6 +118,10 @@ export async function sendGrievanceEmail({ application, daysElapsed, complaintId
 
   const payloadParams = {
     to_email: to,
+    email_to: to,
+    recipient_email: to,
+    send_to: to,
+    to: to,
     cc_email: cc,
     reply_to: cc || undefined,
     subject,
