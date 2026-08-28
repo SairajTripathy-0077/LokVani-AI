@@ -20,8 +20,11 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
   const coords = REGIONAL_COORDINATES[city] || REGIONAL_COORDINATES['Azamgarh'];
   
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2000);
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=Asia%2FKolkata`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
     if (!response.ok) throw new Error(`Weather API HTTP error: ${response.status}`);
     
     const text = await response.text();
