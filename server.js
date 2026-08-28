@@ -380,12 +380,19 @@ app.post('/api/applications', async (req, res) => {
 
     // Duplicate check: same user + same scheme
     if (isMongoDBConnected()) {
-      const existing = await SchemeApplication.findOne({ userId: payload.userId, schemeId: payload.schemeId });
-      if (existing) {
-        return res.status(409).json({ error: 'Application already recorded for this scheme.', data: existing });
+      try {
+        const existing = await SchemeApplication.findOne({ userId: payload.userId, schemeId: payload.schemeId });
+        if (existing) {
+          return res.status(409).json({ error: 'Application already recorded for this scheme.', data: existing });
+        }
+        const created = await SchemeApplication.create(payload);
+        return res.status(201).json({ success: true, data: created });
+      } catch (dbErr) {
+        console.warn('[API POST /api/applications] DB error, using memory store fallback:', dbErr.message);
+        if (dbErr.code === 11000) {
+          return res.status(409).json({ error: 'Application already recorded for this scheme.' });
+        }
       }
-      const created = await SchemeApplication.create(payload);
-      return res.status(201).json({ success: true, data: created });
     }
 
     const existingMem = memorySchemeApplications.find(
@@ -410,8 +417,12 @@ app.get('/api/applications/user/:userId', async (req, res) => {
     // TESTING BYPASS flag surfaced so the frontend can unlock the Complain button
     const allowEarlyComplaint = process.env.ALLOW_EARLY_COMPLAINT === 'true';
     if (isMongoDBConnected()) {
-      const apps = await SchemeApplication.find({ userId }).sort({ appliedAt: -1 });
-      return res.json({ success: true, data: apps, allowEarlyComplaint });
+      try {
+        const apps = await SchemeApplication.find({ userId }).sort({ appliedAt: -1 });
+        return res.json({ success: true, data: apps, allowEarlyComplaint });
+      } catch (dbErr) {
+        console.warn('[API GET /api/applications] DB query error, using memory store fallback:', dbErr.message);
+      }
     }
     const apps = memorySchemeApplications.filter(a => a.userId === userId)
       .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt));
