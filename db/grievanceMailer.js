@@ -88,28 +88,33 @@ export async function sendGrievanceEmail({ application, daysElapsed, complaintId
     buildComplaintBodyHi({ ...application, daysElapsed, complaintId })
   ].join('\n');
 
-  // Dynamic dotenv refresh to pick up freshly saved .env changes without server restart
-  if (!process.env.EMAILJS_SERVICE_ID) {
-    try {
-      const dotenv = await import('dotenv');
-      dotenv.config({ override: true });
-    } catch (_) {}
-  }
-
-  const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID;
-  const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID;
-  const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY || process.env.VITE_EMAILJS_PUBLIC_KEY;
-  const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY || process.env.VITE_EMAILJS_PRIVATE_KEY;
+  const env = loadDiskEnv();
+  const EMAILJS_SERVICE_ID = env.EMAILJS_SERVICE_ID || env.VITE_EMAILJS_SERVICE_ID;
+  const EMAILJS_TEMPLATE_ID = env.EMAILJS_TEMPLATE_ID || env.VITE_EMAILJS_TEMPLATE_ID;
+  const EMAILJS_PUBLIC_KEY = env.EMAILJS_PUBLIC_KEY || env.VITE_EMAILJS_PUBLIC_KEY;
+  const EMAILJS_PRIVATE_KEY = env.EMAILJS_PRIVATE_KEY || env.VITE_EMAILJS_PRIVATE_KEY;
 
   if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
     console.warn(
-      `[Grievance Mailer] EmailJS is not configured. Complaint ${complaintId} logged but email NOT sent (would go to ${to}${cc ? `, cc ${cc}` : ''}).`
+      `[Grievance Mailer] EmailJS missing keys (SERVICE_ID: "${EMAILJS_SERVICE_ID}", TEMPLATE_ID: "${EMAILJS_TEMPLATE_ID}", PUBLIC_KEY: "${EMAILJS_PUBLIC_KEY}").`
     );
     return { emailSent: false, to, cc };
   }
 
+  const payloadParams = {
+    to_email: to,
+    cc_email: cc,
+    reply_to: cc || undefined,
+    subject,
+    message,
+    complaint_id: complaintId,
+    applicant_name: application.userName || '',
+    scheme_name: application.schemeNameEn || ''
+  };
+
   try {
-    const res = await fetch(EMAILJS_ENDPOINT, {
+    // Attempt 1: Standard REST call with user_id
+    let res = await fetch(EMAILJS_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,24 +122,30 @@ export async function sendGrievanceEmail({ application, daysElapsed, complaintId
         template_id: EMAILJS_TEMPLATE_ID,
         user_id: EMAILJS_PUBLIC_KEY,
         ...(EMAILJS_PRIVATE_KEY ? { accessToken: EMAILJS_PRIVATE_KEY } : {}),
-        template_params: {
-          to_email: to,
-          cc_email: cc,
-          reply_to: cc || undefined,
-          subject,
-          message,
-          complaint_id: complaintId,
-          applicant_name: application.userName || '',
-          scheme_name: application.schemeNameEn || ''
-        }
+        template_params: payloadParams
       })
     });
+
+    // Attempt 2: If private key / accessToken caused 401/403, retry without accessToken
+    if (!res.ok && EMAILJS_PRIVATE_KEY) {
+      res = await fetch(EMAILJS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_PUBLIC_KEY,
+          template_params: payloadParams
+        })
+      });
+    }
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
       throw new Error(`EmailJS responded ${res.status}: ${errText.slice(0, 200)}`);
     }
 
+    console.log(`[Grievance Mailer] Outbound complaint email sent successfully to ${to} for complaint ${complaintId}.`);
     return { emailSent: true, to, cc };
   } catch (err) {
     console.error(`[Grievance Mailer] Failed to send complaint ${complaintId}:`, err.message);
