@@ -1,12 +1,20 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from '../services/realDataService';
+import { speechService } from '../services/speechService';
 
 const AppContext = createContext();
+
+const DEFAULT_CONVERSATION = {
+  id: 'default',
+  title: 'Main Chat Session',
+  createdAt: new Date().toISOString(),
+  messages: []
+};
 
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
   const [language, setLanguage] = useState(() =>
-    localStorage.getItem('lokvani_language') || 'en'
+    localStorage.getItem('lokvani_language') || 'hi'
   );
 
   useEffect(() => {
@@ -15,10 +23,39 @@ export function AppProvider({ children }) {
 
   // Dialect selection — persisted to localStorage
   const [dialect, setDialect] = useState(() =>
-    localStorage.getItem('lokvani_dialect') || 'en'
+    localStorage.getItem('lokvani_dialect') || 'hi'
   );
 
-  // Real User Queries (Persisted in localStorage, empty on fresh start)
+  // Multi-thread conversation session management
+  const [conversations, setConversations] = useState(() => {
+    const saved = localStorage.getItem('lokvani_conversations');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return [DEFAULT_CONVERSATION];
+  });
+
+  const [activeConvId, setActiveConvId] = useState(() => {
+    return localStorage.getItem('lokvani_active_conv_id') || 'default';
+  });
+
+  // Global speech state listener
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  useEffect(() => {
+    const unsubscribe = speechService.onSpeakingStateChange((speaking) => {
+      setIsSpeaking(speaking);
+    });
+    return unsubscribe;
+  }, []);
+
+  const stopSpeaking = () => {
+    speechService.stopSpeaking();
+  };
+
+  // Real User Queries (Persisted in localStorage)
   const [queries, setQueries] = useState(() => {
     const saved = localStorage.getItem('lokvani_real_queries');
     return saved ? JSON.parse(saved) : [];
@@ -190,6 +227,91 @@ export function AppProvider({ children }) {
     localStorage.setItem('lokvani_dialect', dialect);
   }, [dialect]);
 
+  useEffect(() => {
+    localStorage.setItem('lokvani_conversations', JSON.stringify(conversations));
+  }, [conversations]);
+
+  useEffect(() => {
+    localStorage.setItem('lokvani_active_conv_id', activeConvId);
+  }, [activeConvId]);
+
+  // Active Conversation Helper
+  const activeConversation = conversations.find(c => c.id === activeConvId) || conversations[0] || DEFAULT_CONVERSATION;
+
+  const createConversation = (title) => {
+    const newConv = {
+      id: `conv_${Date.now()}`,
+      title: title || `Session ${conversations.length + 1}`,
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    setConversations(prev => [newConv, ...prev]);
+    setActiveConvId(newConv.id);
+    return newConv.id;
+  };
+
+  const selectConversation = (convId) => {
+    if (conversations.some(c => c.id === convId)) {
+      setActiveConvId(convId);
+    }
+  };
+
+  const deleteConversation = (convId) => {
+    setConversations(prev => {
+      const filtered = prev.filter(c => c.id !== convId);
+      if (filtered.length === 0) {
+        return [DEFAULT_CONVERSATION];
+      }
+      if (activeConvId === convId) {
+        setActiveConvId(filtered[0].id);
+      }
+      return filtered;
+    });
+  };
+
+  const renameConversation = (convId, newTitle) => {
+    if (!newTitle.trim()) return;
+    setConversations(prev =>
+      prev.map(c => c.id === convId ? { ...c, title: newTitle.trim() } : c)
+    );
+  };
+
+  const clearAllConversations = () => {
+    const reset = [DEFAULT_CONVERSATION];
+    setConversations(reset);
+    setActiveConvId(DEFAULT_CONVERSATION.id);
+  };
+
+  const addMessageToActiveConv = (messageData) => {
+    const targetId = activeConvId;
+    setConversations(prev =>
+      prev.map(c => {
+        if (c.id === targetId || (prev.length === 1 && c.id === prev[0].id)) {
+          const updatedMessages = [...(c.messages || []), messageData];
+          // Auto-generate title from first question if currently default title
+          let title = c.title;
+          if (c.messages.length === 0 && messageData.transcribedText) {
+            title = messageData.transcribedText.slice(0, 30) + (messageData.transcribedText.length > 30 ? '...' : '');
+          }
+          return { ...c, title, messages: updatedMessages };
+        }
+        return c;
+      })
+    );
+  };
+
+  const deleteMessageFromActiveConv = (messageId) => {
+    const targetId = activeConvId;
+    setConversations(prev =>
+      prev.map(c => {
+        if (c.id === targetId) {
+          return { ...c, messages: (c.messages || []).filter(m => m._id !== messageId && m.id !== messageId) };
+        }
+        return c;
+      })
+    );
+  };
+
   const addQuery = (newQuery) => {
     setQueries(prev => [newQuery, ...prev]);
   };
@@ -236,6 +358,18 @@ export function AppProvider({ children }) {
       setLanguage,
       dialect,
       setDialect,
+      conversations,
+      activeConvId,
+      activeConversation,
+      createConversation,
+      selectConversation,
+      deleteConversation,
+      renameConversation,
+      clearAllConversations,
+      addMessageToActiveConv,
+      deleteMessageFromActiveConv,
+      isSpeaking,
+      stopSpeaking,
       queries,
       addQuery,
       approveQuery,
