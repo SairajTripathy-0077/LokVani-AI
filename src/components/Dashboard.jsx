@@ -156,18 +156,7 @@ export default function Dashboard() {
       {/* ── Top Header Banner ─────────────────────────────────── */}
       <header className="mb-8 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/80 px-3.5 py-1 text-[10px] font-medium uppercase tracking-[0.22em] text-zinc-600 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
-              {language === 'hi' ? 'नागरिक डैशबोर्ड व प्रोफ़ाइल' : 'User Control Center'}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-emerald-50/80 px-3 py-1 text-[11px] font-semibold text-emerald-800">
-              <ShieldCheck size={13} />
-              {formData.isKycVerified ? 'e-KYC Verified' : 'Standard Tier'}
-            </span>
-          </div>
-
-          <h1 className="mt-4 font-condensed text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
+          <h1 className="font-condensed text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
             {language === 'hi' ? `स्वागत है, ${formData.fullName || 'नागरिक'}` : `Welcome back, ${formData.fullName || 'User'}`}
           </h1>
           <p className="mt-2 max-w-2xl text-pretty text-sm text-zinc-500">
