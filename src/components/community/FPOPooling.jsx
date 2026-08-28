@@ -595,16 +595,22 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   useEffect(() => {
     let ws = null;
     let reconnectTimer = null;
+    let attemptIndex = 0;
 
     function connectWS() {
       try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.hostname}:5000`;
-        ws = new WebSocket(wsUrl);
+        const candidates = [
+          `${protocol}//${window.location.host}/ws`,
+          `${protocol}//${window.location.hostname}:5000`
+        ];
+
+        const targetUrl = candidates[attemptIndex % candidates.length];
+        ws = new WebSocket(targetUrl);
 
         ws.onopen = () => {
           setWsConnected(true);
-          console.log('[FPO WebSocket] Connected live to real-time pool stream');
+          console.log(`[FPO WebSocket] Connected live to stream via ${targetUrl}`);
         };
 
         ws.onmessage = (e) => {
@@ -635,7 +641,8 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
         ws.onclose = () => {
           setWsConnected(false);
-          reconnectTimer = setTimeout(connectWS, 3000);
+          attemptIndex++;
+          reconnectTimer = setTimeout(connectWS, 2000);
         };
 
         ws.onerror = () => {
