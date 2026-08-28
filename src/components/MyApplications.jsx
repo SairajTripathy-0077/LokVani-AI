@@ -159,80 +159,82 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
     return (
       <article
         key={app._id}
-        className={`group flex flex-col rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_16px_48px_-32px_rgba(24,24,27,0.18)] transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.12] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7 ${isClosed ? 'opacity-80' : ''}`}
+        className={`group flex h-full flex-col justify-between rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_16px_48px_-32px_rgba(24,24,27,0.18)] transition-all duration-700 ease-premium hover:-translate-y-1 hover:border-black/[0.12] hover:shadow-[0_28px_60px_-32px_rgba(24,24,27,0.25)] sm:p-7 ${isClosed ? 'opacity-80' : ''}`}
       >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400 tabular-nums">
-              {hi ? 'आवेदन दिनांक' : 'Applied on'} · {new Date(app.appliedAt).toLocaleDateString(hi ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-            <h3 className="mt-1 text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
-              {hi ? (app.schemeNameHi || app.schemeNameEn) : (app.schemeNameEn || app.schemeNameHi)}
-            </h3>
-            {app.applicationRefNo && (
-              <p className="mt-1 truncate text-xs text-zinc-400 tabular-nums" title={app.applicationRefNo}>
-                {hi ? 'सरकारी संदर्भ सं.' : 'Govt ref no.'} · {app.applicationRefNo}
-              </p>
-            )}
-          </div>
-          <span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold ${BADGE_TONES[meta.tone]}`}>
-            {meta.tone === 'good' && <CheckCircle2 size={11} strokeWidth={2} />}
-            {meta.tone === 'escalated' && <ShieldAlert size={11} strokeWidth={2} />}
-            {hi ? meta.hi : meta.en}
-          </span>
-        </div>
-
-        {/* Day counter + SLA bar */}
-        {!isClosed && (
-          <div className="mb-6">
-            <div className="mb-2 flex items-center justify-between text-xs">
-              <span className={`flex items-center gap-1.5 font-medium tabular-nums ${breached ? 'text-red-700' : 'text-zinc-600'}`}>
-                {breached ? <ShieldAlert size={13} strokeWidth={1.5} /> : <Clock size={13} strokeWidth={1.5} />}
-                {hi ? `${waiting} दिन बीत गए` : `${waiting} ${waiting === 1 ? 'day' : 'days'} waiting`}
+        <div className="flex flex-col flex-1">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400 tabular-nums">
+                {hi ? 'आवेदन दिनांक' : 'Applied on'} · {new Date(app.appliedAt).toLocaleDateString(hi ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
-              <span className="tabular-nums text-zinc-400">{hi ? `SLA · ${sla} दिन` : `SLA · ${sla}d`}</span>
+              <h3 className="mt-1 min-h-[3.25rem] text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                {hi ? (app.schemeNameHi || app.schemeNameEn) : (app.schemeNameEn || app.schemeNameHi)}
+              </h3>
+              {app.applicationRefNo && (
+                <p className="mt-1 truncate text-xs text-zinc-400 tabular-nums" title={app.applicationRefNo}>
+                  {hi ? 'सरकारी संदर्भ सं.' : 'Govt ref no.'} · {app.applicationRefNo}
+                </p>
+              )}
             </div>
-            <div
-              className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100"
-              role="progressbar"
-              aria-label={hi ? 'SLA प्रगति' : 'SLA progress'}
-              aria-valuenow={pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className={`h-full rounded-full transition-all duration-700 ease-premium ${breached ? 'bg-red-500' : 'bg-zinc-900'}`}
-                style={{ width: `${Math.max(pct, 4)}%` }}
-              />
-            </div>
+            <span className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold ${BADGE_TONES[meta.tone]}`}>
+              {meta.tone === 'good' && <CheckCircle2 size={11} strokeWidth={2} />}
+              {meta.tone === 'escalated' && <ShieldAlert size={11} strokeWidth={2} />}
+              {hi ? meta.hi : meta.en}
+            </span>
           </div>
-        )}
 
-        {/* Complaint history */}
-        {(receipt || (!receipt && lastComplaint)) && (
-          receipt ? (
-            <div className="mb-5 rounded-2xl border border-black/[0.06] bg-zinc-50 p-4">
-              <p className="flex items-center gap-2 text-sm font-medium text-zinc-900">
-                <CheckCircle2 size={14} strokeWidth={1.75} className="text-zinc-700" />
-                {hi ? 'शिकायत दर्ज हो गई' : 'Complaint filed successfully'}
-              </p>
-              <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">
-                {hi ? 'संदर्भ सं.' : 'Reference'} <span className="font-semibold tabular-nums">{receipt.id}</span>
-                {' · '}
-                {receipt.emailSent
-                  ? (hi ? 'ईमेल विभाग को भेज दिया गया, आपको CC किया गया' : 'Emailed to the department, you were CC’d')
-                  : (hi ? 'ईमेल सेवा कॉन्फ़िगर नहीं है — शिकायत रिकॉर्ड हो गई' : 'Email service not configured — complaint logged')}
-              </p>
+          {/* Day counter + SLA bar */}
+          {!isClosed && (
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className={`flex items-center gap-1.5 font-medium tabular-nums ${breached ? 'text-red-700' : 'text-zinc-600'}`}>
+                  {breached ? <ShieldAlert size={13} strokeWidth={1.5} /> : <Clock size={13} strokeWidth={1.5} />}
+                  {hi ? `${waiting} दिन बीत गए` : `${waiting} ${waiting === 1 ? 'day' : 'days'} waiting`}
+                </span>
+                <span className="tabular-nums text-zinc-400">{hi ? `SLA · ${sla} दिन` : `SLA · ${sla}d`}</span>
+              </div>
+              <div
+                className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-100"
+                role="progressbar"
+                aria-label={hi ? 'SLA प्रगति' : 'SLA progress'}
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ease-premium ${breached ? 'bg-red-500' : 'bg-zinc-900'}`}
+                  style={{ width: `${Math.max(pct, 4)}%` }}
+                />
+              </div>
             </div>
-          ) : (
-            <p className="mb-4 flex items-center gap-2 text-xs text-zinc-500">
-              <Mail size={13} strokeWidth={1.5} />
-              {hi ? 'शिकायत संदर्भ' : 'Complaint ref'}
-              <span className="font-medium tabular-nums text-zinc-700">{lastComplaint?.complaintId}</span>
-              <span className="tabular-nums">· {new Date(lastComplaint?.sentAt).toLocaleDateString(hi ? 'hi-IN' : 'en-IN')}</span>
-            </p>
-          )
-        )}
+          )}
+
+          {/* Complaint history */}
+          {(receipt || (!receipt && lastComplaint)) && (
+            receipt ? (
+              <div className="mb-5 rounded-2xl border border-black/[0.06] bg-zinc-50 p-4">
+                <p className="flex items-center gap-2 text-sm font-medium text-zinc-900">
+                  <CheckCircle2 size={14} strokeWidth={1.75} className="text-zinc-700" />
+                  {hi ? 'शिकायत दर्ज हो गई' : 'Complaint filed successfully'}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-zinc-500">
+                  {hi ? 'संदर्भ सं.' : 'Reference'} <span className="font-semibold tabular-nums">{receipt.id}</span>
+                  {' · '}
+                  {receipt.emailSent
+                    ? (hi ? 'ईमेल विभाग को भेज दिया गया, आपको CC किया गया' : 'Emailed to the department, you were CC’d')
+                    : (hi ? 'ईमेल सेवा कॉन्फ़िगर नहीं है — शिकायत रिकॉर्ड हो गई' : 'Email service not configured — complaint logged')}
+                </p>
+              </div>
+            ) : (
+              <p className="mb-5 flex items-center gap-2 text-xs text-zinc-500">
+                <Mail size={13} strokeWidth={1.5} />
+                {hi ? 'शिकायत संदर्भ' : 'Complaint ref'}
+                <span className="font-medium tabular-nums text-zinc-700">{lastComplaint?.complaintId}</span>
+                <span className="tabular-nums">· {new Date(lastComplaint?.sentAt).toLocaleDateString(hi ? 'hi-IN' : 'en-IN')}</span>
+              </p>
+            )
+          )}
+        </div>
 
         {/* Actions */}
         {!isClosed && (
@@ -359,7 +361,7 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
         </div>
       ) : (
         <>
-          <div className="grid items-start gap-5 lg:grid-cols-2">{open.map(renderCard)}</div>
+          <div className="grid items-stretch gap-6 lg:grid-cols-2">{open.map(renderCard)}</div>
 
           {closed.length > 0 && (
             <>
@@ -367,7 +369,7 @@ export default function MyApplications({ userName, userEmail, onBrowseSchemes })
                 <FileText size={12} strokeWidth={1.5} />
                 {hi ? 'पूर्ण / बंद आवेदन' : 'Closed applications'}
               </h4>
-              <div className="grid items-start gap-5 lg:grid-cols-2">{closed.map(renderCard)}</div>
+              <div className="grid items-stretch gap-6 lg:grid-cols-2">{closed.map(renderCard)}</div>
             </>
           )}
         </>
