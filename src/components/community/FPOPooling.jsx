@@ -12,7 +12,8 @@ import {
   Layers,
   Sparkles,
   Inbox,
-  Radio
+  Radio,
+  RefreshCw
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
 import { fetchCropPools, createCropPool, joinCropPool } from '../../services/poolService.js';
@@ -382,13 +383,29 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
   const loadLivePools = useCallback(async () => {
     try {
+      setIsSyncing(true);
       const remotePools = await fetchCropPools();
+      
+      // Auto-migrate any un-synced local pools created offline/locally to MongoDB
+      try {
+        const localSaved = JSON.parse(localStorage.getItem('lokvani_fpo_pools') || '[]');
+        const unSynced = localSaved.filter(lp => lp.id && lp.id.startsWith('pool_custom_') && !remotePools.some(rp => rp.id === lp.id || rp.poolId === lp.id));
+        for (const localPool of unSynced) {
+          try {
+            const uploaded = await createCropPool(localPool);
+            if (uploaded) remotePools.unshift(uploaded);
+          } catch (_) {}
+        }
+      } catch (_) {}
+
       if (remotePools && remotePools.length > 0) {
         setPoolList(remotePools);
         localStorage.setItem('lokvani_fpo_pools', JSON.stringify(remotePools));
       }
     } catch (err) {
       console.warn('[FPOPooling] Live sync error:', err.message);
+    } finally {
+      setIsSyncing(false);
     }
   }, []);
 
@@ -487,9 +504,26 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
               color: 'var(--accent-primary, #15803d)', 
               fontWeight: 700 
             }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary, #15803d)' }} />
-              {lang === 'hi' ? 'लाइव सिंक' : 'Live Sync'}
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isSyncing ? '#eab308' : 'var(--accent-primary, #15803d)' }} />
+              {isSyncing ? (lang === 'hi' ? 'सिंक हो रहा है…' : 'Syncing…') : (lang === 'hi' ? 'लाइव सिंक' : 'Live Sync')}
             </span>
+            <button
+              type="button"
+              onClick={loadLivePools}
+              title={lang === 'hi' ? 'ताज़ा करें' : 'Refresh Pools'}
+              aria-label={lang === 'hi' ? 'ताज़ा करें' : 'Refresh Pools'}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--text-dim)',
+                padding: '4px',
+                display: 'inline-flex',
+                alignItems: 'center'
+              }}
+            >
+              <RefreshCw size={13} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
+            </button>
           </div>
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
             {t('fpoSectionSub', lang)}
