@@ -240,6 +240,12 @@ export default function CommunityIntel() {
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: regionWeather });
     const w = await fetchLiveWeatherData(cityName, lat, lon);
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: w });
+
+    // Dynamically re-optimize transport & storage for selected location
+    try {
+      fetchTransport(userState, cityName).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+      fetchStorage(userState, cityName).then(data => dispatch({ type: 'SET_STORAGE', payload: data })).catch(() => {});
+    } catch (_) {}
   };
 
   const handleCustomLocationSubmit = (e) => {
@@ -267,12 +273,14 @@ export default function CommunityIntel() {
     if (userLocation) {
       fetchIntel();
       
+      const currentDist = userLocation.district || userLocation.city || 'Azamgarh';
+
       // Fetch buyers
       fetchBuyers(userLocation.state).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
 
-      // Fetch transport & storage
-      fetchTransport(userLocation.state).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
-      fetchStorage(userLocation.state).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
+      // Fetch location-optimized transport & storage
+      fetchTransport(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+      fetchStorage(userLocation.state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
       
       // Fetch news
       fetchLiveNews(userLocation.state, userLocation.district).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
