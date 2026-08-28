@@ -572,7 +572,6 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPool, setEditingPool] = useState(null);
-  const [wsConnected, setWsConnected] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   // REST fallback load
@@ -599,7 +598,6 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
         setPoolList(livePools);
         localStorage.setItem('lokvani_fpo_pools', JSON.stringify(livePools));
       }
-      setWsConnected(true);
       setIsSyncing(false);
     });
 
@@ -702,7 +700,7 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
               {t('fpoSectionTitle', lang)}
             </h3>
             
-            {/* Live WebSocket Status Indicator */}
+            {/* Live Real-time Status Indicator */}
             <span style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
@@ -710,12 +708,12 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
               fontSize: '0.72rem', 
               padding: '2px 8px', 
               borderRadius: '12px', 
-              background: wsConnected ? 'rgba(72,115,79,0.12)' : 'rgba(234,179,8,0.12)', 
-              color: wsConnected ? 'var(--accent-primary, #15803d)' : '#ca8a04', 
+              background: 'rgba(72,115,79,0.12)', 
+              color: 'var(--accent-primary, #15803d)', 
               fontWeight: 700 
             }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: wsConnected ? '#16a34a' : '#eab308', animation: wsConnected ? 'pulse 2s infinite' : 'none' }} />
-              {wsConnected ? (lang === 'hi' ? 'वेबसॉकेट लाइव' : 'WebSocket Live') : (lang === 'hi' ? 'कनेक्ट हो रहा है…' : 'Connecting…')}
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isSyncing ? '#eab308' : '#16a34a' }} />
+              {isSyncing ? (lang === 'hi' ? 'सिंक हो रहा है…' : 'Syncing…') : (lang === 'hi' ? 'लाइव सिंक' : 'Live Sync')}
             </span>
 
             <button
