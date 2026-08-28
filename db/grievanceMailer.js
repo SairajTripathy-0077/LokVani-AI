@@ -1,10 +1,25 @@
-// Grievance mailer via EmailJS REST API (no SMTP server required).
-// Configure in .env:
-//   EMAILJS_SERVICE_ID    – EmailJS service (e.g. service_xxxxxxx)
-//   EMAILJS_TEMPLATE_ID   – EmailJS template that uses {{to_email}}, {{cc_email}},
-//                           {{subject}}, {{message}} params
-//   EMAILJS_PUBLIC_KEY    – EmailJS Public Key (user_id)
-//   EMAILJS_PRIVATE_KEY   – EmailJS Private Key (accessToken, required for REST)
+import fs from 'fs';
+import path from 'path';
+
+export function loadDiskEnv() {
+  const env = { ...process.env };
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      content.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const idx = trimmed.indexOf('=');
+          const k = trimmed.substring(0, idx).trim();
+          const v = trimmed.substring(idx + 1).trim().replace(/^["']|["']$/g, '');
+          if (k && v) env[k] = v;
+        }
+      });
+    }
+  } catch (_) {}
+  return env;
+}
 
 const FALLBACK_GRIEVANCE_EMAIL =
   process.env.GRIEVANCE_FALLBACK_EMAIL || 'grievance@lokvani-ai.demo';

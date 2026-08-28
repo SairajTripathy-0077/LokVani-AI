@@ -8,7 +8,7 @@ import { QueryLog } from './db/models/QueryLog.js';
 import { TrustReview } from './db/models/TrustReview.js';
 import { CommunityIntelModel } from './db/models/CommunityIntel.js';
 import { SchemeApplication } from './db/models/SchemeApplication.js';
-import { sendGrievanceEmail, generateComplaintId, getGrievanceEmail } from './db/grievanceMailer.js';
+import { sendGrievanceEmail, generateComplaintId, getGrievanceEmail, loadDiskEnv } from './db/grievanceMailer.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
@@ -462,7 +462,8 @@ app.post('/api/applications/:id/complaint', complaintLimiter, async (req, res) =
     const daysElapsed = Math.floor((Date.now() - new Date(application.appliedAt).getTime()) / 86400000);
 
     // TESTING BYPASS: set ALLOW_EARLY_COMPLAINT=true in .env to unlock complaints immediately
-    const earlyComplaintAllowed = process.env.ALLOW_EARLY_COMPLAINT === 'true';
+    const diskEnv = loadDiskEnv();
+    const earlyComplaintAllowed = (diskEnv.ALLOW_EARLY_COMPLAINT || process.env.ALLOW_EARLY_COMPLAINT) === 'true';
 
     if (!earlyComplaintAllowed && daysElapsed < application.slaDays) {
       return res.status(400).json({
