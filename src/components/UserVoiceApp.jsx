@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import DistressCard from './DistressCard';
+import ConversationSidebar from './chat/ConversationSidebar';
 
 // ─── Dialect Map ────────────────────────────────────────────────────────────
 const DIALECT_MAP = {
@@ -286,13 +287,8 @@ export default function UserVoiceApp() {
   }, [isProcessing, isSpeaking, stopSpeaking, sttLocale, handleProcessQuery]);
 
   const handleStopListening = useCallback(() => {
-    speechService.stopListening();
-    if (transcript.trim()) {
-      handleProcessQuery(transcript);
-    } else {
-      setAppState('IDLE');
-    }
-  }, [transcript, handleProcessQuery]);
+    speechService.stopListeningAndSubmit(transcript);
+  }, [transcript]);
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;
@@ -356,165 +352,25 @@ export default function UserVoiceApp() {
       )}
 
       {/* ── Sidebar (Conversations Sessions List) ───────────────── */}
-      <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-3">
-        {/* + New Chat Session Button */}
-        <Button
-          className="w-full gap-2 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/20"
-          disabled={isProcessing}
-          onClick={() => {
-            if (isSpeaking) stopSpeaking();
-            createConversation();
-          }}
-        >
-          <MessageSquarePlus size={16} />
-          {language === 'hi' ? '+ नई बातचीत (New Chat)' : '+ New Chat Session'}
-        </Button>
-
-        {/* Dialect Selection */}
-        <Card className="p-0 overflow-hidden">
-          <div className="px-4 pt-3 pb-1">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span>🌐</span> {language === 'hi' ? 'भाषा / बोली (Dialect)' : 'Dialect / Accent'}
-            </p>
-          </div>
-          <div className="px-3 pb-3">
-            <Select value={dialect} onValueChange={setDialect}>
-              <SelectTrigger className="h-9 text-sm font-medium">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(DIALECT_MAP).map(([code, info]) => (
-                  <SelectItem key={code} value={code} className="text-sm">{info.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </Card>
-
-        {/* Speech Speed */}
-        <Card className="p-0 overflow-hidden">
-          <div className="px-4 py-3">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-              <Gauge size={11} /> {language === 'hi' ? 'बोलने की गति' : 'Speech Speed'}
-            </p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[0.75, 1.0, 1.25].map(r => (
-                <Button
-                  key={r}
-                  size="sm"
-                  variant={ttsRate === r ? 'default' : 'outline'}
-                  onClick={() => setTtsRate(r)}
-                  className="h-8 text-xs font-bold"
-                >
-                  {r}×
-                </Button>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Large text toggle */}
-        <Button
-          variant={largeText ? 'secondary' : 'outline'}
-          className="w-full gap-2 text-sm font-semibold justify-start"
-          onClick={() => setLargeText(p => !p)}
-        >
-          <Type size={14} />
-          {largeText
-            ? (language === 'hi' ? 'सामान्य आकार' : 'Normal Size')
-            : (language === 'hi' ? 'बड़ा टेक्स्ट A+' : 'Large Text A+')}
-        </Button>
-
-        <Separator />
-
-        {/* Conversations Sessions List */}
-        <div>
-          <div className="flex items-center justify-between px-1 mb-2">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-              <MessageSquare size={11} />
-              {language === 'hi' ? 'आपकी बातचीत (Chat Sessions)' : 'Chat Conversations'}
-            </p>
-            <Badge variant="secondary" className="text-[9px] px-1.5 h-4 font-bold">
-              {(conversations || []).length}
-            </Badge>
-          </div>
-
-          <ScrollArea className="max-h-60 lg:max-h-[calc(100vh-620px)]">
-            <div className="flex flex-col gap-1.5 pr-2">
-              {(conversations || []).map((conv) => {
-                const isActive = conv.id === activeConvId;
-                const msgCount = conv.messages?.length || 0;
-                const lastMsg = conv.messages?.[conv.messages.length - 1];
-
-                return (
-                  <div
-                    key={conv.id}
-                    className={cn(
-                      'group relative flex items-center justify-between p-3 rounded-xl transition-all cursor-pointer border text-xs',
-                      isActive
-                        ? 'bg-primary/10 border-primary/40 text-primary font-bold shadow-sm'
-                        : 'text-muted-foreground hover:bg-muted/60 border-transparent hover:border-border/50'
-                    )}
-                    onClick={() => {
-                      if (isSpeaking) stopSpeaking();
-                      selectConversation(conv.id);
-                    }}
-                  >
-                    <div className="flex flex-col gap-0.5 min-w-0 pr-6">
-                      <div className="flex items-center gap-1.5">
-                        <MessageSquare size={12} className={cn('shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                        <span className="truncate font-semibold text-foreground">{conv.title}</span>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground truncate italic">
-                        {lastMsg ? primaryAnswer(lastMsg)?.slice(0, 45) + '…' : (language === 'hi' ? 'खाली बातचीत' : 'Empty conversation')}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1 shrink-0">
-                      {msgCount > 0 && (
-                        <Badge variant={isActive ? 'default' : 'secondary'} className="text-[9px] h-4 px-1 font-bold">
-                          {msgCount}
-                        </Badge>
-                      )}
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 text-muted-foreground hover:text-red-500 opacity-70 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isSpeaking) stopSpeaking();
-                          deleteConversation(conv.id);
-                        }}
-                        title="Delete Chat Session"
-                      >
-                        <Trash2 size={12} />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-
-          {/* Clear All Chats convenience button */}
-          {(conversations || []).length > 1 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full mt-2 text-[11px] text-red-500 hover:text-red-600 hover:bg-red-50 justify-center gap-1.5 h-7"
-              onClick={() => {
-                if (window.confirm(language === 'hi' ? 'क्या आप सभी बातचीत मिटाना चाहते हैं?' : 'Clear all conversation history?')) {
-                  if (isSpeaking) stopSpeaking();
-                  clearAllConversations();
-                }
-              }}
-            >
-              <RotateCcw size={11} />
-              {language === 'hi' ? 'सभी बातचीत मिटाएं' : 'Clear All Conversations'}
-            </Button>
-          )}
-        </div>
-      </aside>
+      <ConversationSidebar
+        conversations={conversations}
+        activeConvId={activeConvId}
+        onSelectConversation={selectConversation}
+        onCreateConversation={createConversation}
+        onRenameConversation={renameConversation}
+        onDeleteConversation={deleteConversation}
+        onClearAllConversations={clearAllConversations}
+        language={language}
+        dialect={dialect}
+        setDialect={setDialect}
+        dialectMap={DIALECT_MAP}
+        ttsRate={ttsRate}
+        setTtsRate={setTtsRate}
+        largeText={largeText}
+        setLargeText={setLargeText}
+        isProcessing={isProcessing}
+        onStopSpeaking={stopSpeaking}
+      />
 
       {/* ── Main Panel ─────────────────────────────────────────── */}
       <div className="flex-1 w-full min-w-0 space-y-5">
@@ -579,26 +435,24 @@ export default function UserVoiceApp() {
           </div>
         </Card>
 
-        {/* ── TOP VOICE QUERY HERO CARD ──────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl bg-zinc-950 text-white border border-zinc-800 shadow-xl shadow-zinc-950/20 p-6 sm:p-8">
-          {/* Subtle background glow */}
-          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-zinc-800/40 pointer-events-none blur-3xl" />
+        {/* ── TOP VOICE QUERY HERO CARD (PURE WHITE MONOTHEME) ──────────────────── */}
+        <div className="relative overflow-hidden rounded-2xl bg-white text-slate-900 border border-slate-200/90 shadow-sm p-6 sm:p-8">
 
           <div className="relative z-10 text-center">
             {/* Status pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-semibold mb-5 backdrop-blur-sm shadow-inner">
-              {appState === 'IDLE'      && !isSpeaking && <><Sparkles size={12} className="text-zinc-400" /> {language === 'hi' ? 'तैयार है (Ready)' : 'Ready for Voice Query'}</>}
-              {appState === 'LISTENING' && <><Mic size={12} className="text-red-400 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
-              {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin text-zinc-400" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'AI Processing…'}</>}
-              {isSpeaking               && <><Volume2 size={12} className="text-emerald-400 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'AI Speaking…'}</>}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold mb-5">
+              {appState === 'IDLE'      && !isSpeaking && <><Sparkles size={12} className="text-slate-900" /> {language === 'hi' ? 'तैयार है (Ready)' : 'Ready for Voice Query'}</>}
+              {appState === 'LISTENING' && <><Mic size={12} className="text-red-600 animate-pulse" /> {language === 'hi' ? 'सुन रहे हैं…' : 'Listening…'}</>}
+              {appState === 'THINKING'  && <><RefreshCw size={12} className="animate-spin text-slate-900" /> {language === 'hi' ? 'उत्तर तैयार हो रहा है…' : 'AI Processing…'}</>}
+              {isSpeaking               && <><Volume2 size={12} className="text-emerald-700 animate-bounce" /> {language === 'hi' ? 'ऑडियो चल रहा है…' : 'AI Speaking…'}</>}
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+            <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
               {activeConversation?.messages?.length > 0
                 ? (language === 'hi' ? 'अगला सवाल पूछें' : 'Ask Next Question')
                 : (language === 'hi' ? 'बोलकर सवाल पूछें' : 'Ask with Your Voice')}
             </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-md mx-auto mb-6">
+            <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto mb-6">
               {language === 'hi'
                 ? 'मंडी भाव, सरकारी योजनाएं, फसल सलाह — अपनी भाषा में'
                 : 'Mandi rates, government schemes, crop advisory in your local dialect'}
@@ -655,7 +509,7 @@ export default function UserVoiceApp() {
 
             {/* Live transcript */}
             {transcript && (
-              <p className="text-zinc-200 text-sm font-semibold italic mb-4 animate-pulse px-4 max-w-md mx-auto bg-zinc-900/80 py-2 rounded-xl border border-zinc-800">
+              <p className="text-slate-800 text-sm font-semibold italic mb-4 animate-pulse px-4 max-w-md mx-auto bg-slate-50 py-2 rounded-xl border border-slate-200">
                 "{transcript}"
               </p>
             )}
@@ -677,12 +531,12 @@ export default function UserVoiceApp() {
                 onChange={(e) => setTypedQuery(e.target.value)}
                 placeholder={language === 'hi' ? 'यहाँ अपना सवाल लिखें (Type question here)...' : 'Type your question here...'}
                 disabled={isProcessing}
-                className="flex-1 px-4 py-2.5 rounded-full bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 backdrop-blur-sm transition-all"
+                className="flex-1 px-4 py-2.5 rounded-full bg-slate-50 border border-slate-300 text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all"
               />
               <Button
                 type="submit"
                 disabled={isProcessing || !typedQuery.trim()}
-                className="rounded-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold px-4 py-2.5 text-xs gap-1.5 shrink-0 transition-all disabled:opacity-50"
+                className="rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 text-xs gap-1.5 shrink-0 transition-all disabled:opacity-50"
               >
                 <Send size={13} />
                 {language === 'hi' ? 'भेजें' : 'Send'}
@@ -690,8 +544,8 @@ export default function UserVoiceApp() {
             </form>
 
             {/* Demo Presets */}
-            <div className="border-t border-zinc-800/80 pt-4">
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2.5">
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">
                 {language === 'hi' ? 'त्वरित उदाहरण' : 'Quick Preset Examples'}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -703,9 +557,9 @@ export default function UserVoiceApp() {
                       id={`preset-${i}`}
                       onClick={() => handlePresetSelect(p)}
                       disabled={isProcessing}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-zinc-700 transition-all disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 transition-all disabled:opacity-40"
                     >
-                      <Icon size={12} className="text-zinc-400" />
+                      <Icon size={12} className="text-slate-600" />
                       {language === 'hi' ? p.label_hi : p.label_en}
                     </button>
                   );
@@ -720,7 +574,12 @@ export default function UserVoiceApp() {
 
         {/* ── Distress Prediction Module Card ── */}
         <div className="mb-4">
-          <DistressCard cropType="wheat" cropStage="vegetative" daysToLoanDue={15} />
+          <DistressCard
+            cropType="wheat"
+            cropStage="vegetative"
+            daysToLoanDue={15}
+            conversationMessages={activeConversation?.messages || []}
+          />
         </div>
 
         {/* ── BOTTOM CONVERSATION MESSAGE HISTORY THREAD ────────────── */}
@@ -757,164 +616,143 @@ export default function UserVoiceApp() {
                     </div>
                   </div>
 
-                  {/* AI Response Card */}
-                  <Card className="response-card overflow-hidden border-zinc-200 bg-white shadow-md">
-                    {/* Header strip */}
-                    <div className={cn(
-                      'px-5 sm:px-7 py-2.5 flex flex-wrap items-center justify-between gap-3 border-b text-xs',
-                      msg.isHighStakes ? 'bg-amber-50/80 border-amber-200' : 'bg-zinc-50 border-zinc-200'
-                    )}>
-                      <div className="flex items-center gap-2">
-                        {msg.isHighStakes
-                          ? <AlertTriangle size={14} className="text-amber-700" />
-                          : <CheckCircle2 size={14} className="text-zinc-800" />
-                        }
-                        <span className={cn('font-bold uppercase tracking-wider text-[11px]',
-                          msg.isHighStakes ? 'text-amber-800' : 'text-zinc-800'
-                        )}>
-                          {msg.isHighStakes
-                            ? (language === 'hi' ? 'समीक्षा आवश्यक' : 'Needs Review')
-                            : (language === 'hi' ? 'स्वत: सत्यापित' : 'Auto Verified')}
+                  {/* AI Response Bubble — Ultra-Clean Modern AI Chat UI */}
+                  <div className="response-card bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+                    {/* Top Row: AI Avatar / Title + Play Audio */}
+                    <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+                          <Sparkles size={14} />
+                        </div>
+                        <span className="font-bold text-xs uppercase tracking-wider text-slate-900">
+                          LokVani AI
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <ConfidenceBadge level={msg.confidence} />
-                        {msg.domain && (
-                          <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider border-zinc-300 text-zinc-700">
-                            {msg.domain.replace('_', ' ')}
-                          </Badge>
-                        )}
-                        {/* Convenience: Delete single message turn button */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon" variant="ghost"
-                              className="h-6 w-6 text-zinc-400 hover:text-red-600 ml-1"
-                              onClick={() => {
-                                if (isSpeaking) stopSpeaking();
-                                deleteMessageFromActiveConv(msgId);
-                              }}
-                            >
-                              <Trash2 size={12} />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent><p>{language === 'hi' ? 'यह संदेश हटाएं' : 'Delete message'}</p></TooltipContent>
-                        </Tooltip>
-                      </div>
+                      <Button
+                        size="sm"
+                        variant={isSpeaking ? 'destructive' : 'default'}
+                        className="h-7 text-xs gap-1.5 px-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold"
+                        onClick={() => handlePlayTTS(primaryAnswer(msg))}
+                      >
+                        {isSpeaking
+                          ? <><VolumeX size={12} /> {language === 'hi' ? 'रोकें' : 'Stop'}</>
+                          : <><Volume2 size={12} /> {language === 'hi' ? 'सुनाएं' : 'Listen'}</>}
+                      </Button>
                     </div>
 
-                    <CardContent className="p-5 sm:p-7 space-y-4">
-                      {/* Short Answer */}
-                      <div className="p-5 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-3">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider flex items-center gap-1.5">
-                            <Zap size={11} className="text-zinc-800" />
-                            {language === 'hi' ? 'त्वरित उत्तर' : 'Quick Answer'}
-                          </p>
-                          <Button
-                            size="sm"
-                            variant={isSpeaking ? 'destructive' : 'default'}
-                            className="h-7 text-xs gap-1.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-white"
-                            onClick={() => handlePlayTTS(primaryAnswer(msg))}
-                          >
-                            {isSpeaking
-                              ? <><VolumeX size={12} /> {language === 'hi' ? 'रोकें' : 'Stop'}</>
-                              : <><Volume2 size={12} /> {language === 'hi' ? 'सुनें' : 'Play'}</>}
-                          </Button>
-                        </div>
-                        <p className="text-base sm:text-lg font-bold text-zinc-900 leading-snug">
-                          {primaryAnswer(msg)}
+                    {/* Primary Answer Text */}
+                    <div className="space-y-2">
+                      <p className="text-base sm:text-lg font-semibold text-slate-900 leading-relaxed">
+                        {primaryAnswer(msg)}
+                      </p>
+                      {msg.shortAnswerEn && msg.shortAnswerHi && msg.shortAnswerEn !== msg.shortAnswerHi && (
+                        <p className="text-xs text-slate-500 italic leading-normal">
+                          {dialect !== 'en' ? `EN: ${msg.shortAnswerEn}` : `HI: ${msg.shortAnswerHi}`}
                         </p>
-                        {msg.shortAnswerEn && msg.shortAnswerHi && (
-                          <p className="text-xs text-zinc-500 italic">
-                            {dialect !== 'en' ? `EN: ${msg.shortAnswerEn}` : `HI: ${msg.shortAnswerHi}`}
+                      )}
+                    </div>
+
+                    {/* Detailed Answer (Expandable if different) */}
+                    {detailedAnswer(msg) && detailedAnswer(msg) !== primaryAnswer(msg) && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => toggleDetailed(msgId)}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-900 transition-colors"
+                        >
+                          <MessageSquare size={13} />
+                          {language === 'hi' ? 'विस्तृत उत्तर देखें' : 'View Detailed Answer'}
+                          {isDetailedOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+                        {isDetailedOpen && (
+                          <p className="mt-2 text-sm text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/70">
+                            {detailedAnswer(msg)}
                           </p>
                         )}
                       </div>
+                    )}
 
-                      {/* Detailed Answer Accordion */}
-                      {detailedAnswer(msg) && detailedAnswer(msg) !== primaryAnswer(msg) && (
-                        <div className="border border-zinc-200 rounded-xl overflow-hidden">
-                          <button
-                            onClick={() => toggleDetailed(msgId)}
-                            className="w-full flex items-center justify-between px-5 py-2.5 bg-zinc-50 hover:bg-zinc-100 transition-colors text-xs font-semibold text-zinc-900"
-                          >
-                            <span className="flex items-center gap-2 text-zinc-600">
-                              <MessageSquare size={13} />
-                              {language === 'hi' ? 'विस्तृत उत्तर देखें' : 'View Detailed Answer'}
-                            </span>
-                            {isDetailedOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                          </button>
-                          {isDetailedOpen && (
-                            <div className="p-4 border-t border-zinc-200 space-y-3 bg-white">
-                              <p className="text-sm text-zinc-800 leading-relaxed">
-                                {detailedAnswer(msg)}
-                              </p>
-                              <Button
-                                size="sm" variant={isSpeaking ? 'destructive' : 'outline'} className="h-7 text-xs gap-1.5 px-3 border-zinc-300"
-                                onClick={() => handlePlayTTS(detailedAnswer(msg))}
-                              >
-                                {isSpeaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
-                                {language === 'hi' ? 'विस्तृत सुनें' : 'Play Detailed'}
-                              </Button>
+                    {/* High-Stakes Review Alert */}
+                    {msg.isHighStakes && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5">
+                        <ShieldAlert size={16} className="text-amber-700 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-bold text-amber-900">
+                            {language === 'hi' ? 'मानव सत्यापन आवश्यक है' : 'Human Verification Recommended'}
+                          </p>
+                          <p className="text-xs text-amber-800 mt-0.5">{msg.trustNote}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actionable Steps (Clean Checklist) */}
+                    {msg.actionableSteps?.length > 0 && (
+                      <div className="pt-2 space-y-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
+                        </p>
+                        <div className="space-y-1.5">
+                          {msg.actionableSteps.map((step, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-slate-800 font-medium">
+                              <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                {i + 1}
+                              </span>
+                              <span>{step}</span>
                             </div>
-                          )}
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* High-stakes Warning */}
-                      {msg.isHighStakes && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-1.5">
-                          <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-                            <ShieldAlert size={15} className="text-amber-700 shrink-0" />
-                            {language === 'hi' ? 'मानव सत्यापन आवश्यक है' : 'Human Verification Required'}
-                          </div>
-                          <p className="text-xs text-amber-800 leading-relaxed">{msg.trustNote}</p>
+                    {/* Follow-up Questions (Sleek Interactive Pill Chips) */}
+                    {msg.followUpQuestions?.length > 0 && (
+                      <div className="pt-2 space-y-2">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {language === 'hi' ? 'संबंधित प्रश्न' : 'Related Questions'}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {msg.followUpQuestions.map((q, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleProcessQuery(q)}
+                              disabled={isProcessing}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-600/30 bg-emerald-50/70 hover:bg-emerald-100 text-emerald-900 text-xs font-medium transition-all cursor-pointer disabled:opacity-50"
+                            >
+                              <ArrowRight size={11} className="text-emerald-700" />
+                              {q}
+                            </button>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Actionable steps */}
-                      {msg.actionableSteps?.length > 0 && (
-                        <div className="space-y-1.5">
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                            {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
-                          </p>
-                          <div className="space-y-1.5">
-                            {msg.actionableSteps.map((step, i) => (
-                              <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-zinc-50 border border-zinc-200 text-xs">
-                                <span className="w-4 h-4 rounded-full bg-zinc-900 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">
-                                  {i + 1}
-                                </span>
-                                <p className="text-zinc-800 font-medium">{step}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Follow-up Questions */}
-                      {msg.followUpQuestions?.length > 0 && (
-                        <div className="space-y-1.5">
-                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                            {language === 'hi' ? 'आगे पूछें' : 'Follow-up Questions'}
-                          </p>
-                          <div className="flex flex-col gap-1.5">
-                            {msg.followUpQuestions.map((q, i) => (
-                              <button
-                                key={i}
-                                onClick={() => handleProcessQuery(q)}
-                                disabled={isProcessing}
-                                className="text-left flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-300 bg-zinc-50 hover:bg-zinc-100 text-xs font-semibold text-zinc-900 transition-all disabled:opacity-50"
-                              >
-                                <ArrowRight size={12} className="shrink-0 text-zinc-600" />
-                                {q}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                    {/* Sleek Metadata Footer */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold">
+                          <CheckCircle2 size={12} />
+                          {msg.isHighStakes
+                            ? (language === 'hi' ? 'समीक्षा आवश्यक' : 'Needs Review')
+                            : (language === 'hi' ? 'सत्यापित' : 'Auto Verified')}
+                        </span>
+                        {msg.domain && (
+                          <span className="uppercase text-[10px] tracking-wider text-slate-400">
+                            • {msg.domain.replace('_', ' ')}
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        size="icon" variant="ghost"
+                        className="h-6 w-6 text-slate-400 hover:text-red-600 transition-colors"
+                        title={language === 'hi' ? 'यह संदेश हटाएं' : 'Delete message'}
+                        onClick={() => {
+                          if (isSpeaking) stopSpeaking();
+                          deleteMessageFromActiveConv(msgId);
+                        }}
+                      >
+                        <Trash2 size={12} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               );
             })}

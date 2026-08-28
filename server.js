@@ -14,6 +14,9 @@ import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
 import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
+import { processOrchestratedQuery } from './src/services/aiOrchestrator.js';
+import * as soilModelService from './src/services/soilModelService.js';
+import * as cropModelService from './src/services/cropModelService.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -137,31 +140,65 @@ app.post('/api/query', async (req, res) => {
     }
     const weatherData = await fetchLiveWeatherData(detectedCity);
 
-    // Run AI Engine through Rotator (sanitized text, optional dialect)
+    // Run AI Orchestrator Pipeline (Intent Router -> Soil/Crop Models -> Weather/Mandi -> RAG -> Gemini Grounding)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
     let aiResult = null;
-    let engineSource = 'GEMINI_AI';
+    let engineSource = 'GEMINI_RAG_PIPELINE';
 
+    // 1. Try Live Gemini RAG Pipeline first
     try {
       aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
     } catch (geminiErr) {
-      console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
-      const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
-      aiResult = {
-        short_answer_hi: fallback.shortAnswerHi,
-        short_answer_en: fallback.shortAnswerEn,
-        detailed_answer_hi: fallback.detailedAnswerHi,
-        detailed_answer_en: fallback.detailedAnswerEn,
-        confidence: fallback.confidence || 'LOW',
-        follow_up_questions: fallback.follow_up_questions || [],
-        domain: fallback.domain || 'AGRI_ADVISORY',
-        is_high_stakes: fallback.isHighStakes || false,
-        risk_category: fallback.riskCategory || 'NONE',
-        trust_note: fallback.trustNote || '',
-        actionable_steps: fallback.actionableSteps || [],
-        apiKeyIndexUsed: -1
-      };
-      engineSource = 'LOCAL_NLP_FALLBACK';
+      console.warn('[API /api/query] Gemini RAG pipeline unavailable, using AI Orchestrator:', geminiErr.message);
+
+      // 2. Fallback to AI Orchestrator & Models
+      try {
+        const orchestrated = await processOrchestratedQuery({
+          queryText: safeText,
+          userLocation: user_location || 'Azamgarh, UP'
+        });
+
+        aiResult = {
+          short_answer_hi: orchestrated.answerHi,
+          short_answer_en: orchestrated.answer,
+          detailed_answer_hi: orchestrated.answerHi !== orchestrated.answer ? orchestrated.answerHi : '',
+          detailed_answer_en: orchestrated.answer,
+          confidence: orchestrated.reliability || 'HIGH',
+          follow_up_questions: [
+            'Is crop insurance available for this?',
+            'What is the current Mandi price trend?'
+          ],
+          domain: 'AGRI_ADVISORY',
+          is_high_stakes: orchestrated.requiresTrustReview || false,
+          risk_category: orchestrated.requiresTrustReview ? 'HIGH_STAKES_ADVISORY' : 'NONE',
+          trust_note: orchestrated.trustReason || 'Verified by LokVani AI Orchestrator.',
+          actionable_steps: [
+            'Check verified Mandi commodity rates on LokVani AI',
+            'Confirm dosage with certified Kirana Trust Node operator'
+          ],
+          apiKeyIndexUsed: 0,
+          modelUsed: 'LokVani-AI-Orchestrator'
+        };
+        engineSource = 'AI_ORCHESTRATOR';
+      } catch (orchestratorErr) {
+        console.warn('[API /api/query] AI Orchestrator unavailable, using Local NLP Engine fallback:', orchestratorErr.message);
+        const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
+        aiResult = {
+          short_answer_hi: fallback.shortAnswerHi,
+          short_answer_en: fallback.shortAnswerEn,
+          detailed_answer_hi: fallback.detailedAnswerHi !== fallback.shortAnswerHi ? fallback.detailedAnswerHi : '',
+          detailed_answer_en: fallback.detailedAnswerEn !== fallback.shortAnswerEn ? fallback.detailedAnswerEn : '',
+          confidence: fallback.confidence || 'LOW',
+          follow_up_questions: fallback.follow_up_questions || [],
+          domain: fallback.domain || 'AGRI_ADVISORY',
+          is_high_stakes: fallback.isHighStakes || false,
+          risk_category: fallback.riskCategory || 'NONE',
+          trust_note: fallback.trustNote || '',
+          actionable_steps: fallback.actionableSteps || [],
+          apiKeyIndexUsed: -1
+        };
+        engineSource = 'LOCAL_NLP_FALLBACK';
+      }
     }
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
@@ -208,6 +245,55 @@ app.post('/api/query', async (req, res) => {
   } catch (error) {
     console.error('[API /api/query Error]:', error);
     return res.status(500).json({ error: 'Internal server error processing voice query.' });
+  }
+});
+
+// Central AI Orchestrator Endpoint (POST /api/ai/orchestrate)
+app.post('/api/ai/orchestrate', async (req, res) => {
+  try {
+    const { text, queryText, user_location, userLocation, userParams } = req.body;
+    const rawQuery = sanitizeInput(text || queryText || '');
+    const location = sanitizeInput(user_location || userLocation) || 'Azamgarh, UP';
+
+    if (!rawQuery) {
+      return res.status(400).json({ error: 'Query text is required.' });
+    }
+
+    const orchestratedResult = await processOrchestratedQuery({
+      queryText: rawQuery,
+      userLocation: location,
+      userParams: userParams || {}
+    });
+
+    return res.json({
+      success: true,
+      data: orchestratedResult
+    });
+  } catch (error) {
+    console.error('[API /api/ai/orchestrate Error]:', error);
+    return res.status(500).json({ error: 'Internal server error in AI Orchestrator.' });
+  }
+});
+
+// Soil Model Endpoint (POST /api/models/soil/predict)
+app.post('/api/models/soil/predict', (req, res) => {
+  try {
+    const prediction = soilModelService.predict(req.body);
+    return res.json({ success: true, data: prediction });
+  } catch (error) {
+    console.error('[API /api/models/soil/predict Error]:', error);
+    return res.status(500).json({ error: 'Soil Model evaluation error.' });
+  }
+});
+
+// Crop Model Endpoint (POST /api/models/crop/predict)
+app.post('/api/models/crop/predict', (req, res) => {
+  try {
+    const prediction = cropModelService.predict(req.body);
+    return res.json({ success: true, data: prediction });
+  } catch (error) {
+    console.error('[API /api/models/crop/predict Error]:', error);
+    return res.status(500).json({ error: 'Crop Model evaluation error.' });
   }
 });
 

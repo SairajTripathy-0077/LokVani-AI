@@ -5,7 +5,8 @@
  * Voice Enhancements:
  * - Prioritizes natural female voices (Google UK/US Female, Microsoft Zira/Heera/Swara, Samantha, Victoria, Veena)
  * - Pitch tuned to 1.18 for natural female voice synthesis
- * - Splits long TTS text into sentence-sized chunks queued sequentially
+ * - Continuous STT multi-sentence accumulation with auto-restart on browser pause
+ * - Natural 2.5s silence gate to capture complete sentences before submitting to AI
  * - Pub/Sub speaking state listeners for instant UI sync & stopping voice playback
  */
 
@@ -22,9 +23,17 @@ class SpeechService {
     this._speakingListeners = new Set();
     this.voiceGender = 'female'; // Default to female voice
 
+    // Voice recognition session management
+    this._isListening = false;
+    this._manualStop = false;
+    this._silenceTimer = null;
+    this._accumulatedFinal = '';
+    this._lastFullTranscript = '';
+    this._activeOnEnd = null;
+
     if (this.recognitionSupported) {
       this.recognition = new SpeechRecognition();
-      this.recognition.continuous = false;
+      this.recognition.continuous = true;
       this.recognition.interimResults = true;
     }
 
@@ -53,10 +62,6 @@ class SpeechService {
     return this._cachedVoices;
   }
 
-  /**
-   * Select a high-quality female voice matching the target language.
-   * Priority: explicit female voice in target locale → female voice in lang family → fallback
-   */
   selectVoice(langCode, preferredGender = 'female') {
     const voices = this.getVoices();
     if (!voices || !voices.length) return null;
@@ -64,75 +69,66 @@ class SpeechService {
     const langPrefix = langCode.split('-')[0].toLowerCase();
     const isEnglish = langPrefix === 'en';
 
-    // Female voice identifiers across Windows, macOS, iOS, Android, and Chrome
     const femaleKeywords = [
       'female', 'zira', 'hazel', 'susan', 'heera', 'veena', 'swara', 'samantha',
       'victoria', 'karen', 'moira', 'fiona', 'neerja', 'kalpana', 'google uk english female',
       'google us english', 'natural'
     ];
 
-    // Filter candidate voices for requested locale or language family
     const candidates = voices.filter(v =>
       v.lang.toLowerCase() === langCode.toLowerCase() ||
       v.lang.toLowerCase().startsWith(langPrefix)
     );
 
     if (preferredGender === 'female') {
-      // 1. Look for explicit female voice in requested language candidates
-      const femaleMatch = candidates.find(v =>
+      const bestFemale = candidates.find(v =>
         femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
       );
-      if (femaleMatch) return femaleMatch;
+      if (bestFemale) return bestFemale;
 
-      // 2. If English, search all English female voices across regions (UK, US, IN, AU)
       if (isEnglish) {
-        const enFemale = voices.find(v =>
+        const engFemale = voices.find(v =>
           v.lang.toLowerCase().startsWith('en') &&
           femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
         );
-        if (enFemale) return enFemale;
+        if (engFemale) return engFemale;
       }
 
-      // 3. Look for any voice with 'female' in description/name anywhere
       const anyFemale = voices.find(v =>
         femaleKeywords.some(kw => v.name.toLowerCase().includes(kw))
       );
       if (anyFemale && isEnglish) return anyFemale;
     }
 
-    // Fallback: exact locale match → language prefix match → first candidate
-    const exact = candidates.find(v => v.lang.toLowerCase() === langCode.toLowerCase());
-    if (exact) return exact;
+    const exactMatch = candidates.find(v => v.lang.toLowerCase() === langCode.toLowerCase());
+    if (exactMatch) return exactMatch;
 
-    const family = candidates.find(v => v.lang.toLowerCase().startsWith(langPrefix));
-    if (family) return family;
-
-    return candidates[0] || null;
+    const prefixMatch = candidates.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+    return prefixMatch || candidates[0] || null;
   }
 
   _splitIntoChunks(text) {
     if (!text) return [];
-    const raw = text.split(/(?<=[।.!?])\s+/);
+    const rawSentences = text.split(/(?<=[।.!?])\s+/);
     const chunks = [];
-    let current = '';
+    let currentChunk = '';
 
-    for (const part of raw) {
-      if ((current + ' ' + part).trim().length > 200) {
-        if (current) chunks.push(current.trim());
-        current = part;
+    for (const sentence of rawSentences) {
+      if ((currentChunk + ' ' + sentence).trim().length > 200) {
+        if (currentChunk) chunks.push(currentChunk.trim());
+        currentChunk = sentence;
       } else {
-        current = current ? `${current} ${part}` : part;
+        currentChunk = currentChunk ? `${currentChunk} ${sentence}` : sentence;
       }
     }
-    if (current.trim()) chunks.push(current.trim());
+    if (currentChunk.trim()) chunks.push(currentChunk.trim());
     return chunks.length > 0 ? chunks : [text];
   }
 
-  // ── Listener Subscription ──────────────────────────────────────────────
-  onSpeakingStateChange(listener) {
-    this._speakingListeners.add(listener);
-    listener(this._isSpeaking);
-    return () => this._speakingListeners.delete(listener);
+  onSpeakingStateChange(fn) {
+    this._speakingListeners.add(fn);
+    fn(this._isSpeaking);
+    return () => this._speakingListeners.delete(fn);
   }
 
   _setSpeaking(val) {
@@ -146,9 +142,8 @@ class SpeechService {
     return this._isSpeaking || (this.synthesisSupported && window.speechSynthesis.speaking);
   }
 
-  // ── STT ─────────────────────────────────────────────────────────────────
+  // ── STT (Speech-to-Text) ────────────────────────────────────────────────
   startListening(onResult, onError, onEnd = null, langCode = 'hi-IN') {
-    // Support positional signatures: startListening(onResult, onError, langCode)
     if (typeof onEnd === 'string') {
       langCode = onEnd;
       onEnd = null;
@@ -162,36 +157,92 @@ class SpeechService {
     }
 
     this.stopSpeaking();
+    this.stopListening(); // Clear active session & timers
+
+    this._isListening = true;
+    this._manualStop = false;
+    this._accumulatedFinal = '';
+    this._lastFullTranscript = '';
+    this._activeOnEnd = onEnd;
+
+    const SILENCE_TIMEOUT_MS = 2500; // 2.5 seconds natural silence timeout
+
+    const resetSilenceTimer = (fullText) => {
+      if (this._silenceTimer) clearTimeout(this._silenceTimer);
+      this._silenceTimer = setTimeout(() => {
+        if (this._isListening && !this._manualStop) {
+          console.log('[SpeechService] 2.5s natural silence reached. Submitting complete sentence.');
+          this.stopListeningAndSubmit(fullText);
+        }
+      }, SILENCE_TIMEOUT_MS);
+    };
 
     try {
-      this.stopListening(); // Abort previous recognition session if active
-
-      this.recognition.lang = langCode;
-
-      let lastTranscript = '';
+      // Ensure language is valid (default to Hindi 'hi-IN')
+      this.recognition.lang = langCode || 'hi-IN';
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
 
       this.recognition.onresult = (event) => {
-        let transcript = '';
-        let isFinal = false;
+        let interimText = '';
+        let finalText = '';
 
         for (let i = 0; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-          if (event.results[i].isFinal) isFinal = true;
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalText += res[0].transcript + ' ';
+          } else {
+            interimText += res[0].transcript;
+          }
         }
-        lastTranscript = transcript.trim();
-        if (onResult) onResult({ transcript: lastTranscript, isFinal });
+
+        if (finalText.trim()) {
+          this._accumulatedFinal = finalText.trim();
+        }
+
+        const fullTranscript = (this._accumulatedFinal + ' ' + interimText).trim();
+        this._lastFullTranscript = fullTranscript;
+
+        if (onResult && fullTranscript) {
+          onResult({
+            transcript: fullTranscript,
+            finalTranscript: this._accumulatedFinal,
+            interimTranscript: interimText,
+            isFinal: false
+          });
+        }
+
+        resetSilenceTimer(fullTranscript);
       };
 
       this.recognition.onerror = (event) => {
         console.warn('[SpeechService] STT error event:', event.error);
-        if (event.error !== 'no-speech') {
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          this._isListening = false;
+          if (onError) onError('Microphone access busy or denied. Please check browser microphone permissions.');
+          if (this._activeOnEnd) this._activeOnEnd('');
+        } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
           if (onError) onError(`Voice recognition event: ${event.error}`);
         }
-        if (onEnd) onEnd(lastTranscript);
       };
 
       this.recognition.onend = () => {
-        if (onEnd) onEnd(lastTranscript);
+        if (this._manualStop) {
+          const finalTx = (this._lastFullTranscript || this._accumulatedFinal).trim();
+          if (this._activeOnEnd) this._activeOnEnd(finalTx);
+          return;
+        }
+
+        if (this._isListening) {
+          try {
+            console.log('[SpeechService] Auto-restarting Web Speech recognition to capture complete sentence...');
+            this.recognition.start();
+          } catch (err) {
+            console.warn('[SpeechService] Auto-restart failed:', err.message);
+            const finalTx = (this._lastFullTranscript || this._accumulatedFinal).trim();
+            if (this._activeOnEnd) this._activeOnEnd(finalTx);
+          }
+        }
       };
 
       this.recognition.start();
@@ -202,15 +253,37 @@ class SpeechService {
     }
   }
 
-  stopListening() {
+  stopListeningAndSubmit(overrideText = null) {
+    this._isListening = false;
+    this._manualStop = true;
+    if (this._silenceTimer) {
+      clearTimeout(this._silenceTimer);
+      this._silenceTimer = null;
+    }
     if (this.recognition) {
-      try {
-        this.recognition.abort();
-      } catch (_) { /* already stopped */ }
+      try { this.recognition.stop(); } catch (_) {}
+    }
+    const finalTx = (overrideText !== null ? overrideText : (this._lastFullTranscript || this._accumulatedFinal)).trim();
+    if (this._activeOnEnd) {
+      const callback = this._activeOnEnd;
+      this._activeOnEnd = null;
+      callback(finalTx);
     }
   }
 
-  // ── TTS ─────────────────────────────────────────────────────────────────
+  stopListening() {
+    this._isListening = false;
+    this._manualStop = true;
+    if (this._silenceTimer) {
+      clearTimeout(this._silenceTimer);
+      this._silenceTimer = null;
+    }
+    if (this.recognition) {
+      try { this.recognition.abort(); } catch (_) {}
+    }
+  }
+
+  // ── TTS (Text-to-Speech) ────────────────────────────────────────────────
   speakText(text, langCode = 'hi-IN', onEnd = null, rate = 0.92, pitch = 1.18) {
     if (!this.synthesisSupported) {
       if (onEnd) onEnd();
@@ -224,50 +297,46 @@ class SpeechService {
       return;
     }
 
-    // Unfreeze speech synthesis engine in Chrome/Safari if paused
     try {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {}
 
-    // Small delay after cancel() to allow browser speech engine to clear audio queue
     setTimeout(() => {
       try {
         if (window.speechSynthesis.paused) {
           window.speechSynthesis.resume();
         }
-      } catch (_) { /* ignore */ }
+      } catch (_) {}
 
-      // Select voice for speech synthesis
       const voice = this.selectVoice(langCode, this.voiceGender);
       const chunks = this._splitIntoChunks(text);
-      let chunkIndex = 0;
+      let index = 0;
 
       this._setSpeaking(true);
 
-      const speakNext = () => {
-        if (chunkIndex >= chunks.length || !this._isSpeaking) {
+      const speakNextChunk = () => {
+        if (index >= chunks.length || !this._isSpeaking) {
           this._setSpeaking(false);
           if (onEnd) onEnd();
           return;
         }
 
-        const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+        const utterance = new SpeechSynthesisUtterance(chunks[index]);
         utterance.lang = langCode;
         utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
         utterance.pitch = pitch;
-
         if (voice) utterance.voice = voice;
 
         utterance.onend = () => {
-          chunkIndex++;
-          speakNext();
+          index++;
+          speakNextChunk();
         };
 
-        utterance.onerror = (e) => {
-          if (e.error !== 'interrupted') {
-            console.warn('[SpeechService] TTS error on chunk:', e.error);
+        utterance.onerror = (err) => {
+          if (err.error !== 'interrupted') {
+            console.warn('[SpeechService] TTS error on chunk:', err.error);
           }
           this._setSpeaking(false);
           if (onEnd) onEnd();
@@ -276,7 +345,7 @@ class SpeechService {
         window.speechSynthesis.speak(utterance);
       };
 
-      speakNext();
+      speakNextChunk();
     }, 60);
   }
 

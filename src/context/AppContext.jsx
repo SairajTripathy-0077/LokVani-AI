@@ -14,7 +14,7 @@ const DEFAULT_CONVERSATION = {
 export function AppProvider({ children }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home' | 'auth' | 'voice' | 'schemes' | 'intel'
   const [language, setLanguage] = useState(() =>
-    localStorage.getItem('lokvani_language') || 'en'
+    localStorage.getItem('lokvani_language') || 'hi'
   );
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function AppProvider({ children }) {
 
   // Dialect selection — persisted to localStorage
   const [dialect, setDialect] = useState(() =>
-    localStorage.getItem('lokvani_dialect') || 'en'
+    localStorage.getItem('lokvani_dialect') || 'hi'
   );
 
   // Multi-thread conversation session management

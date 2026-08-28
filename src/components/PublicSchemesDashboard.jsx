@@ -23,6 +23,7 @@ import {
   IndianRupee,
   ShieldAlert
 } from 'lucide-react';
+import MyApplications from './MyApplications';
 
 const STATES_LIST = [
   'Uttar Pradesh', 'Bihar', 'Madhya Pradesh', 'Rajasthan', 'Maharashtra',
@@ -37,7 +38,7 @@ const OCCUPATIONS = [
 const CATEGORIES = ['Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing', 'Women & Child', 'Social Security'];
 
 export default function PublicSchemesDashboard() {
-  const { language, queries, approveQuery, pendingReviewsCount } = useApp();
+  const { language, user, pendingReviewsCount } = useApp();
 
   const [profile, setProfile] = useState(() => {
     const saved = localStorage.getItem('lokvani_user_profile');
@@ -60,7 +61,7 @@ export default function PublicSchemesDashboard() {
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [activeTab, setActiveTab] = useState('matched'); // 'matched' | 'all' | 'ai_assistant'
+  const [activeTab, setActiveTab] = useState('matched'); // 'matched' | 'all' | 'ai_assistant' | 'trust_node' | 'applications'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedScheme, setSelectedScheme] = useState(null);
@@ -70,6 +71,7 @@ export default function PublicSchemesDashboard() {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const matchedSchemes = matchSchemesForProfile(profile);
+  const strictlyMatchedSchemes = matchedSchemes.filter(s => s.eligible || (s.matchScore && s.matchScore >= 50));
 
   const handleProfileChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -106,16 +108,16 @@ export default function PublicSchemesDashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       
-      {/* HEADER TITLE BANNER */}
-      <div className="bg-gradient-to-r from-blue-50 to-sky-100 border border-blue-200/60 rounded-2xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm">
+      {/* HEADER TITLE BANNER - Emerald Palette Matching Home */}
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50/60 to-amber-50/40 border border-emerald-200/80 rounded-2xl p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-sm">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Landmark className="w-5 h-5 text-blue-600" />
-            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+            <Landmark className="w-5 h-5 text-emerald-700" />
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
               Public Scheme Intelligence Engine
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
+          <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
             {language === 'hi' ? 'सार्वजनिक सरकारी योजनाएं एवं पात्रता डैशबोर्ड' : 'Public Government Schemes & Eligibility Portal'}
           </h2>
           <p className="text-slate-600 text-sm mt-2 max-w-2xl">
@@ -127,7 +129,7 @@ export default function PublicSchemesDashboard() {
 
         <button
           onClick={() => setIsEditingProfile(!isEditingProfile)}
-          className="btn-primary flex-shrink-0 !py-2.5 !px-5"
+          className="btn-primary flex-shrink-0 !py-2.5 !px-5 shadow-emerald-600/20"
         >
           {isEditingProfile ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
           <span>
@@ -140,9 +142,9 @@ export default function PublicSchemesDashboard() {
 
       {/* 2. PERSONAL PROFILE CARD / EDIT FORM */}
       {(isEditingProfile || !profile.fullName) && (
-        <div className="bg-white border-2 border-blue-600 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl shadow-blue-500/10">
+        <div className="bg-white border-2 border-emerald-600 rounded-2xl p-6 sm:p-8 mb-8 shadow-xl shadow-emerald-500/10">
           <div className="flex items-center gap-2.5 mb-6 border-b border-slate-100 pb-4">
-            <User className="w-5 h-5 text-blue-600" />
+            <User className="w-5 h-5 text-emerald-700" />
             <h3 className="text-lg font-bold text-slate-900">
               {language === 'hi' ? 'व्यक्तिगत जानकारी एवं पात्रता प्रोफाइल' : 'Personal Details & Eligibility Profile'}
             </h3>
@@ -157,7 +159,7 @@ export default function PublicSchemesDashboard() {
                 value={profile.fullName}
                 onChange={handleProfileChange}
                 required
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -169,7 +171,7 @@ export default function PublicSchemesDashboard() {
                 value={profile.age}
                 onChange={handleProfileChange}
                 required
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -179,7 +181,7 @@ export default function PublicSchemesDashboard() {
                 name="gender"
                 value={profile.gender}
                 onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -193,7 +195,7 @@ export default function PublicSchemesDashboard() {
                 name="state"
                 value={profile.state}
                 onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               >
                 {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
               </select>
@@ -206,7 +208,7 @@ export default function PublicSchemesDashboard() {
                 name="district"
                 value={profile.district}
                 onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -216,21 +218,20 @@ export default function PublicSchemesDashboard() {
                 name="occupation"
                 value={profile.occupation}
                 onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               >
                 {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Annual Household Income (₹)</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Annual Income (₹)</label>
               <input
                 type="number"
                 name="annualIncome"
                 value={profile.annualIncome}
                 onChange={handleProfileChange}
-                step="5000"
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -238,68 +239,59 @@ export default function PublicSchemesDashboard() {
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Land Holding (Acres)</label>
               <input
                 type="number"
+                step="0.1"
                 name="landHoldingAcres"
                 value={profile.landHoldingAcres}
                 onChange={handleProfileChange}
-                step="0.1"
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Social Category</label>
-              <select
-                name="casteCategory"
-                value={profile.casteCategory}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+            <div className="flex items-center gap-6 pt-6">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isBpl"
+                  checked={profile.isBpl}
+                  onChange={handleProfileChange}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span>Holds BPL Card</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isDisability"
+                  checked={profile.isDisability}
+                  onChange={handleProfileChange}
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                />
+                <span>Specially Abled (Divyang)</span>
+              </label>
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-3 flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setIsEditingProfile(false)}
+                className="btn-secondary"
               >
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4 sm:col-span-2 lg:col-span-1">
-              <input
-                type="checkbox"
-                id="isBpl"
-                name="isBpl"
-                checked={profile.isBpl}
-                onChange={handleProfileChange}
-                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
-              />
-              <label htmlFor="isBpl" className="text-sm font-semibold text-slate-800 cursor-pointer">Has BPL / Ration Card</label>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4 sm:col-span-2 lg:col-span-1">
-              <input
-                type="checkbox"
-                id="isDisability"
-                name="isDisability"
-                checked={profile.isDisability}
-                onChange={handleProfileChange}
-                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
-              />
-              <label htmlFor="isDisability" className="text-sm font-semibold text-slate-800 cursor-pointer">Divyangjan / Disability Status</label>
-            </div>
-
-            <div className="sm:col-span-2 lg:col-span-3 flex justify-end mt-4">
-              <button type="submit" className="btn-primary !px-6 !py-2.5">
-                <Save className="w-4 h-4" />
-                <span>{language === 'hi' ? 'सहेजें और पात्रता देखें' : 'Save & Calculate Matched Schemes'}</span>
+                Cancel
+              </button>
+              <button type="submit" className="btn-primary">
+                Save & Update Eligibility Matches
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* SUMMARY BADGE FOR ACTIVE PROFILE */}
+      {/* ACTIVE PROFILE SUMMARY BAR */}
       {!isEditingProfile && (
         <div className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap justify-between items-center gap-3 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs font-bold text-blue-700 flex items-center gap-1">
+            <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
               <User className="w-3.5 h-3.5" /> {profile.fullName || 'Citizen'} ({profile.age} yrs, {profile.gender})
             </span>
             <span className="text-xs text-slate-600 font-medium flex items-center gap-1">
@@ -316,26 +308,26 @@ export default function PublicSchemesDashboard() {
 
           <button
             onClick={() => setIsEditingProfile(true)}
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
           >
             <Edit3 className="w-3.5 h-3.5" /> Update Profile
           </button>
         </div>
       )}
 
-      {/* TAB NAVIGATION BUTTONS */}
+      {/* TAB NAVIGATION BUTTONS - Matched to Emerald Palette */}
       <div className="flex border-b border-slate-200 mb-8 gap-4 sm:gap-8 overflow-x-auto">
         <button
           onClick={() => setActiveTab('matched')}
           className={`flex items-center gap-2 py-3 border-b-2 text-sm sm:text-base font-bold whitespace-nowrap transition-all ${
             activeTab === 'matched'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-emerald-600 text-emerald-800 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Award className="w-5 h-5" />
+          <Award className="w-5 h-5 text-emerald-700" />
           <span>{language === 'hi' ? 'मेरे लिए योग्य योजनाएं' : 'My Matched Schemes'}</span>
-          <span className="text-xs font-bold text-blue-600 ml-1">
+          <span className="text-xs font-bold text-emerald-800 ml-1">
             ({matchedSchemes.filter(s => s.matchScore >= 70).length})
           </span>
         </button>
@@ -344,7 +336,7 @@ export default function PublicSchemesDashboard() {
           onClick={() => setActiveTab('all')}
           className={`flex items-center gap-2 py-3 border-b-2 text-sm sm:text-base font-bold whitespace-nowrap transition-all ${
             activeTab === 'all'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-emerald-600 text-emerald-800 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -356,7 +348,7 @@ export default function PublicSchemesDashboard() {
           onClick={() => setActiveTab('ai_assistant')}
           className={`flex items-center gap-2 py-3 border-b-2 text-sm sm:text-base font-bold whitespace-nowrap transition-all ${
             activeTab === 'ai_assistant'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-emerald-600 text-emerald-800 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -368,7 +360,7 @@ export default function PublicSchemesDashboard() {
           onClick={() => setActiveTab('trust_node')}
           className={`flex items-center gap-2 py-3 border-b-2 text-sm sm:text-base font-bold whitespace-nowrap transition-all ${
             activeTab === 'trust_node'
-              ? 'border-red-600 text-red-600'
+              ? 'border-red-600 text-red-600 font-black'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -408,7 +400,7 @@ export default function PublicSchemesDashboard() {
               >
                 <div>
                   <div className="flex justify-between items-start mb-3 gap-2">
-                    <span className="text-xs font-extrabold uppercase text-blue-600 tracking-wider">
+                    <span className="text-xs font-extrabold uppercase text-emerald-800 tracking-wider">
                       {scheme.category}
                     </span>
 
@@ -434,9 +426,9 @@ export default function PublicSchemesDashboard() {
                     {language === 'hi' ? scheme.description_hi : scheme.description_en}
                   </p>
 
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-200/60 mb-5">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">BENEFITS</span>
-                    <span className="text-sm font-bold text-blue-600">
+                  <div className="bg-emerald-50/60 p-3 rounded-lg border border-emerald-200/80 mb-5">
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">BENEFITS</span>
+                    <span className="text-sm font-bold text-emerald-900">
                       {language === 'hi' ? scheme.benefits_hi : scheme.benefits_en}
                     </span>
                   </div>
@@ -467,7 +459,7 @@ export default function PublicSchemesDashboard() {
                 placeholder="Search scheme name or ministry..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -475,7 +467,7 @@ export default function PublicSchemesDashboard() {
               <button
                 onClick={() => setSelectedCategory('All')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  selectedCategory === 'All' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  selectedCategory === 'All' ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 All Categories
@@ -485,7 +477,7 @@ export default function PublicSchemesDashboard() {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    selectedCategory === cat ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {cat}
@@ -510,7 +502,7 @@ export default function PublicSchemesDashboard() {
                 >
                   <div>
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-extrabold uppercase text-blue-600 tracking-wider">
+                      <span className="text-xs font-extrabold uppercase text-emerald-800 tracking-wider">
                         {scheme.category}
                       </span>
                       <span className="text-xs font-semibold text-slate-500">{scheme.badge}</span>
@@ -542,7 +534,7 @@ export default function PublicSchemesDashboard() {
       {activeTab === 'ai_assistant' && (
         <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center">
               <Bot className="w-6 h-6" />
             </div>
             <div>
@@ -557,7 +549,7 @@ export default function PublicSchemesDashboard() {
               placeholder={language === 'hi' ? "उदा: क्या मुझे 1.5 एकड़ जमीन के साथ PM Kisan योजना मिलेगी?" : "e.g. Am I eligible for PM-Kisan if I own 1.8 acres in UP?"}
               value={aiQuery}
               onChange={e => setAiQuery(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              className="flex-1 px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
             />
             <button type="submit" disabled={isAiLoading} className="btn-primary !px-6">
               {isAiLoading ? 'Analyzing...' : 'Ask AI'}
@@ -572,8 +564,8 @@ export default function PublicSchemesDashboard() {
           )}
 
           {aiResponse && !isAiLoading && (
-            <div className="bg-slate-50 border border-blue-200 rounded-xl p-6 leading-relaxed whitespace-pre-wrap text-sm text-slate-800">
-              <div className="font-bold text-blue-600 mb-2 flex items-center gap-1.5">
+            <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-6 leading-relaxed whitespace-pre-wrap text-sm text-slate-800">
+              <div className="font-bold text-emerald-800 mb-2 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" /> AI Advice Response:
               </div>
               {aiResponse}
@@ -655,7 +647,7 @@ export default function PublicSchemesDashboard() {
           <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <span className="text-xs font-extrabold uppercase text-blue-600 tracking-wider">
+                <span className="text-xs font-extrabold uppercase text-emerald-800 tracking-wider">
                   {selectedScheme.category}
                 </span>
                 <h2 className="text-xl font-bold text-slate-900 mt-2 mb-1">
@@ -682,8 +674,8 @@ export default function PublicSchemesDashboard() {
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-5">
-              <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider mb-1">FINANCIAL BENEFIT</h4>
+            <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl mb-5">
+              <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">FINANCIAL BENEFIT</h4>
               <p className="text-base font-bold text-slate-900">
                 {language === 'hi' ? selectedScheme.benefits_hi : selectedScheme.benefits_en}
               </p>

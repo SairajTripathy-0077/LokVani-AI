@@ -181,3 +181,15 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
 
   throw new Error('AI service temporarily unavailable.');
 }
+
+/**
+ * Get rotated Gemini LLM response for grounded prompt explanation
+ */
+export async function getRotatedGeminiResponse(promptText) {
+  try {
+    return await geminiRotator.executeWithRotation('You are LokVani AI Assistant.', promptText);
+  } catch (err) {
+    return null;
+  }
+}
+

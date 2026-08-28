@@ -16,9 +16,6 @@ class GeminiKeyRotator {
     if (typeof process !== 'undefined' && process && process.env) {
       rawKeys = process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '';
     }
-    if (!rawKeys && typeof import.meta !== 'undefined' && import.meta && import.meta.env) {
-      rawKeys = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEYS || '';
-    }
 
     if (rawKeys) {
       this.keys = rawKeys.split(',').map(k => k.trim()).filter(Boolean);

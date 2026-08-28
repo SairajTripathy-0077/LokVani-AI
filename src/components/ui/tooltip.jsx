@@ -17,10 +17,21 @@ function Tooltip({
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
 }
 
-function TooltipTrigger({
-  ...props
-}) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+function TooltipTrigger({ asChild, render, children, ...props }) {
+  if (asChild && React.isValidElement(children)) {
+    return (
+      <TooltipPrimitive.Trigger
+        data-slot="tooltip-trigger"
+        render={children}
+        {...props}
+      />
+    );
+  }
+  return (
+    <TooltipPrimitive.Trigger data-slot="tooltip-trigger" render={render} {...props}>
+      {children}
+    </TooltipPrimitive.Trigger>
+  );
 }
 
 function TooltipContent({

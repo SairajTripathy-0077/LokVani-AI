@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const trustReviewSchema = new mongoose.Schema({
-  queryLogId: { type: mongoose.Schema.Types.ObjectId, ref: 'QueryLog', required: true, index: true },
-  operatorId: { type: String, required: true },
+  queryLogId: { type: mongoose.Schema.Types.Mixed, required: true, index: true },
+  operatorId: { type: String, required: true, default: 'op_default' },
   operatorName: { type: String, default: 'Kirana Operator' },
   operatorLocation: { type: String, default: 'Azamgarh Hub' },
   action: { 

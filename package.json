@@ -9,6 +9,7 @@
     "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "test:engine": "vitest run src/engine/distressEngine.test.js"
   },
   "dependencies": {

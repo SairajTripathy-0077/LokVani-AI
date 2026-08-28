@@ -7,6 +7,7 @@ import UserVoiceApp from './components/UserVoiceApp';
 import PublicSchemesDashboard from './components/PublicSchemesDashboard';
 import CommunityIntel from './components/CommunityIntel';
 import Footer from './components/Footer';
+import BackgroundElements from './components/BackgroundElements';
 import { useAuth } from './context/AuthContext';
 
 function MainContent() {
@@ -24,7 +25,7 @@ function MainContent() {
   }
 
   return (
-    <main style={{ minHeight: 'calc(100vh - 140px)' }}>
+    <main className="relative z-10" style={{ minHeight: 'calc(100vh - 140px)' }}>
       {activeTab === 'home' && <LandingPage />}
       {activeTab === 'auth' && <AuthPage />}
       {activeTab === 'voice' && <UserVoiceApp />}
@@ -37,7 +38,8 @@ function MainContent() {
 export default function App() {
   return (
     <AppProvider>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fbfbfa' }}>
+      <div className="relative overflow-hidden" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fbfbfa' }}>
+        <BackgroundElements />
         <Header />
         <MainContent />
         <Footer />

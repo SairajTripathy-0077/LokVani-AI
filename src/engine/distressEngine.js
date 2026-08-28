@@ -52,129 +52,151 @@ export function containsJargon(text = '') {
 }
 
 /**
- * Core Distress Prediction Scoring Engine
- * Pure, dependency-free function taking normalized inputs and returning explainable result object.
- */
-export function calculateDistressScore(inputs = {}, customParams = {}) {
-  const params = { ...tunedParams, ...customParams };
-  const {
-    W_RAIN = 0.45,
-    W_PRICE = 0.35,
-    K_INTERACT = 0.25,
-    PROXIMITY_K = 10,
-    V_K = 0.5,
-    ADVISORY_THRESHOLD = 35,
-    URGENT_THRESHOLD = 65
-  } = params;
+  * Vernacular crop name dictionary for natural Hindi voice output
+  */
+ export const CROP_DISPLAY_HI = {
+   wheat: 'गेहूं',
+   rice: 'धान',
+   paddy: 'धान',
+   cotton: 'कपास',
+   mustard: 'सरसों',
+   sugarcane: 'गन्ना',
+   onion: 'प्याज',
+   potato: 'आलू',
+   tomato: 'टमाटर',
+   default: 'फसल'
+ };
 
-  const {
-    rainfallDeviationPct = 0,
-    rainfallTrend = [],
-    priceDropPct = 0,
-    priceTrend = [],
-    daysToLoanDue = null,
-    cropStage = 'vegetative',
-    cropType = 'default'
-  } = inputs;
+ /**
+  * Core Distress Prediction Scoring Engine
+  * Pure, dependency-free function taking normalized inputs and returning explainable result object.
+  */
+ export function calculateDistressScore(inputs = {}, customParams = {}) {
+   const params = { ...tunedParams, ...customParams };
+   const {
+     W_RAIN = 0.40,
+     W_PRICE = 0.35,
+     W_PEST = 0.25,
+     K_INTERACT = 0.20,
+     ADVISORY_THRESHOLD = 35,
+     URGENT_THRESHOLD = 65
+   } = params;
 
-  // 1. Raw signal severities (deficit & price drop only)
-  const rainSeverity = clamp01(-rainfallDeviationPct / 100);
-  const priceSeverity = clamp01(-priceDropPct / 100);
+   const {
+     rainfallDeviationPct = 0,
+     rainfallTrend = [],
+     priceDropPct = 0,
+     priceTrend = [],
+     pestSeverityPct = 0,
+     daysToLoanDue = null,
+     cropStage = 'vegetative',
+     cropType = 'default'
+   } = inputs;
 
-  // 2. Crop stage multiplier lookup
-  const cropKey = (cropType || 'default').toLowerCase();
-  const stageKey = (cropStage || 'vegetative').toLowerCase();
-  const cropTable = stageSensitivity[cropKey] || stageSensitivity.default;
-  const stageMultiplier = cropTable[stageKey] || stageSensitivity.default[stageKey] || 1.0;
+   // 1. Raw signal severities (deficit, price drop & pest severity)
+   const rainSeverity = clamp01(-rainfallDeviationPct / 100);
+   const priceSeverity = clamp01(-priceDropPct / 100);
+   const pestSeverity = clamp01(pestSeverityPct / 100);
 
-  // 3. Base weighted distress score
-  const base = (W_RAIN * rainSeverity * stageMultiplier) + (W_PRICE * priceSeverity);
+   // 2. Crop stage multiplier lookup
+   const cropKey = (cropType || 'default').toLowerCase();
+   const stageKey = (cropStage || 'vegetative').toLowerCase();
+   const cropTable = stageSensitivity[cropKey] || stageSensitivity.default;
+   const stageMultiplier = cropTable[stageKey] || stageSensitivity.default[stageKey] || 1.0;
 
-  // 4. Non-linear interaction bonus
-  const interactionBonus = K_INTERACT * rainSeverity * priceSeverity;
+   // 3. Base weighted distress score (agronomic + market + pest)
+   const base = (W_RAIN * rainSeverity * stageMultiplier) + (W_PRICE * priceSeverity) + (W_PEST * pestSeverity);
 
-  // 5. Loan proximity factor
-  const proximityFactor = daysToLoanDue == null
-    ? 1
-    : 1 + Math.min(1.5, PROXIMITY_K / Math.max(Number(daysToLoanDue), 1));
+   // 4. Non-linear interaction bonus
+   const interactionBonus = K_INTERACT * Math.max(rainSeverity, pestSeverity) * priceSeverity;
 
-  // 6. Velocity adjustment
-  const velocity = computeVelocity(rainfallTrend, priceTrend);
-  const velocityFactor = 1 + clamp(velocity * V_K, -0.3, 0.5);
+   // 5. Capped Loan proximity factor (prevents extreme single-variable score distortion)
+   let proximityFactor = 1.0;
+   if (daysToLoanDue !== null && daysToLoanDue <= 30) {
+     const proximityUrgency = (30 - Math.max(daysToLoanDue, 0)) / 30; // 0 to 1
+     proximityFactor = 1.0 + (proximityUrgency * 0.25); // max 1.25x boost
+   }
 
-  // 7. Calculate raw score & final score (0–100 scale)
-  const rawScore = (base + interactionBonus) * proximityFactor * velocityFactor;
-  const finalScore = Math.round(clamp01(rawScore) * 100);
+   // 6. Velocity adjustment
+   const velocity = computeVelocity(rainfallTrend, priceTrend);
+   const velocityFactor = 1 + clamp(velocity * 0.3, -0.2, 0.3);
 
-  // Determine tier
-  let tier = 'LOW';
-  if (finalScore >= URGENT_THRESHOLD) {
-    tier = 'URGENT';
-  } else if (finalScore >= ADVISORY_THRESHOLD) {
-    tier = 'ADVISORY';
-  }
+   // 7. Calculate raw score & final score (0–100 scale)
+   const rawScore = (base + interactionBonus) * proximityFactor * velocityFactor;
+   const finalScore = Math.round(clamp01(rawScore) * 100);
 
-  // 8. Generate technical reasons (for internal debug / tests)
-  const reasons = [];
-  if (rainSeverity > 0) {
-    reasons.push(`Rainfall ${Math.abs(rainfallDeviationPct)}% below normal for growth stage`);
-  }
-  if (priceSeverity > 0) {
-    reasons.push(`Mandi price down ${Math.abs(priceDropPct)}% vs baseline`);
-  }
-  if (daysToLoanDue !== null && daysToLoanDue <= 30) {
-    reasons.push(`Loan due in ${daysToLoanDue} days`);
-  }
+   // Determine tier
+   let tier = 'LOW';
+   if (finalScore >= URGENT_THRESHOLD) {
+     tier = 'URGENT';
+   } else if (finalScore >= ADVISORY_THRESHOLD) {
+     tier = 'ADVISORY';
+   }
 
-  // 9. Generate farmer-plain spoken reasons (zero jargon, TTS friendly)
-  const spokenReasons = [];
-  const cropNameStr = cropType && cropType !== 'default' ? cropType : 'Fasal';
+   // 8. Vernacular crop display name
+   const cropVernacularHi = CROP_DISPLAY_HI[cropKey] || CROP_DISPLAY_HI.default;
+   const cropNameEn = cropType && cropType !== 'default' ? cropType : 'Crop';
 
-  if (rainSeverity > 0.15) {
-    spokenReasons.push(`Is mausam mein ${cropNameStr} ke liye baarish kafi kam hui hai.`);
-  }
-  if (priceSeverity > 0.15) {
-    spokenReasons.push(`Mandi mein ${cropNameStr} ka bhav pichle mahine se gir gaya hai.`);
-  }
-  if (daysToLoanDue !== null && daysToLoanDue <= 30) {
-    spokenReasons.push(`Aapka bank loan agle kuch dino mein jama karna hai.`);
-  }
+   // 9. Generate farmer-plain spoken reasons (zero jargon, vernacular Hindi)
+   const spokenReasons = [];
 
-  // Fallback spoken reason if score is above advisory but no single signal triggered
-  if (spokenReasons.length === 0 && finalScore >= ADVISORY_THRESHOLD) {
-    spokenReasons.push('Khet aur mandi ke halat par dhyan dene ki zaroorat hai.');
-  }
+   if (rainSeverity > 0.15) {
+     spokenReasons.push(`इस मौसम में ${cropVernacularHi} की फसल के लिए बारिश काफी कम हुई है।`);
+   }
+   if (priceSeverity > 0.15) {
+     spokenReasons.push(`मंडी में ${cropVernacularHi} का भाव पिछले महीने से गिर गया है।`);
+   }
+   if (pestSeverity > 0.15) {
+     spokenReasons.push(`खेत में ${cropVernacularHi} की फसल में कीट/कीड़े का प्रकोप देखा गया है।`);
+   }
+   if (daysToLoanDue !== null && daysToLoanDue <= 30) {
+     spokenReasons.push(`आपका बैंक KCC लोन किस्त अगले ${daysToLoanDue} दिनों में जमा करना है।`);
+   }
 
-  // Filter out any spoken reasons that contain jargon terms
-  const safeSpokenReasons = spokenReasons.filter(reason => !containsJargon(reason));
+   // Fallback spoken reason if score is above advisory but no single signal triggered
+   if (spokenReasons.length === 0 && finalScore >= ADVISORY_THRESHOLD) {
+     spokenReasons.push(`खेत में ${cropVernacularHi} की स्थिति और मंडी भाव पर ध्यान देने की ज़रूरत है।`);
+   }
 
-  // 10. Select ICAR advisory template based on dominant contribution
-  let dominantSignal = 'rainfall';
-  if (rainSeverity > 0.2 && priceSeverity > 0.2) {
-    dominantSignal = 'combined';
-  } else if (priceSeverity * W_PRICE > rainSeverity * W_RAIN) {
-    dominantSignal = 'price';
-  } else if (daysToLoanDue !== null && daysToLoanDue <= 15) {
-    dominantSignal = 'loan';
-  }
+   // Filter out any spoken reasons that contain jargon terms
+   const safeSpokenReasons = spokenReasons.filter(reason => !containsJargon(reason));
 
-  const advisory = advisoryTemplates[dominantSignal] || advisoryTemplates.rainfall;
+   // 10. Technical reasons for debug
+   const reasons = [];
+   if (rainSeverity > 0) reasons.push(`Rainfall ${Math.abs(rainfallDeviationPct)}% below normal`);
+   if (priceSeverity > 0) reasons.push(`Mandi price down ${Math.abs(priceDropPct)}%`);
+   if (pestSeverity > 0) reasons.push(`Pest infestation detected (${pestSeverityPct}%)`);
+   if (daysToLoanDue !== null && daysToLoanDue <= 30) reasons.push(`Loan due in ${daysToLoanDue} days`);
 
-  return {
-    score: finalScore,
-    tier,
-    reasons,
-    spokenReasons: safeSpokenReasons,
-    advisory,
-    contributions: {
-      rainSeverity,
-      priceSeverity,
-      stageMultiplier,
-      interactionBonus,
-      proximityFactor,
-      velocityFactor
-    }
-  };
-}
+   // 11. Select ICAR advisory template based on dominant contribution
+   let dominantSignal = 'rainfall';
+   if (rainSeverity > 0.2 && priceSeverity > 0.2) {
+     dominantSignal = 'combined';
+   } else if (priceSeverity * W_PRICE > rainSeverity * W_RAIN) {
+     dominantSignal = 'price';
+   } else if (daysToLoanDue !== null && daysToLoanDue <= 15) {
+     dominantSignal = 'loan';
+   }
+
+   const advisory = advisoryTemplates[dominantSignal] || advisoryTemplates.rainfall;
+
+   return {
+     score: finalScore,
+     tier,
+     reasons,
+     spokenReasons: safeSpokenReasons,
+     advisory,
+     cropTypeDisplay: cropVernacularHi,
+     contributions: {
+       rainSeverity,
+       priceSeverity,
+       pestSeverity,
+       stageMultiplier,
+       interactionBonus,
+       proximityFactor,
+       velocityFactor
+     }
+   };
+ }
 
 export default calculateDistressScore;
