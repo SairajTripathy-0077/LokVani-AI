@@ -358,6 +358,109 @@ function ListVehicleModal({ isOpen, onClose, onAdd, lang }) {
   );
 }
 
+function ListStorageModal({ isOpen, onClose, onAdd, lang }) {
+  const [facilityName, setFacilityName] = useState('');
+  const [storageType, setStorageType] = useState('COLD');
+  const [operator, setOperator] = useState('');
+  const [location, setLocation] = useState('');
+  const [capacity, setCapacity] = useState('');
+  const [rate, setRate] = useState('');
+  const [minDays, setMinDays] = useState('7');
+  const [contact, setContact] = useState('');
+
+  if (!isOpen) return null;
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const cap = Number(capacity);
+    const item = {
+      id: `st_user_${Date.now()}`,
+      facilityName_hi: facilityName.trim(),
+      facilityName_en: facilityName.trim(),
+      operator: operator.trim() || 'Private Storage Facility',
+      type: storageType,
+      location: location.trim(),
+      totalCapacity: cap,
+      availableCapacity: cap,
+      ratePerBag: Number(rate) || 3.5,
+      minDays: Number(minDays) || 7,
+      contact: contact.trim(),
+      status: 'AVAILABLE',
+    };
+    onAdd(item);
+    onClose();
+  }
+
+  return (
+    <div className="community-int__modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+      <div className="community-int__modal" style={{ background: 'var(--bg-surface, #ffffff)', borderRadius: '12px', padding: '24px', maxWidth: '480px', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-main)' }}>
+            {lang === 'hi' ? '🏬 गोदाम या कोल्ड स्टोर जोड़ें' : '🏬 List Warehouse or Cold Storage'}
+          </h3>
+          <button type="button" onClick={onClose} aria-label={lang === 'hi' ? 'बंद करें' : 'Close'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '12px' }}>
+            <label className="community-int__label">{lang === 'hi' ? 'गोदाम / सुविधा का नाम *' : 'Facility Name *'}</label>
+            <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. किसान कोल्ड स्टोर व वेयरहाउस' : 'e.g. Kisaan Cold Store & Warehouse'} value={facilityName} onChange={e => setFacilityName(e.target.value)} required />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'प्रकार *' : 'Storage Type *'}</label>
+              <select className="community-int__select" value={storageType} onChange={e => setStorageType(e.target.value)}>
+                <option value="COLD">{lang === 'hi' ? 'कोल्ड स्टोरेज (Cold)' : 'Cold Storage'}</option>
+                <option value="DRY">{lang === 'hi' ? 'अनाज गोदाम (Dry)' : 'Dry Silo / Godown'}</option>
+                <option value="WAREHOUSE">{lang === 'hi' ? 'वेयरहाउस (Warehouse)' : 'Warehouse'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'कुल क्षमता (बोरे) *' : 'Total Capacity (Bags) *'}</label>
+              <input type="number" min="50" step="50" className="community-int__input" placeholder="5000" value={capacity} onChange={e => setCapacity(e.target.value)} required />
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'किराया (₹/बोरा/दिन) *' : 'Rate (₹/bag/day) *'}</label>
+              <input type="number" min="0.5" step="0.5" className="community-int__input" placeholder="3.5" value={rate} onChange={e => setRate(e.target.value)} required />
+            </div>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'न्यूनतम दिन *' : 'Min Days *'}</label>
+              <input type="number" min="1" className="community-int__input" placeholder="7" value={minDays} onChange={e => setMinDays(e.target.value)} required />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '12px' }}>
+            <label className="community-int__label">{lang === 'hi' ? 'स्थान / ज़िला *' : 'Location / District *'}</label>
+            <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. आज़मगढ़ बाईपास, उत्तर प्रदेश' : 'e.g. Azamgarh Bypass, UP'} value={location} onChange={e => setLocation(e.target.value)} required />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'संचालक / संस्था' : 'Operator / Agency'}</label>
+              <input type="text" className="community-int__input" placeholder="Agro Storage Ltd." value={operator} onChange={e => setOperator(e.target.value)} required />
+            </div>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'फोन नंबर *' : 'Contact Phone *'}</label>
+              <input type="tel" className="community-int__input" placeholder="+91 98765 43210" value={contact} onChange={e => setContact(e.target.value)} required />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="button" className="btn-secondary" onClick={onClose}>{lang === 'hi' ? 'रद्द करें' : 'Cancel'}</button>
+            <button type="submit" className="btn-primary">
+              <PlusCircle size={14} /> {lang === 'hi' ? 'गोदाम जोड़ें' : 'Add Storage'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function TransportCard({ item, onBook, onViewBookings, userBookings = [], lang }) {
   const [showForm, setShowForm] = useState(false);
   const s    = STATUS_COLOR[item.status]   || STATUS_COLOR.FULL;
@@ -502,6 +605,7 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
   });
 
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  const [isStorageModalOpen, setIsStorageModalOpen] = useState(false);
 
   // Sync location-optimized transport props when location updates
   useEffect(() => {
@@ -551,6 +655,10 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
     setTransportList(prev => [item, ...prev]);
   }
 
+  function handleAddStorage(item) {
+    setStorageList(prev => [item, ...prev]);
+  }
+
   const availTr = transportList.filter(i => i.status !== 'FULL').length;
   const availSt = storageList.filter(i => i.status !== 'FULL').length;
 
@@ -567,15 +675,29 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsVehicleModalOpen(true)}
-          className="btn-primary"
-          style={{ fontSize: '0.88rem', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <PlusCircle size={16} />
-          <span>{lang === 'hi' ? 'वाहन सूची में जोड़ें' : 'List Transport Vehicle'}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {activeTab === 'storage' ? (
+            <button
+              type="button"
+              onClick={() => setIsStorageModalOpen(true)}
+              className="btn-primary"
+              style={{ fontSize: '0.88rem', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <PlusCircle size={16} />
+              <span>{lang === 'hi' ? 'गोदाम सूची में जोड़ें' : 'List Storage Space'}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsVehicleModalOpen(true)}
+              className="btn-primary"
+              style={{ fontSize: '0.88rem', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <PlusCircle size={16} />
+              <span>{lang === 'hi' ? 'वाहन सूची में जोड़ें' : 'List Transport Vehicle'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sub-tab selection: Transport vs Storage vs My Bookings */}
@@ -653,6 +775,15 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
                 ? 'स्थानीय वेयरहाउस, गोदाम या कोल्ड स्टोरेज के संचालक अपनी उपलब्ध क्षमता को यहां साझा कर सकते हैं।'
                 : 'Local storage facilities and warehouse operators can list their available capacity here for nearby farmers.'}
             </p>
+            <button
+              type="button"
+              onClick={() => setIsStorageModalOpen(true)}
+              className="btn-primary"
+              style={{ fontSize: '0.86rem', padding: '8px 18px' }}
+            >
+              <PlusCircle size={15} />
+              <span>{lang === 'hi' ? 'गोदाम सूची में जोड़ें' : 'List Storage Space'}</span>
+            </button>
           </div>
         ) : (
           <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
@@ -736,6 +867,13 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
         onClose={() => setIsVehicleModalOpen(false)} 
         onAdd={handleAddVehicle} 
         lang={lang} 
+      />
+
+      <ListStorageModal
+        isOpen={isStorageModalOpen}
+        onClose={() => setIsStorageModalOpen(false)}
+        onAdd={handleAddStorage}
+        lang={lang}
       />
     </section>
   );
