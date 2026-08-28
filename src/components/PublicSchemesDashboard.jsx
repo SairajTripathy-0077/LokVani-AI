@@ -52,7 +52,7 @@ const labelCls =
   'block text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 mb-2';
 
 export default function PublicSchemesDashboard() {
-  const { language } = useApp();
+  const { language, userProfile, updateUserProfile } = useApp();
   const { user } = useAuth();
   const userId = user?.uid || 'user_demo_1';
 
@@ -63,25 +63,11 @@ export default function PublicSchemesDashboard() {
   const [applyState, setApplyState] = useState('idle'); // 'idle' | 'saving' | 'done'
   const [applyError, setApplyError] = useState('');
 
-  const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem('lokvani_user_profile');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return {
-      fullName: 'Ramesh Kumar',
-      age: 38,
-      gender: 'Male',
-      state: 'Uttar Pradesh',
-      district: 'Azamgarh',
-      occupation: 'Farmer',
-      annualIncome: 120000,
-      casteCategory: 'OBC',
-      landHoldingAcres: 1.8,
-      isBpl: true,
-      isDisability: false
-    };
-  });
+  const [profile, setProfile] = useState({ ...userProfile });
+
+  useEffect(() => {
+    setProfile({ ...userProfile });
+  }, [userProfile]);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('matched'); // 'matched' | 'all' | 'ai_assistant'
@@ -187,7 +173,7 @@ export default function PublicSchemesDashboard() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    localStorage.setItem('lokvani_user_profile', JSON.stringify(profile));
+    updateUserProfile(profile);
     setIsEditingProfile(false);
   };
 
@@ -226,7 +212,7 @@ export default function PublicSchemesDashboard() {
             <span className="h-1 w-1 rounded-full bg-emerald-700" />
             {language === 'hi' ? 'सार्वजनिक योजना इंजन' : 'Public Scheme Intelligence'}
           </span>
-          <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.15] tracking-[-0.01em] text-zinc-900 sm:text-[2.4rem]">
+          <h2 className="mt-5 font-condensed text-balance text-3xl font-semibold leading-[1.15] tracking-normal text-zinc-900 sm:text-[2.4rem]">
             {language === 'hi'
               ? 'आपके लिए कौन सी योजनाएं हैं?'
               : 'Find every scheme you qualify for.'}
@@ -257,7 +243,7 @@ export default function PublicSchemesDashboard() {
           <form onSubmit={handleSaveProfile} className="rounded-[calc(1.75rem-6px)] p-7 sm:p-9">
             <div className="mb-8 flex items-center gap-3 border-b border-black/[0.06] pb-5">
               <User size={16} strokeWidth={1.25} className="text-zinc-400" />
-              <h3 className="font-heading text-lg font-semibold text-zinc-900">
+              <h3 className="font-condensed text-lg font-semibold text-zinc-900">
                 {language === 'hi' ? 'व्यक्तिगत जानकारी' : 'Personal details'}
               </h3>
             </div>
@@ -265,17 +251,18 @@ export default function PublicSchemesDashboard() {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <label htmlFor="pf-name" className={labelCls}>Full name</label>
-                <input id="pf-name" type="text" name="fullName" value={profile.fullName} onChange={handleProfileChange} required className={inputCls} />
+                <input id="pf-name" type="text" name="fullName" value={profile.fullName || ''} onChange={handleProfileChange} required placeholder="e.g. Ramesh Kumar" className={inputCls} />
               </div>
 
               <div>
                 <label htmlFor="pf-age" className={labelCls}>Age</label>
-                <input id="pf-age" type="number" name="age" value={profile.age} onChange={handleProfileChange} required className={inputCls} />
+                <input id="pf-age" type="number" name="age" value={profile.age || ''} onChange={handleProfileChange} required placeholder="e.g. 38" className={inputCls} />
               </div>
 
               <div>
                 <label htmlFor="pf-gender" className={labelCls}>Gender</label>
-                <select id="pf-gender" name="gender" value={profile.gender} onChange={handleProfileChange} className={inputCls}>
+                <select id="pf-gender" name="gender" value={profile.gender || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Transgender">Transgender</option>
@@ -284,36 +271,39 @@ export default function PublicSchemesDashboard() {
 
               <div>
                 <label htmlFor="pf-state" className={labelCls}>State</label>
-                <select id="pf-state" name="state" value={profile.state} onChange={handleProfileChange} className={inputCls}>
+                <select id="pf-state" name="state" value={profile.state || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select State</option>
                   {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
                 </select>
               </div>
 
               <div>
                 <label htmlFor="pf-district" className={labelCls}>District</label>
-                <input id="pf-district" type="text" name="district" value={profile.district} onChange={handleProfileChange} className={inputCls} />
+                <input id="pf-district" type="text" name="district" value={profile.district || ''} onChange={handleProfileChange} placeholder="e.g. Azamgarh" className={inputCls} />
               </div>
 
               <div>
                 <label htmlFor="pf-occ" className={labelCls}>Occupation</label>
-                <select id="pf-occ" name="occupation" value={profile.occupation} onChange={handleProfileChange} className={inputCls}>
+                <select id="pf-occ" name="occupation" value={profile.occupation || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Occupation</option>
                   {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
                 </select>
               </div>
 
               <div>
                 <label htmlFor="pf-income" className={labelCls}>Annual household income (₹)</label>
-                <input id="pf-income" type="number" name="annualIncome" value={profile.annualIncome} onChange={handleProfileChange} step="5000" className={inputCls} />
+                <input id="pf-income" type="number" name="annualIncome" value={profile.annualIncome || ''} onChange={handleProfileChange} step="5000" placeholder="e.g. 120000" className={inputCls} />
               </div>
 
               <div>
                 <label htmlFor="pf-land" className={labelCls}>Land holding (acres)</label>
-                <input id="pf-land" type="number" name="landHoldingAcres" value={profile.landHoldingAcres} onChange={handleProfileChange} step="0.1" className={inputCls} />
+                <input id="pf-land" type="number" name="landHoldingAcres" value={profile.landHoldingAcres || ''} onChange={handleProfileChange} step="0.1" placeholder="e.g. 1.8" className={inputCls} />
               </div>
 
               <div>
                 <label htmlFor="pf-cat" className={labelCls}>Social category</label>
-                <select id="pf-cat" name="casteCategory" value={profile.casteCategory} onChange={handleProfileChange} className={inputCls}>
+                <select id="pf-cat" name="casteCategory" value={profile.casteCategory || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Category</option>
                   <option value="General">General</option>
                   <option value="OBC">OBC</option>
                   <option value="SC">SC</option>
@@ -415,7 +405,7 @@ export default function PublicSchemesDashboard() {
         strictlyMatchedSchemes.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-black/[0.1] bg-white p-12 text-center">
             <Award size={28} strokeWidth={1.25} className="text-amber-500" />
-            <h3 className="font-heading text-base font-semibold text-zinc-900">
+            <h3 className="font-condensed text-base font-semibold text-zinc-900">
               {language === 'hi' ? 'आपकी प्रोफ़ाइल के लिए कोई सटीक योजना नहीं मिली' : 'No Exact Matches for Current Profile'}
             </h3>
             <p className="max-w-md text-sm text-zinc-500">
@@ -445,7 +435,7 @@ export default function PublicSchemesDashboard() {
                     </span>
                   </div>
 
-                  <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                  <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
                     {language === 'hi' ? scheme.title_hi : scheme.title_en}
                   </h3>
 
@@ -537,7 +527,7 @@ export default function PublicSchemesDashboard() {
                       </span>
                     </div>
 
-                    <h3 className="text-balance font-heading text-lg font-semibold leading-snug text-zinc-900">
+                    <h3 className="text-balance font-condensed text-lg font-semibold leading-snug text-zinc-900">
                       {language === 'hi' ? scheme.title_hi : scheme.title_en}
                     </h3>
 
@@ -565,7 +555,7 @@ export default function PublicSchemesDashboard() {
                 <Bot size={18} strokeWidth={1.25} />
               </span>
               <div>
-                <h3 className="font-heading text-lg font-semibold text-zinc-900">
+                <h3 className="font-condensed text-lg font-semibold text-zinc-900">
                   {language === 'hi' ? 'AI योजना मित्र' : 'AI Scheme Mitra'}
                 </h3>
                 <p className="mt-1 max-w-lg text-pretty text-[13px] leading-relaxed text-zinc-500">
@@ -619,7 +609,11 @@ export default function PublicSchemesDashboard() {
 
       {/* ── My Applications (tracker + grievance) ───────────── */}
       {activeTab === 'applications' && (
-        <MyApplications userName={profile.fullName} userEmail={user?.email || ''} />
+        <MyApplications
+          userName={profile.fullName}
+          userEmail={user?.email || ''}
+          onBrowseSchemes={() => setActiveTab('matched')}
+        />
       )}
 
       {/* ── Scheme detail modal ─────────────────────────────── */}
@@ -636,7 +630,7 @@ export default function PublicSchemesDashboard() {
                 <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-400">
                   {selectedScheme.category}
                 </span>
-                <h2 className="mt-1 font-heading text-xl font-bold text-zinc-900">
+                <h2 className="mt-1 font-condensed text-xl font-bold text-zinc-900">
                   {language === 'hi' ? selectedScheme.title_hi : selectedScheme.title_en}
                 </h2>
                 <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-zinc-400">

@@ -17,6 +17,7 @@
 
 import React, { useMemo } from 'react';
 import { TrendingUp, Star } from 'lucide-react';
+import { t } from './communityTranslations.js';
 
 /**
  * Groups records by item name and computes average price per commodity.

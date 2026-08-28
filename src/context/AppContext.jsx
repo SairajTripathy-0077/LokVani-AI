@@ -44,6 +44,85 @@ export function AppProvider({ children }) {
     }
   }, [userLocation]);
 
+  // Global User Profile State (Demographics + Software Engineer Extensions)
+  const EMPTY_USER_PROFILE = {
+    fullName: '',
+    age: '',
+    gender: '',
+    state: '',
+    district: '',
+    occupation: '',
+    annualIncome: '',
+    casteCategory: '',
+    landHoldingAcres: '',
+    isBpl: false,
+    isDisability: false,
+
+    // Software Engineer & Identity Extensions
+    phone: '',
+    secondaryEmail: '',
+    whatsappAlerts: false,
+    technicalRole: '',
+    githubUrl: '',
+    portfolioUrl: '',
+    isKycVerified: false,
+    dbtBankLinked: false,
+    cscNodeId: '',
+    gpsCoordinates: '',
+    profileCompleted: false
+  };
+
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('lokvani_user_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          fullName: parsed.fullName || '',
+          age: parsed.age !== undefined && parsed.age !== null ? parsed.age : '',
+          gender: parsed.gender || '',
+          state: parsed.state || '',
+          district: parsed.district || '',
+          occupation: parsed.occupation || '',
+          annualIncome: parsed.annualIncome !== undefined && parsed.annualIncome !== null ? parsed.annualIncome : '',
+          casteCategory: parsed.casteCategory || '',
+          landHoldingAcres: parsed.landHoldingAcres !== undefined && parsed.landHoldingAcres !== null ? parsed.landHoldingAcres : '',
+          isBpl: Boolean(parsed.isBpl),
+          isDisability: Boolean(parsed.isDisability),
+
+          // Engineering extensions
+          phone: parsed.phone || '',
+          secondaryEmail: parsed.secondaryEmail || '',
+          whatsappAlerts: Boolean(parsed.whatsappAlerts),
+          technicalRole: parsed.technicalRole || '',
+          githubUrl: parsed.githubUrl || '',
+          portfolioUrl: parsed.portfolioUrl || '',
+          isKycVerified: Boolean(parsed.isKycVerified),
+          dbtBankLinked: Boolean(parsed.dbtBankLinked),
+          cscNodeId: parsed.cscNodeId || '',
+          gpsCoordinates: parsed.gpsCoordinates || '',
+          profileCompleted: parsed.profileCompleted !== undefined ? parsed.profileCompleted : Boolean(parsed.fullName?.trim())
+        };
+      } catch (e) {
+        console.error('Failed to parse user profile:', e);
+      }
+    }
+    return { ...EMPTY_USER_PROFILE };
+  });
+
+  const updateUserProfile = (newProfile) => {
+    setUserProfile(prev => {
+      const updated = { ...prev, ...newProfile, profileCompleted: Boolean((newProfile.fullName || prev.fullName)?.trim()) };
+      localStorage.setItem('lokvani_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const clearUserProfile = () => {
+    localStorage.removeItem('lokvani_user_profile');
+    setUserProfile({ ...EMPTY_USER_PROFILE });
+  };
+
   const requestLocation = async () => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -167,6 +246,9 @@ export function AppProvider({ children }) {
       userLocation,
       setUserLocation,
       requestLocation,
+      userProfile,
+      updateUserProfile,
+      clearUserProfile,
     }}>
       {children}
     </AppContext.Provider>

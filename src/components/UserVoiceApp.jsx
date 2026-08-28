@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { speechService } from '../services/speechService';
 import { processUserSpeechQuery } from '../services/aiCoreEngine';
 import {
@@ -93,7 +94,8 @@ function SkeletonCard() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UserVoiceApp() {
-  const { language, setActiveTab, dialect, setDialect } = useApp();
+  const { language, setActiveTab, dialect, setDialect, userProfile } = useApp();
+  const { user } = useAuth();
 
   const [appState, setAppState]             = useState('IDLE');
   const [transcript, setTranscript]         = useState('');
@@ -155,8 +157,8 @@ export default function UserVoiceApp() {
           body: JSON.stringify({
             transcribed_text: trimmed,
             user_location: 'Azamgarh, UP',
-            userId: 'user_demo_1',
-            userName: 'Ramesh Kumar (Farmer)',
+            userId: user?.uid || 'user_demo_1',
+            userName: userProfile?.fullName || user?.displayName || 'Citizen',
             dialect: dialectInfo.promptName,
           })
         });
