@@ -44,6 +44,78 @@ export function AppProvider({ children }) {
     }
   }, [userLocation]);
 
+  // Global User Profile State (Demographics + Software Engineer Extensions)
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('lokvani_user_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          fullName: parsed.fullName || '',
+          age: parsed.age || 38,
+          gender: parsed.gender || 'Male',
+          state: parsed.state || 'Uttar Pradesh',
+          district: parsed.district || 'Azamgarh',
+          occupation: parsed.occupation || 'Farmer',
+          annualIncome: parsed.annualIncome ?? 120000,
+          casteCategory: parsed.casteCategory || 'OBC',
+          landHoldingAcres: parsed.landHoldingAcres ?? 1.8,
+          isBpl: Boolean(parsed.isBpl),
+          isDisability: Boolean(parsed.isDisability),
+
+          // Engineering extensions
+          phone: parsed.phone || '+91 98765 43210',
+          secondaryEmail: parsed.secondaryEmail || '',
+          whatsappAlerts: parsed.whatsappAlerts !== undefined ? parsed.whatsappAlerts : true,
+          technicalRole: parsed.technicalRole || 'Software Engineer / Citizen Scientist',
+          githubUrl: parsed.githubUrl || 'https://github.com',
+          portfolioUrl: parsed.portfolioUrl || '',
+          isKycVerified: parsed.isKycVerified !== undefined ? parsed.isKycVerified : true,
+          dbtBankLinked: parsed.dbtBankLinked !== undefined ? parsed.dbtBankLinked : true,
+          cscNodeId: parsed.cscNodeId || 'CSC-AZM-4021',
+          gpsCoordinates: parsed.gpsCoordinates || '26.0739° N, 83.1859° E',
+          profileCompleted: parsed.profileCompleted !== undefined ? parsed.profileCompleted : Boolean(parsed.fullName)
+        };
+      } catch (e) {
+        console.error('Failed to parse user profile:', e);
+      }
+    }
+    return {
+      fullName: 'Ramesh Kumar',
+      age: 38,
+      gender: 'Male',
+      state: 'Uttar Pradesh',
+      district: 'Azamgarh',
+      occupation: 'Farmer',
+      annualIncome: 120000,
+      casteCategory: 'OBC',
+      landHoldingAcres: 1.8,
+      isBpl: true,
+      isDisability: false,
+
+      // Software Engineer & Identity Extensions
+      phone: '+91 98765 43210',
+      secondaryEmail: '',
+      whatsappAlerts: true,
+      technicalRole: 'Software Engineer / Citizen Scientist',
+      githubUrl: 'https://github.com',
+      portfolioUrl: '',
+      isKycVerified: true,
+      dbtBankLinked: true,
+      cscNodeId: 'CSC-AZM-4021',
+      gpsCoordinates: '26.0739° N, 83.1859° E',
+      profileCompleted: true
+    };
+  });
+
+  const updateUserProfile = (newProfile) => {
+    setUserProfile(prev => {
+      const updated = { ...prev, ...newProfile, profileCompleted: Boolean((newProfile.fullName || prev.fullName)?.trim()) };
+      localStorage.setItem('lokvani_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const requestLocation = async () => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -167,6 +239,8 @@ export function AppProvider({ children }) {
       userLocation,
       setUserLocation,
       requestLocation,
+      userProfile,
+      updateUserProfile,
     }}>
       {children}
     </AppContext.Provider>

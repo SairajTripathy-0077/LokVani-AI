@@ -41,7 +41,7 @@ export default function AuthPage() {
     const res = await signInWithGoogle();
     setIsSubmitting(false);
     if (res.success) {
-      setActiveTab('schemes');
+      setActiveTab('dashboard');
     } else {
       setErrorMessage(res.error || 'Failed to sign in with Google');
     }
@@ -65,7 +65,7 @@ export default function AuthPage() {
     setIsSubmitting(false);
 
     if (res.success) {
-      setActiveTab('schemes');
+      setActiveTab('dashboard');
     } else {
       setErrorMessage(res.error ? res.error.replace('Firebase: ', '') : 'Authentication failed.');
     }
@@ -132,10 +132,10 @@ export default function AuthPage() {
 
                 <div className="mt-8 flex flex-col gap-3">
                   <button
-                    onClick={() => setActiveTab('schemes')}
+                    onClick={() => setActiveTab('dashboard')}
                     className="group inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-zinc-900 py-3 text-sm font-medium text-white transition-all hover:bg-zinc-800"
                   >
-                    Go to Schemes Dashboard
+                    Go to My Dashboard
                     <ArrowLeft size={14} className="rotate-180" />
                   </button>
                   <button

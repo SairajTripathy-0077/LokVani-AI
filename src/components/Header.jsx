@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { Mic, FileText, Users, Globe, Home, LogOut, User as UserIcon, ChevronDown, X } from 'lucide-react';
+import { Mic, FileText, Users, Globe, Home, LogOut, User as UserIcon, ChevronDown, X, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { id: 'home',    label: 'Home',         icon: Home     },
-  { id: 'voice',   label: 'Voice AI',     icon: Mic      },
-  { id: 'schemes', label: 'Schemes',      icon: FileText },
-  { id: 'intel',   label: 'Market Intel', icon: Users    },
+  { id: 'home',      label: 'Home',         icon: Home            },
+  { id: 'dashboard', label: 'Dashboard',    icon: LayoutDashboard },
+  { id: 'voice',     label: 'Voice AI',     icon: Mic             },
+  { id: 'schemes',   label: 'Schemes',      icon: FileText        },
+  { id: 'intel',     label: 'Market Intel', icon: Users           },
 ];
 
 export default function Header() {
@@ -133,10 +134,17 @@ export default function Header() {
                       {user?.email}
                     </p>
                   </div>
-                  <div className="pt-1.5">
+                  <div className="pt-1.5 space-y-1">
+                    <button
+                      onClick={() => { go('dashboard'); setUserDropdownOpen(false); }}
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100"
+                    >
+                      <LayoutDashboard size={14} strokeWidth={1.5} className="shrink-0 text-zinc-500" />
+                      <span>My Dashboard</span>
+                    </button>
                     <button
                       onClick={handleSignOut}
-                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50"
+                      className="flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50"
                     >
                       <LogOut size={14} strokeWidth={1.5} className="shrink-0" />
                       <span>Sign out</span>

@@ -52,7 +52,7 @@ const labelCls =
   'block text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 mb-2';
 
 export default function PublicSchemesDashboard() {
-  const { language } = useApp();
+  const { language, userProfile, updateUserProfile } = useApp();
   const { user } = useAuth();
   const userId = user?.uid || 'user_demo_1';
 
@@ -63,25 +63,11 @@ export default function PublicSchemesDashboard() {
   const [applyState, setApplyState] = useState('idle'); // 'idle' | 'saving' | 'done'
   const [applyError, setApplyError] = useState('');
 
-  const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem('lokvani_user_profile');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return {
-      fullName: 'Ramesh Kumar',
-      age: 38,
-      gender: 'Male',
-      state: 'Uttar Pradesh',
-      district: 'Azamgarh',
-      occupation: 'Farmer',
-      annualIncome: 120000,
-      casteCategory: 'OBC',
-      landHoldingAcres: 1.8,
-      isBpl: true,
-      isDisability: false
-    };
-  });
+  const [profile, setProfile] = useState({ ...userProfile });
+
+  useEffect(() => {
+    setProfile({ ...userProfile });
+  }, [userProfile]);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('matched'); // 'matched' | 'all' | 'ai_assistant'
@@ -187,7 +173,7 @@ export default function PublicSchemesDashboard() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    localStorage.setItem('lokvani_user_profile', JSON.stringify(profile));
+    updateUserProfile(profile);
     setIsEditingProfile(false);
   };
 
