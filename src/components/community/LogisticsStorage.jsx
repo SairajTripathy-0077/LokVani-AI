@@ -408,19 +408,8 @@ function StorageCard({ item, onBook, lang }) {
 
 export default function LogisticsStorage({ transportItems: initialTransport = [], storageItems: initialStorage = [], lang = 'en' }) {
   const [activeTab, setActiveTab] = useState('transport');
-  const [transportList, setTransportList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('lokvani_transport_items');
-      return saved ? JSON.parse(saved) : initialTransport;
-    } catch (_) { return initialTransport; }
-  });
-
-  const [storageList, setStorageList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('lokvani_storage_items');
-      return saved ? JSON.parse(saved) : initialStorage;
-    } catch (_) { return initialStorage; }
-  });
+  const [transportList, setTransportList] = useState(initialTransport);
+  const [storageList, setStorageList] = useState(initialStorage);
 
   const [userBookings, setUserBookings] = useState(() => {
     try {
@@ -431,13 +420,19 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
 
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
 
+  // Sync location-optimized transport props when location updates
   useEffect(() => {
-    localStorage.setItem('lokvani_transport_items', JSON.stringify(transportList));
-  }, [transportList]);
+    if (initialTransport && initialTransport.length > 0) {
+      setTransportList(initialTransport);
+    }
+  }, [initialTransport]);
 
+  // Sync location-optimized storage props when location updates
   useEffect(() => {
-    localStorage.setItem('lokvani_storage_items', JSON.stringify(storageList));
-  }, [storageList]);
+    if (initialStorage && initialStorage.length > 0) {
+      setStorageList(initialStorage);
+    }
+  }, [initialStorage]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_user_bookings', JSON.stringify(userBookings));
