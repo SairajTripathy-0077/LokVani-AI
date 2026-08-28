@@ -12,7 +12,8 @@ const FALLBACK_GRIEVANCE_EMAIL =
 const EMAILJS_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
 
 export function getGrievanceEmail(schemeGrievanceEmail) {
-  return process.env.GRIEVANCE_FALLBACK_EMAIL || schemeGrievanceEmail || FALLBACK_GRIEVANCE_EMAIL;
+  const fallback = process.env.GRIEVANCE_FALLBACK_EMAIL || process.env.VITE_GRIEVANCE_FALLBACK_EMAIL;
+  return fallback || schemeGrievanceEmail || FALLBACK_GRIEVANCE_EMAIL;
 }
 
 function buildComplaintBody({
@@ -87,7 +88,19 @@ export async function sendGrievanceEmail({ application, daysElapsed, complaintId
     buildComplaintBodyHi({ ...application, daysElapsed, complaintId })
   ].join('\n');
 
-  const { EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY } = process.env;
+  // Dynamic dotenv refresh to pick up freshly saved .env changes without server restart
+  if (!process.env.EMAILJS_SERVICE_ID) {
+    try {
+      const dotenv = await import('dotenv');
+      dotenv.config({ override: true });
+    } catch (_) {}
+  }
+
+  const EMAILJS_SERVICE_ID = process.env.EMAILJS_SERVICE_ID || process.env.VITE_EMAILJS_SERVICE_ID;
+  const EMAILJS_TEMPLATE_ID = process.env.EMAILJS_TEMPLATE_ID || process.env.VITE_EMAILJS_TEMPLATE_ID;
+  const EMAILJS_PUBLIC_KEY = process.env.EMAILJS_PUBLIC_KEY || process.env.VITE_EMAILJS_PUBLIC_KEY;
+  const EMAILJS_PRIVATE_KEY = process.env.EMAILJS_PRIVATE_KEY || process.env.VITE_EMAILJS_PRIVATE_KEY;
+
   if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
     console.warn(
       `[Grievance Mailer] EmailJS is not configured. Complaint ${complaintId} logged but email NOT sent (would go to ${to}${cc ? `, cc ${cc}` : ''}).`
