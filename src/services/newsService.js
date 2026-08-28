@@ -16,21 +16,31 @@ function cleanHtml(raw) {
  * Fetch fresh real-time agriculture news across multiple targeted streams
  * Aggregates state-level, national mandi rates, government schemes, and crop advisories
  */
-export async function fetchLiveNews(state = 'Uttar Pradesh', district = '') {
+export async function fetchLiveNews(state = 'Uttar Pradesh', district = '', lang = 'hi') {
   try {
     const loc = district || state || 'India';
+    const isEn = lang === 'en';
     
     // Multiple targeted queries to maximize variety and quantity of fresh news
-    const queries = [
-      `(कृषि OR किसान OR मंडी OR फसल) ${loc} when:7d`,
-      `(agriculture OR "mandi bhav" OR "crop rate" OR "MSP") India when:7d`,
-      `("PM Kisan" OR "कृषि योजना" OR "खाद सब्सिडी" OR "फसल बीमा" OR eNAM) when:7d`,
-      `("खेती किसानी" OR "कृषि सलाह" OR "मौसम अलर्ट" OR "कृषि समाचार") when:7d`,
-    ];
+    const queries = isEn
+      ? [
+          `(agriculture OR farmer OR mandi OR crop) ${loc} when:7d`,
+          `(agriculture OR "mandi rate" OR "crop price" OR "MSP") India when:7d`,
+          `("PM Kisan" OR "agriculture scheme" OR "fertilizer subsidy" OR "crop insurance" OR eNAM) when:7d`,
+          `("farming news" OR "agricultural advisory" OR "weather alert" OR "agri news") when:7d`,
+        ]
+      : [
+          `(कृषि OR किसान OR मंडी OR फसल) ${loc} when:7d`,
+          `(agriculture OR "mandi bhav" OR "crop rate" OR "MSP") India when:7d`,
+          `("PM Kisan" OR "कृषि योजना" OR "खाद सब्सिडी" OR "फसल बीमा" OR eNAM) when:7d`,
+          `("खेती किसानी" OR "कृषि सलाह" OR "मौसम अलर्ट" OR "कृषि समाचार") when:7d`,
+        ];
 
     const fetchPromises = queries.map(async (q) => {
       try {
-        const targetUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=hi&gl=IN&ceid=IN:hi`;
+        const hl = isEn ? 'en' : 'hi';
+        const ceid = isEn ? 'IN:en' : 'IN:hi';
+        const targetUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=${hl}&gl=IN&ceid=${ceid}`;
         const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetUrl)}`;
         const res = await fetch(apiUrl);
         if (!res.ok) return [];
@@ -63,7 +73,7 @@ export async function fetchLiveNews(state = 'Uttar Pradesh', district = '') {
       // Extract headline and publisher
       const titleParts = rawTitle.split(' - ');
       let headline = rawTitle;
-      let sourceName = article.author || 'कृषि समाचार';
+      let sourceName = article.author || (isEn ? 'Agri News' : 'कृषि समाचार');
 
       if (titleParts.length > 1) {
         sourceName = titleParts.pop().trim();
