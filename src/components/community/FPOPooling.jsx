@@ -20,7 +20,7 @@ import {
   Wifi
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
-import { fetchCropPools, createCropPool, joinCropPool, updateCropPool, deleteCropPool, getOrCreateUserId, normalizePool } from '../../services/poolService.js';
+import { fetchCropPools, createCropPool, joinCropPool, updateCropPool, deleteCropPool, getOrCreateUserId, normalizePool, subscribeCropPools } from '../../services/poolService.js';
 
 const STATUS_KEY_MAP = {
   OPEN:    'poolStatusOpen',
@@ -591,77 +591,22 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
     }
   }, []);
 
-  // Live WebSocket Engine connection
+  // Universal Real-time live synchronization (Firestore stream + REST fallback)
   useEffect(() => {
-    let ws = null;
-    let reconnectTimer = null;
-    let attemptIndex = 0;
-
-    function connectWS() {
-      try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const candidates = [
-          `${protocol}//${window.location.host}/ws`,
-          `${protocol}//${window.location.hostname}:5000`
-        ];
-
-        const targetUrl = candidates[attemptIndex % candidates.length];
-        ws = new WebSocket(targetUrl);
-
-        ws.onopen = () => {
-          setWsConnected(true);
-          console.log(`[FPO WebSocket] Connected live to stream via ${targetUrl}`);
-        };
-
-        ws.onmessage = (e) => {
-          try {
-            const data = JSON.parse(e.data);
-            const { type, payload } = data;
-
-            if (type === 'INIT_POOLS' && Array.isArray(payload)) {
-              const normalized = payload.map(normalizePool);
-              setPoolList(normalized);
-              localStorage.setItem('lokvani_fpo_pools', JSON.stringify(normalized));
-            } else if (type === 'POOL_CREATED' && payload) {
-              const normalized = normalizePool(payload);
-              setPoolList(prev => [normalized, ...prev.filter(p => p.id !== normalized.id && p.poolId !== normalized.id)]);
-            } else if (type === 'POOL_UPDATED' && payload) {
-              const normalized = normalizePool(payload);
-              setPoolList(prev => prev.map(p => (p.id === normalized.id || p.poolId === normalized.id ? normalized : p)));
-            } else if (type === 'POOL_EDITED' && payload) {
-              const normalized = normalizePool(payload);
-              setPoolList(prev => prev.map(p => (p.id === normalized.id || p.poolId === normalized.id ? normalized : p)));
-            } else if (type === 'POOL_DELETED' && payload?.poolId) {
-              setPoolList(prev => prev.filter(p => p.id !== payload.poolId && p.poolId !== payload.poolId));
-            }
-          } catch (err) {
-            console.warn('[FPO WebSocket] Parsing error:', err.message);
-          }
-        };
-
-        ws.onclose = () => {
-          setWsConnected(false);
-          attemptIndex++;
-          reconnectTimer = setTimeout(connectWS, 2000);
-        };
-
-        ws.onerror = () => {
-          setWsConnected(false);
-          try { ws.close(); } catch (_) {}
-        };
-      } catch (err) {
-        console.warn('[FPO WebSocket] Connection init error:', err);
+    setIsSyncing(true);
+    const unsubscribe = subscribeCropPools((livePools) => {
+      if (livePools && livePools.length > 0) {
+        setPoolList(livePools);
+        localStorage.setItem('lokvani_fpo_pools', JSON.stringify(livePools));
       }
-    }
-
-    connectWS();
-    loadLivePools();
+      setWsConnected(true);
+      setIsSyncing(false);
+    });
 
     return () => {
-      if (ws) ws.close();
-      if (reconnectTimer) clearTimeout(reconnectTimer);
+      try { unsubscribe(); } catch (_) {}
     };
-  }, [loadLivePools]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('lokvani_user_joined_pools', JSON.stringify(joinedPools));

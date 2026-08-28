@@ -970,3 +970,5 @@ server.on('error', (err) => {
     console.error('[LokVani Server] Unexpected error:', err);
   }
 });
+
+export default app;
