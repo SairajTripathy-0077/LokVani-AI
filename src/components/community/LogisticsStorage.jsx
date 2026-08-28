@@ -13,9 +13,26 @@ import {
   X,
   FileCheck,
   ShieldCheck,
-  Inbox
+  Inbox,
+  MessageSquare,
+  PhoneCall,
+  ExternalLink
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
+
+function getWhatsAppLink(pass, lang) {
+  const cleanDigits = (pass.contact || '').replace(/\D/g, '');
+  const phone = cleanDigits.length === 10 ? `91${cleanDigits}` : (cleanDigits || '919876543210');
+  const text = lang === 'hi'
+    ? `नमस्ते! मैंने LokVani AI के माध्यम से आपके वाहन/गोदाम (${pass.itemName}) में ${pass.quantity} ${pass.unit} की जगह बुक की है।\n\n📌 बुकिंग ID: ${pass.bookingId}\n👤 किसान: ${pass.farmerName || 'किसान'}\n📅 दिनांक: ${pass.date}\n\nकृपया पिकअप समय व स्थान की पुष्टि करें। धन्यवाद!`
+    : `Hello! I have booked ${pass.quantity} ${pass.unit} space for (${pass.itemName}) via LokVani AI.\n\n📌 Booking ID: ${pass.bookingId}\n👤 Farmer: ${pass.farmerName || 'Farmer'}\n📅 Date: ${pass.date}\n\nPlease confirm dispatch pickup time and location. Thank you!`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
+
+function getPhoneLink(pass) {
+  const cleanDigits = (pass.contact || '').replace(/\D/g, '');
+  return cleanDigits ? `tel:+${cleanDigits}` : '#';
+}
 
 const STATUS_KEY_MAP = { AVAILABLE: 'availableStatus', FILLING: 'fillingStatus', FULL: 'fullStatus' };
 const STATUS_COLOR   = { AVAILABLE: { color: 'var(--accent-primary, #15803d)', bg: 'rgba(72,115,79,0.09)' }, FILLING: { color: 'var(--text-main, #18181b)', bg: 'var(--bg-hover, #f4f4f2)' }, FULL: { color: 'var(--text-dim, #71717a)', bg: 'var(--bg-hover, #f4f4f2)' } };
@@ -92,7 +109,7 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
         <h5 style={{ margin: 0, fontSize: '1rem', color: '#166534', fontWeight: 700 }}>
           {lang === 'hi' ? 'बुकिंग कन्फर्म हो गई!' : 'Booking Confirmed!'}
         </h5>
-        <div style={{ background: '#ffffff', borderRadius: '6px', padding: '10px', margin: '12px 0', textAlign: 'left', border: '1px solid #dcfce7', fontSize: '0.82rem' }}>
+        <div style={{ background: '#ffffff', borderRadius: '6px', padding: '12px', margin: '12px 0', textAlign: 'left', border: '1px solid #dcfce7', fontSize: '0.82rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ color: 'var(--text-muted)' }}>{lang === 'hi' ? 'बुकिंग आईडी:' : 'Booking ID:'}</span>
             <strong style={{ color: '#15803d' }}>{bookingPass.bookingId}</strong>
@@ -110,10 +127,50 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
             <strong>{bookingPass.date}</strong>
           </div>
         </div>
-        <p style={{ fontSize: '0.78rem', color: '#15803d', margin: '4px 0 10px' }}>
-          {lang === 'hi' ? 'ऑपरेटर आपके पिकअप समय की पुष्टि के लिए कॉल करेंगे।' : 'The operator will call you to confirm dispatch.'}
-        </p>
-        <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.82rem', padding: '4px 14px' }}>
+
+        {/* Action Buttons for Transporter Notification */}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap', margin: '10px 0' }}>
+          <a
+            href={getWhatsAppLink(bookingPass, lang)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary"
+            style={{ 
+              fontSize: '0.8rem', 
+              padding: '6px 12px', 
+              background: '#25D366', 
+              borderColor: '#25D366', 
+              color: '#ffffff', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '5px',
+              textDecoration: 'none',
+              borderRadius: '6px'
+            }}
+          >
+            <MessageSquare size={13} />
+            <span>{lang === 'hi' ? 'WhatsApp पर सूचना भेजें' : 'Send WhatsApp Alert'}</span>
+          </a>
+
+          <a
+            href={getPhoneLink(bookingPass)}
+            className="btn-secondary"
+            style={{ 
+              fontSize: '0.8rem', 
+              padding: '6px 12px', 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '5px',
+              textDecoration: 'none',
+              borderRadius: '6px'
+            }}
+          >
+            <PhoneCall size={13} />
+            <span>{lang === 'hi' ? 'कॉल करें' : 'Call Operator'}</span>
+          </a>
+        </div>
+
+        <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.78rem', padding: '3px 12px', marginTop: '4px' }}>
           {t('closeBtn', lang)}
         </button>
       </div>
@@ -588,8 +645,49 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
                 {b.itemType === 'transport' ? '🚛 Truck Booking' : '🏬 Storage Booking'} · <strong>{b.quantity} {b.unit}</strong>
               </p>
-              <div style={{ borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '8px', fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+              <div style={{ borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '8px', fontSize: '0.78rem', color: 'var(--text-dim)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <span>{lang === 'hi' ? 'संपर्क:' : 'Contact:'} <strong>{b.contact}</strong></span>
+
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <a
+                    href={getWhatsAppLink(b, lang)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{ 
+                      fontSize: '0.74rem', 
+                      padding: '4px 8px', 
+                      background: '#25D366', 
+                      borderColor: '#25D366', 
+                      color: '#ffffff', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      textDecoration: 'none',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <MessageSquare size={12} />
+                    <span>WhatsApp</span>
+                  </a>
+
+                  <a
+                    href={getPhoneLink(b)}
+                    className="btn-secondary"
+                    style={{ 
+                      fontSize: '0.74rem', 
+                      padding: '4px 8px', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '4px',
+                      textDecoration: 'none',
+                      borderRadius: '6px'
+                    }}
+                  >
+                    <PhoneCall size={12} />
+                    <span>{lang === 'hi' ? 'कॉल' : 'Call'}</span>
+                  </a>
+                </div>
               </div>
             </div>
           ))}
