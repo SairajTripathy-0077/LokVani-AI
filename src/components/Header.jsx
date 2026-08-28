@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Header() {
-  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount } = useApp();
+  const { activeTab, setActiveTab, language, setLanguage, pendingReviewsCount, clearUserProfile } = useApp();
   const { isSignedIn, user, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -28,6 +28,7 @@ export default function Header() {
 
   const handleSignOut = async () => {
     await logout();
+    if (clearUserProfile) clearUserProfile();
     setUserDropdownOpen(false);
     setActiveTab('home');
   };

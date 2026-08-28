@@ -57,14 +57,8 @@ export default function Dashboard() {
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({ ...userProfile });
-  const [activeFormTab, setActiveFormTab] = useState('demographics'); // 'demographics' | 'engineering' | 'logs'
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [auditLogs, setAuditLogs] = useState([
-    { id: 1, action: 'User Session Initiated', timestamp: new Date().toLocaleTimeString(), detail: `Authenticated as ${user?.email || 'User'}` },
-    { id: 2, action: 'Profile Cache Loaded', timestamp: new Date(Date.now() - 300000).toLocaleTimeString(), detail: 'Synced with LokVani storage engine' },
-    { id: 3, action: 'Trust Node Check', timestamp: new Date(Date.now() - 600000).toLocaleTimeString(), detail: 'Aadhaar e-KYC Token valid' },
-  ]);
 
   // Keep form data synced if userProfile changes externally
   useEffect(() => {
@@ -107,17 +101,6 @@ export default function Dashboard() {
     e.preventDefault();
     updateUserProfile(formData);
     setSaveSuccess(true);
-
-    setAuditLogs(prev => [
-      {
-        id: Date.now(),
-        action: 'Profile Updated',
-        timestamp: new Date().toLocaleTimeString(),
-        detail: `Updated details for ${formData.fullName || 'User'}`
-      },
-      ...prev
-    ]);
-
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
@@ -167,87 +150,14 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* ── Notice Banner if Profile is Incomplete ───────────── */}
-      {completionScore < 70 && (
-        <div className="mb-8 flex items-center justify-between gap-4 rounded-2xl border border-amber-200/80 bg-amber-50/90 p-4 text-amber-900 shadow-sm">
-          <div className="flex items-center gap-3">
-            <AlertTriangle size={18} className="shrink-0 text-amber-600" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-800">
-                {language === 'hi' ? 'प्रोफ़ाइल अधूरी है' : 'Profile Action Required'}
-              </p>
-              <p className="mt-0.5 text-xs text-amber-700">
-                {language === 'hi'
-                  ? 'सभी सरकारी योजनाओं का लाभ उठाने के लिए कृपया अपनी जानकारी पूरी भरें।'
-                  : 'Please complete your demographic and identity details below to enable full platform features.'}
-              </p>
-            </div>
-          </div>
-          <span className="shrink-0 font-mono text-xs font-bold text-amber-800">
-            {completionScore}% Complete
-          </span>
-        </div>
-      )}
 
       {/* ── Main Details Configuration Form Card ────────────── */}
       <section className="rounded-[1.75rem] bg-white p-1.5 ring-1 ring-black/[0.06] shadow-[0_32px_80px_-40px_rgba(24,24,27,0.18)]">
         <form onSubmit={handleSave} className="rounded-[calc(1.75rem-6px)] p-6 sm:p-9">
 
-          {/* Form Tabs Switcher */}
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-black/[0.06] pb-5">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveFormTab('demographics')}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                  activeFormTab === 'demographics'
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                }`}
-              >
-                <User size={14} />
-                <span>{language === 'hi' ? '1. व्यक्तिगत व योजना विवरण' : '1. Schemes Demographics'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormTab('engineering')}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                  activeFormTab === 'engineering'
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                }`}
-              >
-                <Code2 size={14} />
-                <span>{language === 'hi' ? '2. सॉफ्टवेयर व संपर्क सेटिंग्स' : '2. Engineer & Identity Extensions'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveFormTab('logs')}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all ${
-                  activeFormTab === 'logs'
-                    ? 'bg-zinc-900 text-white shadow-sm'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
-                }`}
-              >
-                <Activity size={14} />
-                <span>{language === 'hi' ? '3. ऑडिट लॉग' : '3. System Activity Log'}</span>
-              </button>
-            </div>
-
-            {saveSuccess && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-                <CheckCircle2 size={14} />
-                Profile updated successfully!
-              </span>
-            )}
-          </div>
-
-          {/* ── TAB 1: SCHEMES DEMOGRAPHICS (Exact details from schemes page) ── */}
-          {activeFormTab === 'demographics' && (
-            <div className="space-y-6">
-              <div className="mb-4">
+          <div className="space-y-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
                 <h3 className="font-condensed text-lg font-bold text-zinc-900">
                   {language === 'hi' ? 'सार्वजनिक योजनाओं की पात्रता विवरण' : 'Public Schemes Eligibility Profile'}
                 </h3>
@@ -255,6 +165,13 @@ export default function Dashboard() {
                   These details match your profile against central & state welfare schemes.
                 </p>
               </div>
+              {saveSuccess && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                  <CheckCircle2 size={14} />
+                  Profile updated successfully!
+                </span>
+              )}
+            </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
@@ -263,10 +180,10 @@ export default function Dashboard() {
                     id="fullName"
                     type="text"
                     name="fullName"
-                    value={formData.fullName}
+                    value={formData.fullName || ''}
                     onChange={handleChange}
                     required
-                    placeholder="Ramesh Kumar"
+                    placeholder="e.g. Ramesh Kumar"
                     className={inputCls}
                   />
                 </div>
@@ -277,18 +194,20 @@ export default function Dashboard() {
                     id="age"
                     type="number"
                     name="age"
-                    value={formData.age}
+                    value={formData.age || ''}
                     onChange={handleChange}
                     required
                     min="18"
                     max="110"
+                    placeholder="e.g. 38"
                     className={inputCls}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="gender" className={labelCls}>Gender</label>
-                  <select id="gender" name="gender" value={formData.gender} onChange={handleChange} className={inputCls}>
+                  <select id="gender" name="gender" value={formData.gender || ''} onChange={handleChange} className={inputCls}>
+                    <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Transgender">Transgender</option>
@@ -297,7 +216,8 @@ export default function Dashboard() {
 
                 <div>
                   <label htmlFor="state" className={labelCls}>State</label>
-                  <select id="state" name="state" value={formData.state} onChange={handleChange} className={inputCls}>
+                  <select id="state" name="state" value={formData.state || ''} onChange={handleChange} className={inputCls}>
+                    <option value="">Select State</option>
                     {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
                 </div>
@@ -309,8 +229,9 @@ export default function Dashboard() {
                       id="district"
                       type="text"
                       name="district"
-                      value={formData.district}
+                      value={formData.district || ''}
                       onChange={handleChange}
+                      placeholder="e.g. Azamgarh"
                       className={inputCls}
                     />
                     <button
@@ -327,7 +248,8 @@ export default function Dashboard() {
 
                 <div>
                   <label htmlFor="occupation" className={labelCls}>Primary Occupation</label>
-                  <select id="occupation" name="occupation" value={formData.occupation} onChange={handleChange} className={inputCls}>
+                  <select id="occupation" name="occupation" value={formData.occupation || ''} onChange={handleChange} className={inputCls}>
+                    <option value="">Select Occupation</option>
                     {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
                   </select>
                 </div>
@@ -338,9 +260,10 @@ export default function Dashboard() {
                     id="annualIncome"
                     type="number"
                     name="annualIncome"
-                    value={formData.annualIncome}
+                    value={formData.annualIncome || ''}
                     onChange={handleChange}
                     step="5000"
+                    placeholder="e.g. 120000"
                     className={inputCls}
                   />
                 </div>
@@ -351,16 +274,18 @@ export default function Dashboard() {
                     id="landHoldingAcres"
                     type="number"
                     name="landHoldingAcres"
-                    value={formData.landHoldingAcres}
+                    value={formData.landHoldingAcres || ''}
                     onChange={handleChange}
                     step="0.1"
+                    placeholder="e.g. 1.8"
                     className={inputCls}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="casteCategory" className={labelCls}>Social Category</label>
-                  <select id="casteCategory" name="casteCategory" value={formData.casteCategory} onChange={handleChange} className={inputCls}>
+                  <select id="casteCategory" name="casteCategory" value={formData.casteCategory || ''} onChange={handleChange} className={inputCls}>
+                    <option value="">Select Category</option>
                     <option value="General">General</option>
                     <option value="OBC">OBC</option>
                     <option value="SC">SC</option>
@@ -397,177 +322,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          )}
 
-          {/* ── TAB 2: SOFTWARE ENGINEER & IDENTITY EXTENSIONS ──────────── */}
-          {activeFormTab === 'engineering' && (
-            <div className="space-y-6">
-              <div className="mb-4">
-                <h3 className="font-condensed text-lg font-bold text-zinc-900">
-                  {language === 'hi' ? 'सॉफ्टवेयर इंजीनियर व डिजिटल पहचान सेटिंग्स' : 'Software Engineer & Digital Identity Stack'}
-                </h3>
-                <p className="mt-1 text-xs text-zinc-500">
-                  Extended identity credentials, communication preferences, and developer metadata.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <div>
-                  <label htmlFor="phone" className={labelCls}>Phone Number (WhatsApp)</label>
-                  <div className="relative">
-                    <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      id="phone"
-                      type="text"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+91 98765 43210"
-                      className={`${inputCls} pl-9`}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="secondaryEmail" className={labelCls}>Secondary / Recovery Email</label>
-                  <div className="relative">
-                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      id="secondaryEmail"
-                      type="email"
-                      name="secondaryEmail"
-                      value={formData.secondaryEmail}
-                      onChange={handleChange}
-                      placeholder="dev@example.com"
-                      className={`${inputCls} pl-9`}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="technicalRole" className={labelCls}>Technical Role / Profession</label>
-                  <input
-                    id="technicalRole"
-                    type="text"
-                    name="technicalRole"
-                    value={formData.technicalRole}
-                    onChange={handleChange}
-                    placeholder="Full-Stack Engineer / Agritech Researcher"
-                    className={inputCls}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="githubUrl" className={labelCls}>GitHub Profile URL</label>
-                  <div className="relative">
-                    <Code2 size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      id="githubUrl"
-                      type="text"
-                      name="githubUrl"
-                      value={formData.githubUrl}
-                      onChange={handleChange}
-                      placeholder="https://github.com/username"
-                      className={`${inputCls} pl-9`}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="portfolioUrl" className={labelCls}>Portfolio / Web Link</label>
-                  <div className="relative">
-                    <Globe size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      id="portfolioUrl"
-                      type="text"
-                      name="portfolioUrl"
-                      value={formData.portfolioUrl}
-                      onChange={handleChange}
-                      placeholder="https://myportfolio.dev"
-                      className={`${inputCls} pl-9`}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="cscNodeId" className={labelCls}>CSC Node Affiliation ID</label>
-                  <div className="relative">
-                    <Building2 size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                    <input
-                      id="cscNodeId"
-                      type="text"
-                      name="cscNodeId"
-                      value={formData.cscNodeId}
-                      onChange={handleChange}
-                      placeholder="CSC-AZM-4021"
-                      className={`${inputCls} pl-9`}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="gpsCoordinates" className={labelCls}>Geofence Coordinates</label>
-                  <input
-                    id="gpsCoordinates"
-                    type="text"
-                    name="gpsCoordinates"
-                    value={formData.gpsCoordinates}
-                    onChange={handleChange}
-                    readOnly
-                    className={`${inputCls} bg-zinc-100 text-zinc-500 font-mono text-xs`}
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 rounded-xl border border-black/[0.08] bg-zinc-50 px-4 py-3 sm:col-span-1">
-                  <input
-                    type="checkbox"
-                    id="isKycVerified"
-                    name="isKycVerified"
-                    checked={formData.isKycVerified}
-                    onChange={handleChange}
-                    className="h-4 w-4 rounded border-zinc-300 accent-zinc-900 cursor-pointer"
-                  />
-                  <label htmlFor="isKycVerified" className="cursor-pointer text-xs font-semibold text-zinc-800">
-                    Aadhaar e-KYC Token Active
-                  </label>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-xl border border-black/[0.08] bg-zinc-50 px-4 py-3 sm:col-span-1">
-                  <input
-                    type="checkbox"
-                    id="dbtBankLinked"
-                    name="dbtBankLinked"
-                    checked={formData.dbtBankLinked}
-                    onChange={handleChange}
-                    className="h-4 w-4 rounded border-zinc-300 accent-zinc-900 cursor-pointer"
-                  />
-                  <label htmlFor="dbtBankLinked" className="cursor-pointer text-xs font-semibold text-zinc-800">
-                    Direct Benefit Transfer (DBT) Linked
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── TAB 3: AUDIT LOGS ───────────────────────────────────────── */}
-          {activeFormTab === 'logs' && (
-            <div className="space-y-4">
-              <div className="mb-4">
-                <h3 className="font-condensed text-lg font-bold text-zinc-900">System Activity & Audit Trail</h3>
-                <p className="mt-1 text-xs text-zinc-500">Immutable security event history for your session.</p>
-              </div>
-
-              <div className="rounded-xl border border-black/[0.08] bg-zinc-900 text-zinc-100 p-4 font-mono text-xs overflow-x-auto space-y-3">
-                {auditLogs.map(log => (
-                  <div key={log.id} className="flex items-start gap-3 border-b border-zinc-800 pb-2.5 last:border-0 last:pb-0">
-                    <span className="text-zinc-500 shrink-0">[{log.timestamp}]</span>
-                    <span className="text-emerald-400 font-bold shrink-0">{log.action}:</span>
-                    <span className="text-zinc-300">{log.detail}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Bottom Save Action Bar */}
           <div className="mt-8 flex items-center justify-between border-t border-black/[0.06] pt-6">
