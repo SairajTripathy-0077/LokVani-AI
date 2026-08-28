@@ -165,24 +165,6 @@ export default function Dashboard() {
               : 'Complete your profile details below to unlock personalized scheme matching, priority community intel, and direct benefit tracking.'}
           </p>
         </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={handleExportJSON}
-            className="btn-secondary text-xs"
-            title="Export Profile as JSON"
-          >
-            <Download size={14} />
-            <span>Export JSON</span>
-          </button>
-          <button
-            onClick={handleSave}
-            className="btn-primary text-xs"
-          >
-            <Save size={14} />
-            <span>{saveSuccess ? (language === 'hi' ? 'सहेजा गया ✓' : 'Saved ✓') : (language === 'hi' ? 'विवरण सहेजें' : 'Save Profile')}</span>
-          </button>
-        </div>
       </header>
 
       {/* ── Notice Banner if Profile is Incomplete ───────────── */}
