@@ -8,6 +8,7 @@ import PublicSchemesDashboard from './components/PublicSchemesDashboard';
 import CommunityIntel from './components/CommunityIntel';
 import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
+import { useAuth } from './context/AuthContext';
 
 function MainContent() {
   const { activeTab, userProfile, setActiveTab } = useApp();
