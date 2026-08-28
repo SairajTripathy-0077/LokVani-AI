@@ -104,15 +104,15 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
 
   if (bookingPass) {
     return (
-      <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
-        <CheckCircle size={32} color="#15803d" style={{ margin: '0 auto 8px' }} />
-        <h5 style={{ margin: 0, fontSize: '1rem', color: '#166534', fontWeight: 700 }}>
+      <div style={{ background: 'var(--bg-hover, #f4f4f2)', border: '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
+        <CheckCircle size={28} color="var(--accent-primary, #15803d)" style={{ margin: '0 auto 8px' }} />
+        <h5 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-main)', fontWeight: 700 }}>
           {lang === 'hi' ? 'बुकिंग कन्फर्म हो गई!' : 'Booking Confirmed!'}
         </h5>
-        <div style={{ background: '#ffffff', borderRadius: '6px', padding: '12px', margin: '12px 0', textAlign: 'left', border: '1px solid #dcfce7', fontSize: '0.82rem' }}>
+        <div style={{ background: 'var(--bg-surface, #ffffff)', borderRadius: '6px', padding: '12px', margin: '12px 0', textAlign: 'left', border: '1px solid var(--border-subtle, #e5e7eb)', fontSize: '0.82rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ color: 'var(--text-muted)' }}>{lang === 'hi' ? 'बुकिंग आईडी:' : 'Booking ID:'}</span>
-            <strong style={{ color: '#15803d' }}>{bookingPass.bookingId}</strong>
+            <strong style={{ color: 'var(--accent-primary, #15803d)' }}>{bookingPass.bookingId}</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ color: 'var(--text-muted)' }}>{lang === 'hi' ? 'मात्रा:' : 'Booked Space:'}</span>
@@ -137,19 +137,15 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
             className="btn-primary"
             style={{ 
               fontSize: '0.8rem', 
-              padding: '6px 12px', 
-              background: '#25D366', 
-              borderColor: '#25D366', 
-              color: '#ffffff', 
+              padding: '6px 14px', 
               display: 'inline-flex', 
               alignItems: 'center', 
-              gap: '5px',
-              textDecoration: 'none',
-              borderRadius: '6px'
+              gap: '6px',
+              textDecoration: 'none'
             }}
           >
             <MessageSquare size={13} />
-            <span>{lang === 'hi' ? 'WhatsApp पर सूचना भेजें' : 'Send WhatsApp Alert'}</span>
+            <span>{lang === 'hi' ? 'WhatsApp सूचना' : 'WhatsApp Alert'}</span>
           </a>
 
           <a
@@ -157,12 +153,11 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
             className="btn-secondary"
             style={{ 
               fontSize: '0.8rem', 
-              padding: '6px 12px', 
+              padding: '6px 14px', 
               display: 'inline-flex', 
               alignItems: 'center', 
-              gap: '5px',
-              textDecoration: 'none',
-              borderRadius: '6px'
+              gap: '6px',
+              textDecoration: 'none'
             }}
           >
             <PhoneCall size={13} />
@@ -170,20 +165,22 @@ function BookingForm({ item, itemType, onBook, onClose, lang }) {
           </a>
         </div>
 
-        <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.78rem', padding: '3px 12px', marginTop: '4px' }}>
-          {t('closeBtn', lang)}
-        </button>
-        {onViewBookings && (
-          <button 
-            type="button" 
-            className="btn-primary" 
-            onClick={() => { onClose(); onViewBookings(); }} 
-            style={{ fontSize: '0.78rem', padding: '3px 12px', marginTop: '4px', marginLeft: '6px' }}
-          >
-            <FileCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            {lang === 'hi' ? 'मेरी बुकिंग्स में देखें →' : 'View in My Bookings →'}
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '6px' }}>
+          <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.78rem', padding: '4px 12px' }}>
+            {t('closeBtn', lang)}
           </button>
-        )}
+          {onViewBookings && (
+            <button 
+              type="button" 
+              className="btn-primary" 
+              onClick={() => { onClose(); onViewBookings(); }} 
+              style={{ fontSize: '0.78rem', padding: '4px 12px' }}
+            >
+              <FileCheck size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+              {lang === 'hi' ? 'मेरी बुकिंग्स में देखें →' : 'View in My Bookings →'}
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -372,7 +369,7 @@ function TransportCard({ item, onBook, onViewBookings, userBookings = [], lang }
   return (
     <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: myBooking ? '1.5px solid var(--accent-primary, #15803d)' : '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {myBooking && (
-        <div style={{ background: '#ecfdf5', color: '#047857', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'rgba(72,115,79,0.09)', color: 'var(--accent-primary, #15803d)', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>✓ {lang === 'hi' ? `आपकी बुकिंग: ${myBooking.quantity} टन` : `Your Booking: ${myBooking.quantity} Tonne`}</span>
           <span>{myBooking.bookingId}</span>
         </div>
@@ -436,7 +433,7 @@ function StorageCard({ item, onBook, onViewBookings, userBookings = [], lang }) 
   return (
     <article className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: myBooking ? '1.5px solid var(--accent-primary, #15803d)' : '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {myBooking && (
-        <div style={{ background: '#ecfdf5', color: '#047857', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'rgba(72,115,79,0.09)', color: 'var(--accent-primary, #15803d)', fontSize: '0.74rem', padding: '3px 10px', borderRadius: '6px', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>✓ {lang === 'hi' ? `आपकी बुकिंग: ${myBooking.quantity} बोरे` : `Your Booking: ${myBooking.quantity} Bags`}</span>
           <span>{myBooking.bookingId}</span>
         </div>
@@ -598,14 +595,7 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
         <button role="tab" type="button"
           className={`community-int__pill ${activeTab === 'bookings' ? 'community-int__pill--active' : ''}`}
           onClick={() => setActiveTab('bookings')}
-          style={{ 
-            padding: '8px 18px', 
-            fontSize: '0.85rem', 
-            color: userBookings.length > 0 ? '#15803d' : 'inherit', 
-            fontWeight: userBookings.length > 0 ? 700 : 500,
-            borderColor: userBookings.length > 0 ? '#86efac' : undefined,
-            background: userBookings.length > 0 && activeTab !== 'bookings' ? '#f0fdf4' : undefined
-          }}>
+          style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
           <FileCheck size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
           {lang === 'hi' ? `मेरी बुकिंग्स (${userBookings.length})` : `My Bookings (${userBookings.length})`}
         </button>
@@ -635,7 +625,7 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
             </button>
           </div>
         ) : (
-          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
             {transportList.map(item => (
               <TransportCard 
                 key={item.id} 
@@ -665,7 +655,7 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
             </p>
           </div>
         ) : (
-          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
             {storageList.map(item => (
               <StorageCard 
                 key={item.id} 
@@ -682,11 +672,11 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
 
       {/* User Bookings Tab */}
       {activeTab === 'bookings' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '16px' }}>
           {userBookings.map(b => (
-            <div key={b.bookingId} style={{ background: 'var(--bg-surface, #ffffff)', border: '1px solid var(--accent-primary, #15803d)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div key={b.bookingId} className="community-int__logistics-card" style={{ background: 'var(--bg-surface, #ffffff)', border: '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.74rem', background: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                <span className="community-int__feed-badge" style={{ color: 'var(--accent-primary, #15803d)', background: 'rgba(72,115,79,0.09)', fontSize: '0.74rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
                   {b.bookingId}
                 </span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
@@ -708,15 +698,11 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
                     className="btn-primary"
                     style={{ 
                       fontSize: '0.74rem', 
-                      padding: '4px 8px', 
-                      background: '#25D366', 
-                      borderColor: '#25D366', 
-                      color: '#ffffff', 
+                      padding: '4px 10px', 
                       display: 'inline-flex', 
                       alignItems: 'center', 
                       gap: '4px',
-                      textDecoration: 'none',
-                      borderRadius: '6px'
+                      textDecoration: 'none'
                     }}
                   >
                     <MessageSquare size={12} />
@@ -728,12 +714,11 @@ export default function LogisticsStorage({ transportItems: initialTransport = []
                     className="btn-secondary"
                     style={{ 
                       fontSize: '0.74rem', 
-                      padding: '4px 8px', 
+                      padding: '4px 10px', 
                       display: 'inline-flex', 
                       alignItems: 'center', 
                       gap: '4px',
-                      textDecoration: 'none',
-                      borderRadius: '6px'
+                      textDecoration: 'none'
                     }}
                   >
                     <PhoneCall size={12} />
