@@ -7,12 +7,8 @@ const communityIntelSchema = new mongoose.Schema({
   location: { type: String, required: true },
   reportedBy: { type: String, default: 'Local Farmer' },
   reporterId: { type: String, default: 'anonymous' },
-  trend: { 
-    type: String, 
-    enum: ['up', 'down', 'stable', 'UP', 'DOWN', 'STABLE'], 
-    default: 'stable' 
-  },
-  category: { type: String, default: 'General Commodity' },
+  trend: { type: String, enum: ['up', 'down', 'stable'], default: 'stable' },
+  category: { type: String, default: 'Vegetable' },
   verifiedCount: { type: Number, default: 1 }
 }, {
   timestamps: true

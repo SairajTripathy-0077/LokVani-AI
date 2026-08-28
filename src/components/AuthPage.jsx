@@ -90,7 +90,7 @@ export default function AuthPage() {
               <Mic size={16} strokeWidth={1.25} />
             </span>
 
-            <h1 className="font-heading mt-7 text-3xl font-semibold tracking-[-0.02em] text-zinc-900">
+            <h1 className="mt-7 text-3xl font-semibold tracking-[-0.02em] text-zinc-900">
               Join LokVani<span className="text-zinc-400">.</span>
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-zinc-500">

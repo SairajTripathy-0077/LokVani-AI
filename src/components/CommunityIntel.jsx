@@ -294,7 +294,7 @@ export default function CommunityIntel() {
                   <Globe size={13} aria-hidden="true" />
                   {t('pageEyebrow', lang)}
                 </p>
-                <h2 id="ci-page-heading" className="font-heading" style={{ fontSize: '1.8rem', color: 'var(--text-main)', margin: '4px 0' }}>
+                <h2 id="ci-page-heading" style={{ fontSize: '1.6rem', color: 'var(--text-main)', margin: '4px 0' }}>
                   {t('pageTitle', lang)}
                 </h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '560px', marginTop: '4px', lineHeight: 1.55 }}>

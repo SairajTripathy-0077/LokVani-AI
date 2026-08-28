@@ -20,11 +20,8 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
   const coords = REGIONAL_COORDINATES[city] || REGIONAL_COORDINATES['Azamgarh'];
   
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=Asia%2FKolkata`;
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`Weather API HTTP error: ${response.status}`);
     
     const text = await response.text();
@@ -77,20 +74,32 @@ function getWeatherDescription(code) {
  * Fetch live Mandi market rates from Govt Data API (or fallback to live Agmarknet proxy)
  * @param {string} apiKey - Data.gov.in API Key (Optional)
  */
-export async function fetchLiveMandiPrices() {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-    const response = await fetch('/api/mandi', { signal: controller.signal }).catch(() => null);
-    clearTimeout(timeoutId);
+export async function fetchLiveMandiPrices(apiKey = null) {
+  const defaultDataGovKey = apiKey || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
 
+  try {
+    const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${defaultDataGovKey}&format=json&limit=10`;
+    const response = await fetch(url, { mode: 'cors' }).catch(() => null);
+    
     if (response && response.ok) {
-      const data = await response.json().catch(() => null);
-      if (data && Array.isArray(data.records) && data.records.length > 0) {
-        return data.records;
+      const text = await response.text();
+      let result = {};
+      try { result = JSON.parse(text); } catch (_) {}
+      if (result.records && result.records.length > 0) {
+        return result.records.map((r, idx) => ({
+          id: `live-${idx}-${Date.now()}`,
+          item: r.commodity || 'Vegetable',
+          price: Math.round(Number(r.modal_price) / 100) || 28, // Convert Quintal rate to per kg
+          unit: 'kg',
+          location: `${r.market || 'Local'} Mandi (${r.district || 'UP'})`,
+          reporter: 'Agmarknet Live API',
+          timestamp: 'Just now',
+          verified: true,
+          trend: 'up'
+        }));
       }
     }
-  } catch (_) {
+  } catch (err) {
     // Silently fall back to cached mandi rates
   }
 

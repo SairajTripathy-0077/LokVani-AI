@@ -1,5 +1,4 @@
 import 'dotenv/config';
-// LokVani AI Server - Voice Model Engine Updated
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -14,9 +13,6 @@ import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
 import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
-import { processOrchestratedQuery } from './src/services/aiOrchestrator.js';
-import * as soilModelService from './src/services/soilModelService.js';
-import * as cropModelService from './src/services/cropModelService.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -31,13 +27,7 @@ const PORT = process.env.PORT || 5000;
 // Security Middlewares
 app.use(helmet());
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
-      callback(null, true);
-    } else {
-      callback(null, true);
-    }
-  },
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true
 }));
 
@@ -140,65 +130,31 @@ app.post('/api/query', async (req, res) => {
     }
     const weatherData = await fetchLiveWeatherData(detectedCity);
 
-    // Run AI Orchestrator Pipeline (Intent Router -> Soil/Crop Models -> Weather/Mandi -> RAG -> Gemini Grounding)
+    // Run AI Engine through Rotator (sanitized text, optional dialect)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
     let aiResult = null;
-    let engineSource = 'GEMINI_RAG_PIPELINE';
+    let engineSource = 'GEMINI_AI';
 
-    // 1. Try Live Gemini RAG Pipeline first
     try {
       aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
     } catch (geminiErr) {
-      console.warn('[API /api/query] Gemini RAG pipeline unavailable, using AI Orchestrator:', geminiErr.message);
-
-      // 2. Fallback to AI Orchestrator & Models
-      try {
-        const orchestrated = await processOrchestratedQuery({
-          queryText: safeText,
-          userLocation: user_location || 'Azamgarh, UP'
-        });
-
-        aiResult = {
-          short_answer_hi: orchestrated.answerHi,
-          short_answer_en: orchestrated.answer,
-          detailed_answer_hi: orchestrated.answerHi !== orchestrated.answer ? orchestrated.answerHi : '',
-          detailed_answer_en: orchestrated.answer,
-          confidence: orchestrated.reliability || 'HIGH',
-          follow_up_questions: [
-            'Is crop insurance available for this?',
-            'What is the current Mandi price trend?'
-          ],
-          domain: 'AGRI_ADVISORY',
-          is_high_stakes: orchestrated.requiresTrustReview || false,
-          risk_category: orchestrated.requiresTrustReview ? 'HIGH_STAKES_ADVISORY' : 'NONE',
-          trust_note: orchestrated.trustReason || 'Verified by LokVani AI Orchestrator.',
-          actionable_steps: [
-            'Check verified Mandi commodity rates on LokVani AI',
-            'Confirm dosage with certified Kirana Trust Node operator'
-          ],
-          apiKeyIndexUsed: 0,
-          modelUsed: 'LokVani-AI-Orchestrator'
-        };
-        engineSource = 'AI_ORCHESTRATOR';
-      } catch (orchestratorErr) {
-        console.warn('[API /api/query] AI Orchestrator unavailable, using Local NLP Engine fallback:', orchestratorErr.message);
-        const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
-        aiResult = {
-          short_answer_hi: fallback.shortAnswerHi,
-          short_answer_en: fallback.shortAnswerEn,
-          detailed_answer_hi: fallback.detailedAnswerHi !== fallback.shortAnswerHi ? fallback.detailedAnswerHi : '',
-          detailed_answer_en: fallback.detailedAnswerEn !== fallback.shortAnswerEn ? fallback.detailedAnswerEn : '',
-          confidence: fallback.confidence || 'LOW',
-          follow_up_questions: fallback.follow_up_questions || [],
-          domain: fallback.domain || 'AGRI_ADVISORY',
-          is_high_stakes: fallback.isHighStakes || false,
-          risk_category: fallback.riskCategory || 'NONE',
-          trust_note: fallback.trustNote || '',
-          actionable_steps: fallback.actionableSteps || [],
-          apiKeyIndexUsed: -1
-        };
-        engineSource = 'LOCAL_NLP_FALLBACK';
-      }
+      console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
+      const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
+      aiResult = {
+        short_answer_hi: fallback.shortAnswerHi,
+        short_answer_en: fallback.shortAnswerEn,
+        detailed_answer_hi: fallback.detailedAnswerHi,
+        detailed_answer_en: fallback.detailedAnswerEn,
+        confidence: fallback.confidence || 'LOW',
+        follow_up_questions: fallback.follow_up_questions || [],
+        domain: fallback.domain || 'AGRI_ADVISORY',
+        is_high_stakes: fallback.isHighStakes || false,
+        risk_category: fallback.riskCategory || 'NONE',
+        trust_note: fallback.trustNote || '',
+        actionable_steps: fallback.actionableSteps || [],
+        apiKeyIndexUsed: -1
+      };
+      engineSource = 'LOCAL_NLP_FALLBACK';
     }
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
@@ -209,23 +165,21 @@ app.post('/api/query', async (req, res) => {
       userName: userName || 'Guest User',
       transcribedText: safeText,
       userLocation: sanitizeInput(user_location) || 'Azamgarh, UP',
-      shortAnswerHi: aiResult.short_answer_hi || aiResult.shortAnswerHi || '',
-      shortAnswerEn: aiResult.short_answer_en || aiResult.shortAnswerEn || '',
-      detailedAnswerHi: aiResult.detailed_answer_hi || aiResult.detailedAnswerHi || '',
-      detailedAnswerEn: aiResult.detailed_answer_en || aiResult.detailedAnswerEn || '',
+      shortAnswerHi: aiResult.short_answer_hi,
+      shortAnswerEn: aiResult.short_answer_en,
+      detailedAnswerHi: aiResult.detailed_answer_hi || '',
+      detailedAnswerEn: aiResult.detailed_answer_en || '',
       confidence: aiResult.confidence || 'MEDIUM',
-      followUpQuestions: aiResult.follow_up_questions || aiResult.followUpQuestions || [],
+      followUpQuestions: aiResult.follow_up_questions || [],
       domain: aiResult.domain || 'AGRI_ADVISORY',
-      isHighStakes: aiResult.is_high_stakes ?? aiResult.isHighStakes ?? false,
-      riskCategory: aiResult.risk_category || aiResult.riskCategory || 'NONE',
-      trustNote: aiResult.trust_note || aiResult.trustNote || '',
-      actionableSteps: aiResult.actionable_steps || aiResult.actionableSteps || [],
+      isHighStakes: aiResult.is_high_stakes || false,
+      riskCategory: aiResult.risk_category || 'NONE',
+      trustNote: aiResult.trust_note || '',
+      actionableSteps: aiResult.actionable_steps || [],
       dialect: safeDialect || 'hi',
       status: initialStatus,
       engineSource,
-      apiKeyIndexUsed: aiResult.apiKeyIndexUsed,
-      isCached: aiResult.isCached || false,
-      latencyMs: aiResult.latencyMs || 0,
+      apiKeyIndexUsed: aiResult.apiKeyIndexUsed ?? 0,
       createdAt: new Date()
     };
 
@@ -245,55 +199,6 @@ app.post('/api/query', async (req, res) => {
   } catch (error) {
     console.error('[API /api/query Error]:', error);
     return res.status(500).json({ error: 'Internal server error processing voice query.' });
-  }
-});
-
-// Central AI Orchestrator Endpoint (POST /api/ai/orchestrate)
-app.post('/api/ai/orchestrate', async (req, res) => {
-  try {
-    const { text, queryText, user_location, userLocation, userParams } = req.body;
-    const rawQuery = sanitizeInput(text || queryText || '');
-    const location = sanitizeInput(user_location || userLocation) || 'Azamgarh, UP';
-
-    if (!rawQuery) {
-      return res.status(400).json({ error: 'Query text is required.' });
-    }
-
-    const orchestratedResult = await processOrchestratedQuery({
-      queryText: rawQuery,
-      userLocation: location,
-      userParams: userParams || {}
-    });
-
-    return res.json({
-      success: true,
-      data: orchestratedResult
-    });
-  } catch (error) {
-    console.error('[API /api/ai/orchestrate Error]:', error);
-    return res.status(500).json({ error: 'Internal server error in AI Orchestrator.' });
-  }
-});
-
-// Soil Model Endpoint (POST /api/models/soil/predict)
-app.post('/api/models/soil/predict', (req, res) => {
-  try {
-    const prediction = soilModelService.predict(req.body);
-    return res.json({ success: true, data: prediction });
-  } catch (error) {
-    console.error('[API /api/models/soil/predict Error]:', error);
-    return res.status(500).json({ error: 'Soil Model evaluation error.' });
-  }
-});
-
-// Crop Model Endpoint (POST /api/models/crop/predict)
-app.post('/api/models/crop/predict', (req, res) => {
-  try {
-    const prediction = cropModelService.predict(req.body);
-    return res.json({ success: true, data: prediction });
-  } catch (error) {
-    console.error('[API /api/models/crop/predict Error]:', error);
-    return res.status(500).json({ error: 'Crop Model evaluation error.' });
   }
 });
 
@@ -375,42 +280,6 @@ app.get('/api/intel', async (req, res) => {
   } catch (error) {
     console.error('[API GET /api/intel Error]:', error);
     return res.status(500).json({ error: 'Failed to fetch community intel.' });
-  }
-});
-
-// GET /api/mandi — Proxy data.gov.in Mandi feed to eliminate browser CORS / 403 errors
-app.get('/api/mandi', async (req, res) => {
-  try {
-    const apiKey = process.env.DATA_GOV_API_KEY || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
-    const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${apiKey}&format=json&limit=10`;
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
-
-    const response = await fetch(url, { signal: controller.signal }).catch(() => null);
-    clearTimeout(timer);
-
-    if (response && response.ok) {
-      const data = await response.json().catch(() => null);
-      if (data && data.records && data.records.length > 0) {
-        const records = data.records.map((r, idx) => ({
-          id: `live-${idx}-${Date.now()}`,
-          item: r.commodity || 'Vegetable',
-          price: Math.round(Number(r.modal_price) / 100) || 28,
-          unit: 'kg',
-          location: `${r.market || 'Local'} Mandi (${r.district || 'UP'})`,
-          reporter: 'Agmarknet Live API',
-          timestamp: 'Just now',
-          verified: true,
-          trend: 'up'
-        }));
-        return res.json({ success: true, records });
-      }
-    }
-    return res.json({ success: true, records: [] });
-  } catch (err) {
-    console.warn('[API /api/mandi] Proxy request warning:', err.message);
-    return res.json({ success: true, records: [] });
   }
 });
 

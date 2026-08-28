@@ -6,13 +6,12 @@ import AuthPage from './components/AuthPage';
 import UserVoiceApp from './components/UserVoiceApp';
 import PublicSchemesDashboard from './components/PublicSchemesDashboard';
 import CommunityIntel from './components/CommunityIntel';
-import Dashboard from './components/Dashboard';
 import Footer from './components/Footer';
-import BackgroundElements from './components/BackgroundElements';
+import Dashboard from './components/Dashboard';
 import { useAuth } from './context/AuthContext';
 
 function MainContent() {
-  const { activeTab, userProfile } = useApp();
+  const { activeTab, userProfile, setActiveTab } = useApp();
   const { isSignedIn } = useAuth();
 
   React.useEffect(() => {
@@ -34,7 +33,7 @@ function MainContent() {
   }
 
   return (
-    <main className="relative z-10" style={{ minHeight: 'calc(100vh - 140px)' }}>
+    <main style={{ minHeight: 'calc(100vh - 140px)' }}>
       {activeTab === 'home' && <LandingPage />}
       {activeTab === 'auth' && <AuthPage />}
       {activeTab === 'dashboard' && <Dashboard />}
@@ -48,8 +47,7 @@ function MainContent() {
 export default function App() {
   return (
     <AppProvider>
-      <div className="relative overflow-hidden" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fbfbfa' }}>
-        <BackgroundElements />
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fbfbfa' }}>
         <Header />
         <MainContent />
         <Footer />
