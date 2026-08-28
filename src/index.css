@@ -37,8 +37,8 @@
     --sidebar-ring:          79  70  229;
 
     /* ── LokVani semantic tokens (design system) ── */
-    --font-heading: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, serif;
-    --font-body: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
+    --font-heading: 'Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', sans-serif;
+    --font-body: 'Roboto Condensed', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
     --radius-sm: 12px;
 
     --bg-main:        #fbfbfa;
@@ -90,14 +90,13 @@
 
   body {
     @apply bg-background text-foreground antialiased min-h-screen;
-    font-family: 'Instrument Sans', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
+    font-family: 'Roboto Condensed', 'Noto Sans Devanagari', ui-sans-serif, -apple-system, sans-serif;
     background-color: #fbfbfa;
     letter-spacing: -0.006em;
   }
 
   .font-heading {
-    font-family: 'Fraunces', 'Tiro Devanagari Hindi', Georgia, 'Times New Roman', serif;
-    font-variation-settings: 'opsz' 72, 'SOFT' 40;
+    font-family: 'Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', sans-serif;
   }
 
   .font-condensed {
