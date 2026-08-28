@@ -12,23 +12,10 @@ import {
   PlusCircle,
   X,
   FileCheck,
-  ShieldCheck
+  ShieldCheck,
+  Inbox
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
-
-const DEFAULT_TRANSPORT = [
-  { id: 'tr_001', operator: 'Manoj Transport Co.', route_hi: 'आज़मगढ़ → लखनऊ मंडी', route_en: 'Azamgarh → Lucknow Mandi', departureDate: '2026-08-30', departureTime: '6:00 AM', totalCapacity: 12, availableSpace: 4, ratePerQtl: 280, vehicleType: '12T Tata LPT', contact: '+91 98391 24421', status: 'AVAILABLE' },
-  { id: 'tr_002', operator: 'Singh Freight Lines', route_hi: 'मऊ → वाराणसी APMC', route_en: 'Mau → Varanasi APMC', departureDate: '2026-08-29', departureTime: '5:30 AM', totalCapacity: 8, availableSpace: 1.5, ratePerQtl: 190, vehicleType: '8T Mini Truck', contact: '+91 94152 87712', status: 'FILLING' },
-  { id: 'tr_003', operator: 'Azamgarh Agri Movers', route_hi: 'आज़मगढ़ → दिल्ली (आज़ादपुर)', route_en: 'Azamgarh → Delhi (Azadpur)', departureDate: '2026-09-01', departureTime: '10:00 PM', totalCapacity: 20, availableSpace: 12, ratePerQtl: 420, vehicleType: '20T Refrigerated', contact: '+91 91250 10093', status: 'AVAILABLE' },
-  { id: 'tr_004', operator: 'Purwanchal Goods Carrier', route_hi: 'गोरखपुर → पटना मंडी', route_en: 'Gorakhpur → Patna Mandi', departureDate: '2026-08-31', departureTime: '7:00 AM', totalCapacity: 10, availableSpace: 0, ratePerQtl: 310, vehicleType: '10T Ashok Leyland', contact: '+91 99360 45588', status: 'FULL' },
-];
-
-const DEFAULT_STORAGE = [
-  { id: 'st_001', facilityName_hi: 'आज़मगढ़ कोल्ड चेन हब', facilityName_en: 'Azamgarh Cold Chain Hub', operator: 'UP Govt. Agri Storage', type: 'COLD', location: 'Azamgarh, UP', totalCapacity: 5000, availableCapacity: 1200, ratePerBag: 4.5, minDays: 7, contact: '+91 94501 22210', status: 'AVAILABLE' },
-  { id: 'st_002', facilityName_hi: 'मऊ अनाज गोदाम', facilityName_en: 'Mau Grain Warehouse', operator: 'Sharma & Sons', type: 'DRY', location: 'Mau, UP', totalCapacity: 8000, availableCapacity: 3400, ratePerBag: 2.8, minDays: 14, contact: '+91 98890 36631', status: 'AVAILABLE' },
-  { id: 'st_003', facilityName_hi: 'वाराणसी APMC वेयरहाउस', facilityName_en: 'Varanasi APMC Warehouse', operator: 'APMC Board, Varanasi', type: 'WAREHOUSE', location: 'Varanasi, UP', totalCapacity: 15000, availableCapacity: 200, ratePerBag: 3.2, minDays: 1, contact: '+91 97920 14401', status: 'FILLING' },
-  { id: 'st_004', facilityName_hi: 'गोरखपुर FPO कोल्ड स्टोर', facilityName_en: 'Gorakhpur FPO Cold Store', operator: 'Kisaan Connect Coop', type: 'COLD', location: 'Gorakhpur, UP', totalCapacity: 3000, availableCapacity: 0, ratePerBag: 5.0, minDays: 7, contact: '+91 99180 89900', status: 'FULL' },
-];
 
 const STATUS_KEY_MAP = { AVAILABLE: 'availableStatus', FILLING: 'fillingStatus', FULL: 'fullStatus' };
 const STATUS_COLOR   = { AVAILABLE: { color: 'var(--accent-primary, #15803d)', bg: 'rgba(72,115,79,0.09)' }, FILLING: { color: 'var(--text-main, #18181b)', bg: 'var(--bg-hover, #f4f4f2)' }, FULL: { color: 'var(--text-dim, #71717a)', bg: 'var(--bg-hover, #f4f4f2)' } };
@@ -419,7 +406,7 @@ function StorageCard({ item, onBook, lang }) {
   );
 }
 
-export default function LogisticsStorage({ transportItems: initialTransport = DEFAULT_TRANSPORT, storageItems: initialStorage = DEFAULT_STORAGE, lang = 'en' }) {
+export default function LogisticsStorage({ transportItems: initialTransport = [], storageItems: initialStorage = [], lang = 'en' }) {
   const [activeTab, setActiveTab] = useState('transport');
   const [transportList, setTransportList] = useState(() => {
     try {
@@ -540,16 +527,53 @@ export default function LogisticsStorage({ transportItems: initialTransport = DE
 
       {/* Transport Tab */}
       {activeTab === 'transport' && (
-        <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {transportList.map(item => <TransportCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
-        </div>
+        transportList.length === 0 ? (
+          <div style={{ background: 'var(--bg-surface, #ffffff)', border: '1px dashed var(--border-muted, #d1d5db)', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
+            <Truck size={40} color="var(--text-dim)" style={{ margin: '0 auto 12px' }} />
+            <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>
+              {lang === 'hi' ? 'इस रूट पर अभी कोई साझा वाहन उपलब्ध नहीं है' : 'No Shared Transport Vehicles Listed Yet'}
+            </h4>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '6px auto 16px', maxWidth: '420px' }}>
+              {lang === 'hi'
+                ? 'क्या आप मंडी जा रहे हैं? अपने खाली ट्रक या ट्रैक्टर ट्रॉली की जगह साझा करें और भाड़ा कमाएं।'
+                : 'Traveling to the APMC Mandi? List your empty truck or tractor trolley space to share freight costs.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsVehicleModalOpen(true)}
+              className="btn-primary"
+              style={{ fontSize: '0.86rem', padding: '8px 18px' }}
+            >
+              <PlusCircle size={15} />
+              <span>{lang === 'hi' ? 'वाहन सूची में जोड़ें' : 'List Transport Vehicle'}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+            {transportList.map(item => <TransportCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
+          </div>
+        )
       )}
 
       {/* Storage Tab */}
       {activeTab === 'storage' && (
-        <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {storageList.map(item => <StorageCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
-        </div>
+        storageList.length === 0 ? (
+          <div style={{ background: 'var(--bg-surface, #ffffff)', border: '1px dashed var(--border-muted, #d1d5db)', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
+            <Warehouse size={40} color="var(--text-dim)" style={{ margin: '0 auto 12px' }} />
+            <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>
+              {lang === 'hi' ? 'अभी कोई गोदाम या कोल्ड स्टोर सूचीबद्ध नहीं है' : 'No Warehouses or Cold Storage Listed Yet'}
+            </h4>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '6px auto 16px', maxWidth: '420px' }}>
+              {lang === 'hi'
+                ? 'स्थानीय वेयरहाउस, गोदाम या कोल्ड स्टोरेज के संचालक अपनी उपलब्ध क्षमता को यहां साझा कर सकते हैं।'
+                : 'Local storage facilities and warehouse operators can list their available capacity here for nearby farmers.'}
+            </p>
+          </div>
+        ) : (
+          <div className="community-int__logistics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+            {storageList.map(item => <StorageCard key={item.id} item={item} onBook={handleBookPass} lang={lang} />)}
+          </div>
+        )
       )}
 
       {/* User Bookings Tab */}

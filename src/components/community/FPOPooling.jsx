@@ -10,84 +10,10 @@ import {
   Filter, 
   Award,
   Layers,
-  Sparkles
+  Sparkles,
+  Inbox
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
-
-const DEFAULT_POOLS = [
-  {
-    id: 'pool_001',
-    commodity_hi: 'टमाटर',
-    commodity_en: 'Tamatar (Tomato)',
-    category_hi: 'सब्ज़ी',
-    category_en: 'Vegetable',
-    targetQtl: 100,
-    filledQtl: 67,
-    buyerName: 'FreshKart Foods Pvt. Ltd.',
-    buyerLocation: 'Lucknow',
-    offerPrice: 2400,
-    deadline: '2026-09-02',
-    qualityRequired: 'Grade A',
-    status: 'OPEN',
-    coordinatorName_hi: 'किराना नोड — आज़मगढ़',
-    coordinatorName_en: 'Kirana Node — Azamgarh',
-    participants: 8,
-  },
-  {
-    id: 'pool_002',
-    commodity_hi: 'गेहूं (Sharbati)',
-    commodity_en: 'Gehun (Wheat)',
-    category_hi: 'अनाज',
-    category_en: 'Grain',
-    targetQtl: 500,
-    filledQtl: 490,
-    buyerName: 'Azamgarh APMC Warehouse',
-    buyerLocation: 'Azamgarh',
-    offerPrice: 2310,
-    deadline: '2026-08-31',
-    qualityRequired: 'Grade A / B',
-    status: 'FILLING',
-    coordinatorName_hi: 'किराना नोड — आज़मगढ़',
-    coordinatorName_en: 'Kirana Node — Azamgarh',
-    participants: 22,
-  },
-  {
-    id: 'pool_003',
-    commodity_hi: 'अरहर दाल',
-    commodity_en: 'Arhar Dal (Tur)',
-    category_hi: 'दाल',
-    category_en: 'Pulse',
-    targetQtl: 200,
-    filledQtl: 30,
-    buyerName: 'Kisaan Connect Cooperative',
-    buyerLocation: 'Varanasi',
-    offerPrice: 7600,
-    deadline: '2026-09-08',
-    qualityRequired: 'Grade A',
-    status: 'OPEN',
-    coordinatorName_hi: 'किराना नोड — मऊ',
-    coordinatorName_en: 'Kirana Node — Mau',
-    participants: 4,
-  },
-  {
-    id: 'pool_004',
-    commodity_hi: 'सरसों',
-    commodity_en: 'Sarson (Mustard)',
-    category_hi: 'तिलहन',
-    category_en: 'Oilseed',
-    targetQtl: 150,
-    filledQtl: 150,
-    buyerName: 'Agro-Nutrient Foods',
-    buyerLocation: 'Allahabad',
-    offerPrice: 5650,
-    deadline: '2026-08-30',
-    qualityRequired: 'Grade A',
-    status: 'CLOSED',
-    coordinatorName_hi: 'किराना नोड — इलाहाबाद',
-    coordinatorName_en: 'Kirana Node — Allahabad',
-    participants: 14,
-  },
-];
 
 const STATUS_KEY_MAP = {
   OPEN:    'poolStatusOpen',
@@ -429,7 +355,7 @@ function PoolCard({ pool, onJoin, isJoined, userQuantity, lang }) {
   );
 }
 
-export default function FPOPooling({ pools: initialPools = DEFAULT_POOLS, lang = 'en' }) {
+export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   const [poolList, setPoolList] = useState(() => {
     try {
       const saved = localStorage.getItem('lokvani_fpo_pools');
@@ -531,18 +457,41 @@ export default function FPOPooling({ pools: initialPools = DEFAULT_POOLS, lang =
         ))}
       </div>
 
-      <div className="community-int__pool-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-        {filteredPools.map(pool => (
-          <PoolCard 
-            key={pool.id} 
-            pool={pool} 
-            onJoin={handleJoin} 
-            isJoined={Boolean(joinedPools[pool.id])}
-            userQuantity={joinedPools[pool.id] || 0}
-            lang={lang} 
-          />
-        ))}
-      </div>
+      {filteredPools.length === 0 ? (
+        <div style={{ background: 'var(--bg-surface, #ffffff)', border: '1px dashed var(--border-muted, #d1d5db)', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
+          <Inbox size={40} color="var(--text-dim)" style={{ margin: '0 auto 12px' }} />
+          <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>
+            {lang === 'hi' ? 'इस श्रेणी में अभी कोई सक्रिय फसल समूह नहीं है' : 'No Active Selling Pools in this Category'}
+          </h4>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '6px auto 16px', maxWidth: '420px' }}>
+            {lang === 'hi'
+              ? 'फसलों का सामूहिक एकत्रीकरण करके मंडी व्यापारियों से बेहतर थोक भाव प्राप्त करने के लिए पहला समूह बनाएं।'
+              : 'Start the first crop aggregation pool in your district to negotiate higher bulk prices directly with mandi buyers.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="btn-primary"
+            style={{ fontSize: '0.86rem', padding: '8px 18px' }}
+          >
+            <PlusCircle size={15} />
+            <span>{lang === 'hi' ? 'पहला समूह शुरू करें' : 'Create First Pool'}</span>
+          </button>
+        </div>
+      ) : (
+        <div className="community-int__pool-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          {filteredPools.map(pool => (
+            <PoolCard 
+              key={pool.id} 
+              pool={pool} 
+              onJoin={handleJoin} 
+              isJoined={Boolean(joinedPools[pool.id])}
+              userQuantity={joinedPools[pool.id] || 0}
+              lang={lang} 
+            />
+          ))}
+        </div>
+      )}
 
       <CreatePoolModal 
         isOpen={isModalOpen} 

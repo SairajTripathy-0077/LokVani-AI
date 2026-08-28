@@ -12,58 +12,11 @@ import {
   X,
   CheckCircle,
   FileText,
-  BadgeCheck
+  BadgeCheck,
+  PlusCircle,
+  Inbox
 } from 'lucide-react';
 import { t, tArr } from './communityTranslations.js';
-
-const DEFAULT_TRUST_PROFILES = [
-  {
-    id: 'trust_001',
-    name: 'FreshKart Foods Pvt. Ltd.',
-    type_hi: 'खरीदार (Buyer)',
-    type_en: 'Buyer',
-    avgRating: 4.7,
-    totalReviews: 38,
-    credibility: 'TRUSTED',
-    paymentReliability: '98%',
-    avgPaymentDays: 3,
-    reviews: [
-      { id: 'r1', reviewer: 'रमेश कुमार (आजमगढ़)', rating: 5, comment_hi: 'समय पर सीधे बैंक में पैसे मिले, अच्छा व्यवहार। फिर बेचूंगा।', comment_en: 'Paid on time directly to bank account. Will sell again.', date_hi: '3 दिन पहले', date_en: '3 days ago' },
-      { id: 'r2', reviewer: 'Anita Devi (Mau)', rating: 4, comment_hi: 'थोड़ी देर से पैसे मिले लेकिन किराना नोड से संपर्क के बाद 24 घंटे में भुगतान हो गया।', comment_en: 'Slightly delayed payment but resolved within 24h after Kirana Node contact.', date_hi: '1 हफ्ते पहले', date_en: '1 week ago' },
-      { id: 'r3', reviewer: 'सुरेश पटेल (वाराणसी)', rating: 5, comment_hi: 'इस सीजन टमाटर का सबसे अच्छा भाव ₹2400 मिला। तौल भी डिजिटल और पारदर्शी था।', comment_en: 'Best price for tomatoes this season (₹2400). Digital weighing was 100% transparent.', date_hi: '2 हफ्ते पहले', date_en: '2 weeks ago' },
-    ],
-  },
-  {
-    id: 'trust_002',
-    name: 'Manoj Transport Co.',
-    type_hi: 'ट्रांसपोर्टर (Transporter)',
-    type_en: 'Transporter',
-    avgRating: 4.2,
-    totalReviews: 21,
-    credibility: 'TRUSTED',
-    paymentReliability: '90%',
-    avgPaymentDays: null,
-    reviews: [
-      { id: 'r4', reviewer: 'रवि सिंह (आजमगढ़)', rating: 4, comment_hi: 'ट्रक समय पर आया। माल सुरक्षित लखनऊ मंडी पहुंचाया।', comment_en: 'Truck arrived on time. Safely delivered produce to Lucknow Mandi.', date_hi: '5 दिन पहले', date_en: '5 days ago' },
-      { id: 'r5', reviewer: 'Priya Devi (Gorakhpur)', rating: 5, comment_hi: 'किराया उचित था और ड्राइवर ने लोड करने में मदद की।', comment_en: 'Fair freight charges and driver helped with loading bags.', date_hi: '2 हफ्ते पहले', date_en: '2 weeks ago' },
-    ],
-  },
-  {
-    id: 'trust_003',
-    name: 'GrainMart Direct',
-    type_hi: 'खरीदार (Buyer)',
-    type_en: 'Buyer',
-    avgRating: 3.1,
-    totalReviews: 9,
-    credibility: 'CAUTIOUS',
-    paymentReliability: '72%',
-    avgPaymentDays: 12,
-    reviews: [
-      { id: 'r6', reviewer: 'मोहन लाल (इलाहाबाद)', rating: 2, comment_hi: 'भुगतान में 2 हफ्ते की देरी हुई। कई बार फॉलो-अप करना पड़ा।', comment_en: 'Payment delayed by 2 weeks. Had to follow up multiple times.', date_hi: '1 महीने पहले', date_en: '1 month ago' },
-      { id: 'r7', reviewer: 'सीमा देवी (मऊ)', rating: 4, comment_hi: 'भाव ठीक था। पैसे अंततः प्राप्त हुए।', comment_en: 'Offer price was fair. Payment eventually came.', date_hi: '3 हफ्ते पहले', date_en: '3 weeks ago' },
-    ],
-  },
-];
 
 const CREDIBILITY_CONFIG = {
   TRUSTED:  { icon: <ShieldCheck size={14} aria-hidden="true" />, labelKey: 'trusted',  color: 'var(--accent-primary, #15803d)', bg: 'rgba(72,115,79,0.09)' },
@@ -368,7 +321,112 @@ function TrustProfileCard({ profile, onAddReview, onGrievanceFiled, lang }) {
   );
 }
 
-export default function TrustSystem({ profiles: initialProfiles = DEFAULT_TRUST_PROFILES, lang = 'en' }) {
+function CreateReviewAnyModal({ isOpen, onClose, onAddReview, lang }) {
+  const [buyerName, setBuyerName] = useState('');
+  const [entityType, setEntityType] = useState('Buyer');
+  const [rating, setRating] = useState(5);
+  const [reviewer, setReviewer] = useState('');
+  const [crop, setCrop] = useState('');
+  const [comment, setComment] = useState('');
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!buyerName.trim()) { setError(lang === 'hi' ? 'कृपया खरीदार/कंपनी का नाम दर्ज करें।' : 'Please enter buyer/company name.'); return; }
+    if (!reviewer.trim()) { setError(lang === 'hi' ? 'कृपया अपना नाम दर्ज करें।' : 'Please enter your name.'); return; }
+    if (!comment.trim() || comment.trim().length < 10) { setError(lang === 'hi' ? 'कृपया कम से कम 10 अक्षरों की समीक्षा लिखें।' : 'Please write at least 10 characters.'); return; }
+
+    const profileId = `trust_${Date.now()}`;
+    const newProfile = {
+      id: profileId,
+      name: buyerName.trim(),
+      type_hi: entityType === 'Buyer' ? 'खरीदार (Buyer)' : 'ट्रांसपोर्टर (Transporter)',
+      type_en: entityType,
+      avgRating: rating,
+      totalReviews: 1,
+      credibility: rating >= 4 ? 'TRUSTED' : (rating >= 3 ? 'CAUTIOUS' : 'NEW'),
+      paymentReliability: rating >= 4 ? '95%' : '75%',
+      avgPaymentDays: entityType === 'Buyer' ? (rating >= 4 ? 3 : 10) : null,
+      reviews: [
+        {
+          id: `rev_${Date.now()}`,
+          reviewer: `${reviewer.trim()}${crop ? ` (${crop.trim()})` : ''}`,
+          rating,
+          comment_hi: comment.trim(),
+          comment_en: comment.trim(),
+          date_hi: 'अभी-अभी',
+          date_en: 'Just now',
+        }
+      ],
+    };
+
+    onAddReview(newProfile);
+    onClose();
+  }
+
+  return (
+    <div className="community-int__modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+      <div className="community-int__modal" style={{ background: 'var(--bg-surface, #ffffff)', borderRadius: '12px', padding: '24px', maxWidth: '480px', width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-main)' }}>
+            ⭐ {lang === 'hi' ? 'खरीदार या ट्रांसपोर्टर की समीक्षा जोड़ें' : 'Write Buyer / Transporter Review'}
+          </h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'खरीदार/संस्था का नाम *' : 'Entity Name *'}</label>
+              <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. FreshKart / APMC' : 'e.g. FreshKart / APMC'} value={buyerName} onChange={e => setBuyerName(e.target.value)} required />
+            </div>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'प्रकार *' : 'Type *'}</label>
+              <select className="community-int__select" value={entityType} onChange={e => setEntityType(e.target.value)}>
+                <option value="Buyer">{lang === 'hi' ? 'खरीदार (Buyer)' : 'Buyer'}</option>
+                <option value="Transporter">{lang === 'hi' ? 'ट्रांसपोर्टर (Transporter)' : 'Transporter'}</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '14px', textAlign: 'center', background: 'var(--bg-hover, #f9fafb)', padding: '10px', borderRadius: '8px' }}>
+            <label className="community-int__label" style={{ display: 'block', marginBottom: '6px' }}>{lang === 'hi' ? 'रेटिंग चुनें:' : 'Select Rating:'}</label>
+            <StarRating value={rating} size={24} interactive onSelect={setRating} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'आपका नाम *' : 'Your Name *'}</label>
+              <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. रमेश सिंह' : 'e.g. Ramesh Singh'} value={reviewer} onChange={e => setReviewer(e.target.value)} required />
+            </div>
+            <div>
+              <label className="community-int__label">{lang === 'hi' ? 'बेची गई फसल' : 'Crop Traded'}</label>
+              <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. टमाटर / गेहूं' : 'e.g. Tomato / Wheat'} value={crop} onChange={e => setCrop(e.target.value)} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '14px' }}>
+            <label className="community-int__label">{lang === 'hi' ? 'अनुभव / समीक्षा *' : 'Feedback / Review *'}</label>
+            <textarea className="community-int__input" style={{ minHeight: '75px' }} placeholder={lang === 'hi' ? 'भुगतान की गति, व्यवहार और तौल की सटीकता...' : 'Payment timeliness, behavior, weighing accuracy...'} value={comment} onChange={e => setComment(e.target.value)} required />
+          </div>
+
+          {error && <p className="community-int__field-error" style={{ marginBottom: '10px' }}>{error}</p>}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="button" className="btn-secondary" onClick={onClose}>{lang === 'hi' ? 'रद्द करें' : 'Cancel'}</button>
+            <button type="submit" className="btn-primary">
+              <CheckCircle size={14} /> {lang === 'hi' ? 'समीक्षा प्रकाशित करें' : 'Publish Review'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function TrustSystem({ profiles: initialProfiles = [], lang = 'en' }) {
   const [profileList, setProfileList] = useState(() => {
     try {
       const saved = localStorage.getItem('lokvani_trust_profiles');
@@ -384,6 +442,7 @@ export default function TrustSystem({ profiles: initialProfiles = DEFAULT_TRUST_
   });
 
   const [showTicketsTab, setShowTicketsTab] = useState(false);
+  const [isReviewAnyOpen, setIsReviewAnyOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('lokvani_trust_profiles', JSON.stringify(profileList));
@@ -407,6 +466,10 @@ export default function TrustSystem({ profiles: initialProfiles = DEFAULT_TRUST_
     }));
   }
 
+  function handleAddNewProfile(newProfile) {
+    setProfileList(prev => [newProfile, ...prev]);
+  }
+
   function handleGrievanceFiled(ticket) {
     setGrievanceTickets(prev => [ticket, ...prev]);
   }
@@ -424,17 +487,29 @@ export default function TrustSystem({ profiles: initialProfiles = DEFAULT_TRUST_
           </p>
         </div>
 
-        {grievanceTickets.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
-            onClick={() => setShowTicketsTab(!showTicketsTab)}
-            className="community-int__pill"
-            style={{ fontSize: '0.82rem', padding: '6px 14px', color: '#dc2626', borderColor: '#fca5a5' }}
+            onClick={() => setIsReviewAnyOpen(true)}
+            className="btn-primary"
+            style={{ fontSize: '0.85rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
           >
-            <Flag size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
-            {lang === 'hi' ? `मेरी दर्ज शिकायतें (${grievanceTickets.length})` : `My Grievances (${grievanceTickets.length})`}
+            <MessageSquarePlus size={15} />
+            <span>{lang === 'hi' ? 'समीक्षा जोड़ें' : 'Add Review'}</span>
           </button>
-        )}
+
+          {grievanceTickets.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowTicketsTab(!showTicketsTab)}
+              className="community-int__pill"
+              style={{ fontSize: '0.82rem', padding: '6px 14px', color: '#dc2626', borderColor: '#fca5a5' }}
+            >
+              <Flag size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
+              {lang === 'hi' ? `मेरी शिकायतें (${grievanceTickets.length})` : `My Grievances (${grievanceTickets.length})`}
+            </button>
+          )}
+        </div>
       </div>
 
       {showTicketsTab && grievanceTickets.length > 0 && (
@@ -462,17 +537,47 @@ export default function TrustSystem({ profiles: initialProfiles = DEFAULT_TRUST_
         </div>
       )}
 
-      <div className="community-int__trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-        {profileList.map(p => (
-          <TrustProfileCard 
-            key={p.id} 
-            profile={p} 
-            onAddReview={handleAddReview}
-            onGrievanceFiled={handleGrievanceFiled}
-            lang={lang} 
-          />
-        ))}
-      </div>
+      {profileList.length === 0 ? (
+        <div style={{ background: 'var(--bg-surface, #ffffff)', border: '1px dashed var(--border-muted, #d1d5db)', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
+          <ShieldCheck size={40} color="var(--text-dim)" style={{ margin: '0 auto 12px' }} />
+          <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-main)' }}>
+            {lang === 'hi' ? 'अभी कोई खरीदार समीक्षा दर्ज नहीं है' : 'No Buyer Trust Reviews Recorded Yet'}
+          </h4>
+          <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '6px auto 16px', maxWidth: '440px' }}>
+            {lang === 'hi'
+              ? 'मंडी व्यापारियों और खरीदारों के साथ अपने अनुभव साझा करें ताकि साथी किसान सुरक्षित व पारदर्शी व्यापार कर सकें।'
+              : 'Share your transaction experience with APMC buyers and transporters to help fellow farmers trade securely.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsReviewAnyOpen(true)}
+            className="btn-primary"
+            style={{ fontSize: '0.86rem', padding: '8px 18px' }}
+          >
+            <MessageSquarePlus size={15} />
+            <span>{lang === 'hi' ? 'पहली समीक्षा दर्ज करें' : 'Write First Review'}</span>
+          </button>
+        </div>
+      ) : (
+        <div className="community-int__trust-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          {profileList.map(p => (
+            <TrustProfileCard 
+              key={p.id} 
+              profile={p} 
+              onAddReview={handleAddReview}
+              onGrievanceFiled={handleGrievanceFiled}
+              lang={lang} 
+            />
+          ))}
+        </div>
+      )}
+
+      <CreateReviewAnyModal
+        isOpen={isReviewAnyOpen}
+        onClose={() => setIsReviewAnyOpen(false)}
+        onAddReview={handleAddNewProfile}
+        lang={lang}
+      />
     </section>
   );
 }
