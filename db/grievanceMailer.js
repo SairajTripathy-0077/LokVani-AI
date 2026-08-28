@@ -12,7 +12,7 @@ const FALLBACK_GRIEVANCE_EMAIL =
 const EMAILJS_ENDPOINT = 'https://api.emailjs.com/api/v1.0/email/send';
 
 export function getGrievanceEmail(schemeGrievanceEmail) {
-  return schemeGrievanceEmail || FALLBACK_GRIEVANCE_EMAIL;
+  return process.env.GRIEVANCE_FALLBACK_EMAIL || schemeGrievanceEmail || FALLBACK_GRIEVANCE_EMAIL;
 }
 
 function buildComplaintBody({
