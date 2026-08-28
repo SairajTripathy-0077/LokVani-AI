@@ -38,10 +38,7 @@ const OCCUPATIONS = [
 const CATEGORIES = ['Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing', 'Women & Child', 'Social Security'];
 
 export default function PublicSchemesDashboard() {
-<<<<<<< HEAD
-  const { language, user, pendingReviewsCount } = useApp();
-=======
-  const { language, userProfile, updateUserProfile } = useApp();
+  const { language, userProfile, updateUserProfile, pendingReviewsCount } = useApp();
   const { user } = useAuth();
   const userId = user?.uid || 'user_demo_1';
 
@@ -51,7 +48,6 @@ export default function PublicSchemesDashboard() {
   const [applyRefNo, setApplyRefNo] = useState('');
   const [applyState, setApplyState] = useState('idle'); // 'idle' | 'saving' | 'done'
   const [applyError, setApplyError] = useState('');
->>>>>>> upstream/main
 
   const [profile, setProfile] = useState({ ...userProfile });
 
@@ -149,40 +145,21 @@ export default function PublicSchemesDashboard() {
             </h3>
           </div>
 
-          <form onSubmit={handleSaveProfile} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <form onSubmit={handleSaveProfile} className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Full Name</label>
-              <input
-                type="text"
-                name="fullName"
-                value={profile.fullName}
-                onChange={handleProfileChange}
-                required
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
-            </div>
-
-<<<<<<< HEAD
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Age (Years)</label>
-              <input
-                type="number"
-                name="age"
-                value={profile.age}
-                onChange={handleProfileChange}
-                required
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
+              <label htmlFor="pf-name" className={labelCls}>Full name</label>
+              <input id="pf-name" type="text" name="fullName" value={profile.fullName || ''} onChange={handleProfileChange} required placeholder="e.g. Ramesh Kumar" className={inputCls} />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Gender</label>
-              <select
-                name="gender"
-                value={profile.gender}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              >
+              <label htmlFor="pf-age" className={labelCls}>Age</label>
+              <input id="pf-age" type="number" name="age" value={profile.age || ''} onChange={handleProfileChange} required placeholder="e.g. 38" className={inputCls} />
+            </div>
+
+            <div>
+              <label htmlFor="pf-gender" className={labelCls}>Gender</label>
+              <select id="pf-gender" name="gender" value={profile.gender || ''} onChange={handleProfileChange} className={inputCls}>
+                <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Transgender">Transgender</option>
@@ -190,150 +167,46 @@ export default function PublicSchemesDashboard() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">State</label>
-              <select
-                name="state"
-                value={profile.state}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              >
+              <label htmlFor="pf-state" className={labelCls}>State</label>
+              <select id="pf-state" name="state" value={profile.state || ''} onChange={handleProfileChange} className={inputCls}>
+                <option value="">Select State</option>
                 {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">District</label>
-              <input
-                type="text"
-                name="district"
-                value={profile.district}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
+              <label htmlFor="pf-district" className={labelCls}>District</label>
+              <input id="pf-district" type="text" name="district" value={profile.district || ''} onChange={handleProfileChange} placeholder="e.g. Azamgarh" className={inputCls} />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Occupation</label>
-              <select
-                name="occupation"
-                value={profile.occupation}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              >
+              <label htmlFor="pf-occ" className={labelCls}>Occupation</label>
+              <select id="pf-occ" name="occupation" value={profile.occupation || ''} onChange={handleProfileChange} className={inputCls}>
+                <option value="">Select Occupation</option>
                 {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Annual Income (₹)</label>
-              <input
-                type="number"
-                name="annualIncome"
-                value={profile.annualIncome}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
+              <label htmlFor="pf-income" className={labelCls}>Annual household income (₹)</label>
+              <input id="pf-income" type="number" name="annualIncome" value={profile.annualIncome || ''} onChange={handleProfileChange} step="5000" placeholder="e.g. 120000" className={inputCls} />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Land Holding (Acres)</label>
-              <input
-                type="number"
-                step="0.1"
-                name="landHoldingAcres"
-                value={profile.landHoldingAcres}
-                onChange={handleProfileChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              />
+              <label htmlFor="pf-land" className={labelCls}>Land holding (acres)</label>
+              <input id="pf-land" type="number" name="landHoldingAcres" value={profile.landHoldingAcres || ''} onChange={handleProfileChange} step="0.1" placeholder="e.g. 1.8" className={inputCls} />
             </div>
 
-            <div className="flex items-center gap-6 pt-6">
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="isBpl"
-                  checked={profile.isBpl}
-                  onChange={handleProfileChange}
-                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                />
-                <span>Holds BPL Card</span>
-              </label>
-
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="isDisability"
-                  checked={profile.isDisability}
-                  onChange={handleProfileChange}
-                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
-                />
-                <span>Specially Abled (Divyang)</span>
-              </label>
+            <div>
+              <label htmlFor="pf-cat" className={labelCls}>Social category</label>
+              <select id="pf-cat" name="casteCategory" value={profile.casteCategory || ''} onChange={handleProfileChange} className={inputCls}>
+                <option value="">Select Category</option>
+                <option value="General">General</option>
+                <option value="OBC">OBC</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+              </select>
             </div>
-=======
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <label htmlFor="pf-name" className={labelCls}>Full name</label>
-                <input id="pf-name" type="text" name="fullName" value={profile.fullName || ''} onChange={handleProfileChange} required placeholder="e.g. Ramesh Kumar" className={inputCls} />
-              </div>
-
-              <div>
-                <label htmlFor="pf-age" className={labelCls}>Age</label>
-                <input id="pf-age" type="number" name="age" value={profile.age || ''} onChange={handleProfileChange} required placeholder="e.g. 38" className={inputCls} />
-              </div>
-
-              <div>
-                <label htmlFor="pf-gender" className={labelCls}>Gender</label>
-                <select id="pf-gender" name="gender" value={profile.gender || ''} onChange={handleProfileChange} className={inputCls}>
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Transgender">Transgender</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="pf-state" className={labelCls}>State</label>
-                <select id="pf-state" name="state" value={profile.state || ''} onChange={handleProfileChange} className={inputCls}>
-                  <option value="">Select State</option>
-                  {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="pf-district" className={labelCls}>District</label>
-                <input id="pf-district" type="text" name="district" value={profile.district || ''} onChange={handleProfileChange} placeholder="e.g. Azamgarh" className={inputCls} />
-              </div>
-
-              <div>
-                <label htmlFor="pf-occ" className={labelCls}>Occupation</label>
-                <select id="pf-occ" name="occupation" value={profile.occupation || ''} onChange={handleProfileChange} className={inputCls}>
-                  <option value="">Select Occupation</option>
-                  {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="pf-income" className={labelCls}>Annual household income (₹)</label>
-                <input id="pf-income" type="number" name="annualIncome" value={profile.annualIncome || ''} onChange={handleProfileChange} step="5000" placeholder="e.g. 120000" className={inputCls} />
-              </div>
-
-              <div>
-                <label htmlFor="pf-land" className={labelCls}>Land holding (acres)</label>
-                <input id="pf-land" type="number" name="landHoldingAcres" value={profile.landHoldingAcres || ''} onChange={handleProfileChange} step="0.1" placeholder="e.g. 1.8" className={inputCls} />
-              </div>
-
-              <div>
-                <label htmlFor="pf-cat" className={labelCls}>Social category</label>
-                <select id="pf-cat" name="casteCategory" value={profile.casteCategory || ''} onChange={handleProfileChange} className={inputCls}>
-                  <option value="">Select Category</option>
-                  <option value="General">General</option>
-                  <option value="OBC">OBC</option>
-                  <option value="SC">SC</option>
-                  <option value="ST">ST</option>
-                </select>
-              </div>
->>>>>>> upstream/main
 
             <div className="sm:col-span-2 lg:col-span-3 flex justify-end gap-3 pt-4 border-t border-slate-100">
               <button

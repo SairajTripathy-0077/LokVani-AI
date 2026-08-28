@@ -95,17 +95,13 @@ function SkeletonCard() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UserVoiceApp() {
-<<<<<<< HEAD
   const {
     language, setActiveTab, dialect, setDialect, isSpeaking, stopSpeaking,
     conversations, activeConvId, activeConversation, createConversation,
     selectConversation, deleteConversation, deleteMessageFromActiveConv, clearAllConversations,
-    renameConversation, addMessageToActiveConv
+    renameConversation, addMessageToActiveConv, userProfile
   } = useApp();
-=======
-  const { language, setActiveTab, dialect, setDialect, userProfile } = useApp();
   const { user } = useAuth();
->>>>>>> upstream/main
 
   const [appState, setAppState]             = useState('IDLE');
   const [transcript, setTranscript]         = useState('');
