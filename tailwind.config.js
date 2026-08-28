@@ -57,9 +57,10 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       fontFamily: {
-        heading: ['Fraunces', 'Tiro Devanagari Hindi', 'Georgia', 'serif'],
-        body:    ['Instrument Sans', 'Noto Sans Devanagari', 'ui-sans-serif', '-apple-system', 'sans-serif'],
+        heading: ['Roboto Condensed', 'Tiro Devanagari Hindi', 'sans-serif'],
+        body:    ['Roboto Condensed', 'Noto Sans Devanagari', 'ui-sans-serif', '-apple-system', 'sans-serif'],
         condensed: ['Roboto Condensed', 'Noto Sans Devanagari', 'Arial Narrow', 'sans-serif'],
+        sans: ['Roboto Condensed', 'Noto Sans Devanagari', 'ui-sans-serif', '-apple-system', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },

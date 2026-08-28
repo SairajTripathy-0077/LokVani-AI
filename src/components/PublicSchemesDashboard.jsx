@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import MyApplications from './MyApplications';
 import {
   matchSchemesForProfile,
   querySchemeWithAi
@@ -52,7 +51,7 @@ const labelCls =
   'block text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-500 mb-2';
 
 export default function PublicSchemesDashboard() {
-  const { language, userProfile, updateUserProfile } = useApp();
+  const { language, userProfile, updateUserProfile, pendingReviewsCount } = useApp();
   const { user } = useAuth();
   const userId = user?.uid || 'user_demo_1';
 
