@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { id: 'home',      label: 'Home',         icon: Home            },
-  { id: 'dashboard', label: 'Dashboard',    icon: LayoutDashboard },
   { id: 'voice',     label: 'Voice AI',     icon: Mic             },
   { id: 'schemes',   label: 'Schemes',      icon: FileText        },
   { id: 'intel',     label: 'Market Intel', icon: Users           },
