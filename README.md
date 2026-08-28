@@ -70,4 +70,4 @@ Over 500 million non-smartphone users and underserved citizens in India are excl
 
 ## 📜 License & Track Info
 
-Built with ❤️ for **AI for Public Good** | OOSC Hackathon.
+Built with ❤️ for **AI for Public Good** 
