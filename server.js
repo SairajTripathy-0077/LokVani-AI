@@ -633,15 +633,6 @@ app.get('/api/pools', async (req, res) => {
     const { state, district, category } = req.query || {};
 
     if (isMongoDBConnected()) {
-      const count = await CropPoolModel.countDocuments();
-      if (count === 0 && memoryCropPools.length > 0) {
-        try {
-          await CropPoolModel.insertMany(memoryCropPools);
-        } catch (seedErr) {
-          console.warn('[CropPool Seed Warning]:', seedErr.message);
-        }
-      }
-
       const filter = {};
       if (category && category !== 'All') {
         filter.$or = [
