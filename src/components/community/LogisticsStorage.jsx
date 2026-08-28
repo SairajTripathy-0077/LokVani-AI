@@ -62,7 +62,7 @@ function CapacityBar({ used, total, label }) {
   );
 }
 
-function BookingForm({ item, itemType, onBook, onClose, lang }) {
+function BookingForm({ item, itemType, onBook, onViewBookings, onClose, lang }) {
   const formId = useId();
   const [qty, setQty] = useState('');
   const [name, setName] = useState('');
@@ -559,13 +559,13 @@ function StorageCard({ item, onBook, onViewBookings, userBookings = [], lang }) 
       </header>
 
       <CapacityBar
-        used={item.totalCapacity - item.availableCapacity}
-        total={item.totalCapacity}
-        label={`${item.availableCapacity.toLocaleString('en-IN')} ${lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}`}
+        used={(item.totalCapacity || 0) - (item.availableCapacity || 0)}
+        total={item.totalCapacity || 1}
+        label={`${(item.availableCapacity || 0).toLocaleString('en-IN')} ${lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}`}
       />
       <div className="community-int__pool-progress__labels" style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-        <span><strong style={{ color: 'var(--accent-primary, #15803d)' }}>{item.availableCapacity.toLocaleString('en-IN')}</strong> {lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}</span>
-        <span>{item.totalCapacity.toLocaleString('en-IN')} {lang === 'hi' ? 'कुल' : 'total'}</span>
+        <span><strong style={{ color: 'var(--accent-primary, #15803d)' }}>{(item.availableCapacity || 0).toLocaleString('en-IN')}</strong> {lang === 'hi' ? 'बोरे उपलब्ध' : 'bags available'}</span>
+        <span>{(item.totalCapacity || 0).toLocaleString('en-IN')} {lang === 'hi' ? 'कुल' : 'total'}</span>
       </div>
 
       <div className="community-int__pool-card__meta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '0.76rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '10px' }}>
