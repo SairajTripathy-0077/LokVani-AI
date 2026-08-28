@@ -30,8 +30,8 @@ export async function fetchLiveNews(state = 'Uttar Pradesh', district = '') {
 
     const fetchPromises = queries.map(async (q) => {
       try {
-        const rssUrl = encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=hi&gl=IN&ceid=IN:hi`);
-        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+        const targetUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=hi&gl=IN&ceid=IN:hi`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(targetUrl)}`;
         const res = await fetch(apiUrl);
         if (!res.ok) return [];
         const data = await res.json();

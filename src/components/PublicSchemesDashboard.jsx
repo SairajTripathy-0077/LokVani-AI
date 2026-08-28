@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import MyApplications from './MyApplications';
 import {
   matchSchemesForProfile,
   querySchemeWithAi
