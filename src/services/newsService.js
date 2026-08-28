@@ -1,138 +1,126 @@
-const GNEWS_KEY = import.meta.env.VITE_GNEWS_API_KEY;
+function cleanHtml(raw) {
+  if (!raw) return '';
+  return raw
+    .replace(/<[^>]*>?/gm, '') // Strip HTML tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-export const DEMO_FEED_ITEMS = [
-  {
-    id: 'feed_001',
-    category: 'PRICE_ALERT',
-    headline_hi: 'आज़मगढ़ मंडी में टमाटर के भाव तेज़ी से बढ़े',
-    headline_en: 'Tamatar prices surging at local Mandi',
-    detail_hi: 'टमाटर का भाव रातों-रात ₹22/kg से ₹38/kg हो गया — MP से आवक कम होने के कारण। 3-4 दिन यही भाव रह सकते हैं।',
-    detail_en: 'Tomato rates jumped from ₹22/kg to ₹38/kg overnight due to reduced arrivals. Expected to hold for 3–4 days.',
-    reporter_hi: 'रमेश कुमार (किसान)',
-    reporter_en: 'Ramesh Kumar (Farmer)',
-    location: 'Local Market',
-    timestamp: new Date(Date.now() - 12 * 60000),
-    confirms: 14,
-    flags: 0,
-    urgent: true,
-  },
-  {
-    id: 'feed_002',
-    category: 'DEMAND_SPIKE',
-    headline_hi: 'FreshKart Foods को तुरंत 80 क्विंटल प्याज चाहिए',
-    headline_en: 'FreshKart Foods seeking 80 quintal Pyaaz urgently',
-    detail_hi: 'FreshKart Foods को शुक्रवार तक ग्रेड A प्याज चाहिए। एकत्रीकरण के लिए किराना नोड ऑपरेटर से संपर्क करें।',
-    detail_en: 'Institutional buyer FreshKart Foods requires 80 quintals of Grade A onion by Friday. Contact Kirana Node for aggregation.',
-    reporter_hi: 'किराना नोड ऑपरेटर',
-    reporter_en: 'Kirana Node Operator',
-    location: 'Buyer Hub',
-    timestamp: new Date(Date.now() - 35 * 60000),
-    confirms: 27,
-    flags: 1,
-    urgent: true,
-  },
-  {
-    id: 'feed_003',
-    category: 'PRICE_DROP',
-    headline_hi: 'आलू के भाव गिर रहे हैं — शुक्रवार से पहले बेच दें',
-    headline_en: 'Aloo (Potato) rates declining — sell before Friday',
-    detail_hi: 'APMC में आलू का भाव इस हफ्ते 18% गिरा — बंपर फसल आने के कारण। बिक्री की खिड़की गुरुवार को बंद हो जाएगी।',
-    detail_en: 'Potato prices fell 18% this week at APMC due to bumper harvest arrivals. Sale window closes by Thursday.',
-    reporter_hi: 'सुरेश पटेल (व्यापारी)',
-    reporter_en: 'Suresh Patel (Vendor)',
-    location: 'Regional APMC',
-    timestamp: new Date(Date.now() - 2 * 3600000),
-    confirms: 9,
-    flags: 0,
-    urgent: false,
-  },
-  {
-    id: 'feed_004',
-    category: 'TRANSPORT',
-    headline_hi: 'साझा ट्रक: स्थानीय से शहर, शनिवार सुबह 6 बजे',
-    headline_en: 'Shared truck available: Local to City, Sat 6 AM',
-    detail_hi: '12 टन क्षमता, 4 टन उपलब्ध। दर: ₹280/क्विंटल। संपर्क: मनोज ट्रांसपोर्ट (किराना नोड के ज़रिए)।',
-    detail_en: '12-tonne capacity, 4 tonnes available. Rate: ₹280/quintal. Contact: Manoj Transport (via Kirana Node).',
-    reporter_hi: 'मनोज ट्रांसपोर्ट कंपनी',
-    reporter_en: 'Manoj Transport Co.',
-    location: 'Local → City',
-    timestamp: new Date(Date.now() - 4 * 3600000),
-    confirms: 6,
-    flags: 0,
-    urgent: false,
-  },
-  {
-    id: 'feed_005',
-    category: 'WARNING',
-    headline_hi: 'फर्जी खरीदार अलर्ट — "AgriPremium Traders" असत्यापित',
-    headline_en: 'Fake buyer alert — "AgriPremium Traders" unverified',
-    detail_hi: 'कई किसानों ने "AgriPremium Traders" द्वारा अग्रिम भुगतान घोटाले की शिकायत की है। पैसे न भेजें। किराना नोड को रिपोर्ट करें।',
-    detail_en: 'Multiple farmers report advance payment scam from "AgriPremium Traders". Do not transfer money. Report to Kirana Node.',
-    reporter_hi: 'ट्रस्ट नोड मॉडरेटर',
-    reporter_en: 'Trust Node Moderator',
-    location: 'Regional Alert',
-    timestamp: new Date(Date.now() - 6 * 3600000),
-    confirms: 43,
-    flags: 0,
-    urgent: true,
-  },
-  {
-    id: 'feed_006',
-    category: 'ANNOUNCEMENT',
-    headline_hi: 'PM-KISAN 18वीं किस्त: e-KYC की अंतिम तारीख 15 सितंबर',
-    headline_en: 'PM-KISAN 18th installment: e-KYC deadline extended to Sept 15',
-    detail_hi: 'सरकार ने PM-KISAN 18वीं किस्त के लिए e-KYC की तारीख बढ़ा दी है। CSC केंद्र या mKisan ऐप पर जाएं।',
-    detail_en: 'The government has extended the e-KYC deadline for PM-KISAN 18th installment. Visit CSC center or use mKisan app.',
-    reporter_hi: 'सरकारी सलाह (AI-सत्यापित)',
-    reporter_en: 'Govt. Advisory (AI-Verified)',
-    location: 'All India',
-    timestamp: new Date(Date.now() - 12 * 3600000),
-    confirms: 89,
-    flags: 2,
-    urgent: false,
-  },
-];
-
+/**
+ * Fetch fresh real-time agriculture news across multiple targeted streams
+ * Aggregates state-level, national mandi rates, government schemes, and crop advisories
+ */
 export async function fetchLiveNews(state = 'Uttar Pradesh', district = '') {
-  if (!GNEWS_KEY) {
-    return DEMO_FEED_ITEMS;
-  }
-
   try {
-    const query = encodeURIComponent(`"agriculture" OR "farming" OR "crop" OR "mandi" OR "kisan"`);
-    // Enforce title matching for stricter relevance
-    const res = await fetch(`https://gnews.io/api/v4/search?q=${query}&lang=hi&country=in&max=10&in=title,description&apikey=${GNEWS_KEY}`);
+    const loc = district || state || 'India';
     
-    if (!res.ok) {
-      throw new Error(`GNews API error: ${res.status}`);
-    }
+    // Multiple targeted queries to maximize variety and quantity of fresh news
+    const queries = [
+      `(कृषि OR किसान OR मंडी OR फसल) ${loc} when:7d`,
+      `(agriculture OR "mandi bhav" OR "crop rate" OR "MSP") India when:7d`,
+      `("PM Kisan" OR "कृषि योजना" OR "खाद सब्सिडी" OR "फसल बीमा" OR eNAM) when:7d`,
+      `("खेती किसानी" OR "कृषि सलाह" OR "मौसम अलर्ट" OR "कृषि समाचार") when:7d`,
+    ];
 
-    const data = await res.json();
-    
-    if (data.articles && data.articles.length > 0) {
-      return data.articles.map((article, index) => {
-        const isUrgent = article.title.includes('अलर्ट') || article.title.includes('चेतावनी');
-        return {
-          id: `news_${index}`,
-          category: isUrgent ? 'WARNING' : 'ANNOUNCEMENT',
-          headline_hi: article.title,
-          headline_en: article.title, // GNews lang=hi usually returns Hindi
-          detail_hi: article.description,
-          detail_en: article.description,
-          reporter_hi: article.source.name,
-          reporter_en: article.source.name,
-          location: `${state}`,
-          timestamp: new Date(article.publishedAt),
-          confirms: Math.floor(Math.random() * 50) + 5,
+    const fetchPromises = queries.map(async (q) => {
+      try {
+        const rssUrl = encodeURIComponent(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=hi&gl=IN&ceid=IN:hi`);
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) return [];
+        const data = await res.json();
+        return (data && data.status === 'ok' && Array.isArray(data.items)) ? data.items : [];
+      } catch (_) {
+        return [];
+      }
+    });
+
+    const results = await Promise.allSettled(fetchPromises);
+    const allItems = [];
+
+    results.forEach(res => {
+      if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+        allItems.push(...res.value);
+      }
+    });
+
+    const now = Date.now();
+    const MAX_AGE_MS = 10 * 24 * 60 * 60 * 1000; // Fresh articles within last 10 days
+    const seenTitles = new Set();
+    const parsedArticles = [];
+
+    for (let i = 0; i < allItems.length; i++) {
+      const article = allItems[i];
+      const rawTitle = cleanHtml(article.title || '');
+      if (!rawTitle || rawTitle.length < 5) continue;
+
+      // Extract headline and publisher
+      const titleParts = rawTitle.split(' - ');
+      let headline = rawTitle;
+      let sourceName = article.author || 'कृषि समाचार';
+
+      if (titleParts.length > 1) {
+        sourceName = titleParts.pop().trim();
+        headline = titleParts.join(' - ').trim();
+      }
+
+      // Deduplicate similar headlines
+      const normalizedKey = headline.slice(0, 40).toLowerCase().replace(/\s+/g, '');
+      if (seenTitles.has(normalizedKey)) continue;
+      seenTitles.add(normalizedKey);
+
+      let cleanDescription = cleanHtml(article.description || article.content || '');
+      if (!cleanDescription || cleanDescription === rawTitle) {
+        cleanDescription = headline;
+      }
+
+      const isUrgent = /अलर्ट|चेतावनी|alert|warning|नुकसान|बारिश|कीट|ओलावृष्टि/i.test(headline);
+
+      // Categorization
+      let category = 'ANNOUNCEMENT';
+      if (isUrgent) category = 'WARNING';
+      else if (/भाव|दाम|रेट|mandi|price|msp|खरीद/i.test(headline)) category = 'PRICE_ALERT';
+      else if (/योजना|subsidy|scheme|pm kisan|किस्त|सब्सिडी|बीमा/i.test(headline)) category = 'ANNOUNCEMENT';
+      else if (/मौसम|rain|weather|मानसून/i.test(headline)) category = 'WARNING';
+      else if (/मांग|बिक्री|निर्यात|demand/i.test(headline)) category = 'DEMAND_SPIKE';
+
+      const articleDate = new Date(article.pubDate || now);
+      const ageMs = now - articleDate.getTime();
+
+      if (ageMs <= MAX_AGE_MS) {
+        parsedArticles.push({
+          id: `news_${i}_${articleDate.getTime()}`,
+          category,
+          headline_hi: headline,
+          headline_en: headline,
+          detail_hi: cleanDescription,
+          detail_en: cleanDescription,
+          reporter_hi: sourceName,
+          reporter_en: sourceName,
+          location: district ? `${district}, ${state}` : `${state}`,
+          timestamp: articleDate,
+          confirms: Math.floor(Math.random() * 35) + 10,
           flags: 0,
           urgent: isUrgent,
-          url: article.url,
-        };
-      });
+          url: article.link || article.guid || '',
+        });
+      }
     }
+
+    // Sort strictly newest first
+    parsedArticles.sort((a, b) => b.timestamp - a.timestamp);
+
+    return parsedArticles.slice(0, 35);
   } catch (err) {
-    console.warn('[newsService] Failed to fetch live news:', err.message);
+    console.warn('[newsService] Multi-stream fetch failed:', err.message);
   }
 
-  return DEMO_FEED_ITEMS;
+  return [];
 }
+

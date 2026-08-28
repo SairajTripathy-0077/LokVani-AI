@@ -13,14 +13,45 @@ const REGIONAL_COORDINATES = {
 };
 
 /**
- * Fetch live weather forecast for Indian agricultural districts from Open-Meteo
- * @param {string} city 
+ * Fetch live weather forecast for any Indian district/city from Open-Meteo
+ * Supports direct (lat, lon) or geocoded lookup for any location
+ * @param {string} city - Location name (e.g., district or city)
+ * @param {number|null} lat - Optional latitude
+ * @param {number|null} lon - Optional longitude
  */
-export async function fetchLiveWeatherData(city = 'Azamgarh') {
-  const coords = REGIONAL_COORDINATES[city] || REGIONAL_COORDINATES['Azamgarh'];
+export async function fetchLiveWeatherData(city = 'Azamgarh', lat = null, lon = null) {
+  let coords = null;
+  
+  if (lat != null && lon != null && !isNaN(Number(lat)) && !isNaN(Number(lon))) {
+    coords = { lat: Number(lat), lon: Number(lon) };
+  } else if (REGIONAL_COORDINATES[city]) {
+    coords = REGIONAL_COORDINATES[city];
+  } else {
+    // Dynamic Geocoding lookup for any Indian district/city
+    try {
+      const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+      const geoRes = await fetch(geoUrl);
+      if (geoRes.ok) {
+        const geoData = await geoRes.json();
+        if (geoData.results && geoData.results.length > 0) {
+          coords = {
+            lat: geoData.results[0].latitude,
+            lon: geoData.results[0].longitude,
+          };
+        }
+      }
+    } catch (geoErr) {
+      console.warn('Geocoding lookup failed:', geoErr.message);
+    }
+  }
+
+  // Fallback to Azamgarh if coordinates couldn't be resolved
+  if (!coords) {
+    coords = REGIONAL_COORDINATES['Azamgarh'];
+  }
   
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=Asia%2FKolkata`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia%2FKolkata`;
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Weather API HTTP error: ${response.status}`);
     
@@ -31,6 +62,19 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
     if (!current) throw new Error('Invalid weather data structure');
     const dailyRain = data.daily?.precipitation_sum?.[0] || 0;
 
+    const dailyForecast = [];
+    if (data.daily && data.daily.time) {
+      for (let i = 0; i < data.daily.time.length; i++) {
+        dailyForecast.push({
+          date: data.daily.time[i],
+          maxTemp: data.daily.temperature_2m_max[i],
+          minTemp: data.daily.temperature_2m_min[i],
+          rain: data.daily.precipitation_sum[i],
+          weatherCode: data.daily.weathercode?.[i] ?? 0,
+        });
+      }
+    }
+
     return {
       city,
       temp: current.temperature,
@@ -38,9 +82,10 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
       weatherCode: current.weathercode,
       precipitation: dailyRain,
       condition: getWeatherDescription(current.weathercode),
+      dailyForecast,
       advisory_hi: dailyRain > 2.0 
-        ? `Agle 24 ghante me ${dailyRain}mm barish ki sambhavna hai. Mandi me fasal ko tarpaulin se dhak kar rakhein.`
-        : `Mausam saaf hai. Tapman ${current.temperature}°C hai. Sinchai aur fasal katai ke liye uttam mausam hai.`,
+        ? `अगले 24 घंटे में ${dailyRain}mm बारिश की संभावना है। मंडी में कटी फसल को तिरपाल से ढक कर रखें।`
+        : `मौसम साफ़ है। तापमान ${current.temperature}°C है। सिंचाई और फसल कटाई के लिए अनुकूल मौसम है।`,
       advisory_en: dailyRain > 2.0 
         ? `Rainfall of ${dailyRain}mm expected in next 24h. Cover harvested crops with tarpaulin.`
         : `Weather is clear. Temperature is ${current.temperature}°C. Suitable for irrigation and harvesting.`
@@ -52,7 +97,8 @@ export async function fetchLiveWeatherData(city = 'Azamgarh') {
       temp: 31,
       precipitation: 0,
       condition: 'Partly Cloudy',
-      advisory_hi: 'Mausam samanya hai. Fasal sinchai ke liye mausam uttam hai.',
+      dailyForecast: [],
+      advisory_hi: 'मौसम सामान्य है। फसल सिंचाई के लिए मौसम उत्तम है।',
       advisory_en: 'Weather is normal. Suitable for crop irrigation.'
     };
   }

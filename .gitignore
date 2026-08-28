@@ -33,3 +33,5 @@ dist-ssr
 .copilot
 skills-lock.json
 
+# Temporary files
+npx_skill_output.txt

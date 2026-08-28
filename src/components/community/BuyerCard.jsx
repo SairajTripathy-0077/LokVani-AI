@@ -44,10 +44,10 @@ export default function BuyerCard({
           <Store size={20} />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <h4 className="community-int__buyer-card__name" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <h4 className="community-int__buyer-card__name" style={{ display: 'flex', alignItems: 'center', gap: '4px', textWrap: 'balance' }}>
             {name}
             <span title={badge} aria-label={badge} style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', marginTop: '2px' }}>
-              <CheckCircle size={15} aria-hidden="true" color="var(--accent-primary)" />
+              <CheckCircle size={15} strokeWidth={2} aria-hidden="true" color="var(--accent-primary)" />
             </span>
           </h4>
           <p className="community-int__buyer-card__location">
@@ -80,7 +80,7 @@ export default function BuyerCard({
       <footer className="community-int__buyer-card__footer">
         {offerPrice ? (
           <p className="community-int__buyer-offer">
-            Offering <strong>₹{Number(offerPrice).toLocaleString('en-IN')}</strong>/{offerUnit}
+            Offering <strong style={{ fontVariantNumeric: 'tabular-nums' }}>₹{Number(offerPrice).toLocaleString('en-IN')}</strong>/{offerUnit}
           </p>
         ) : (
           <p className="community-int__buyer-offer" style={{ color: 'var(--text-dim)' }}>
