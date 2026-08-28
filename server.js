@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { WebSocketServer } from 'ws';
 import { connectDB, isMongoDBConnected } from './db/connection.js';
 import { QueryLog } from './db/models/QueryLog.js';
 import { TrustReview } from './db/models/TrustReview.js';
@@ -676,7 +677,8 @@ app.post('/api/pools', async (req, res) => {
       qualityRequired,
       coordinatorName_hi,
       coordinatorName_en,
-      createdBy
+      createdBy,
+      createdByUserId
     } = req.body || {};
 
     const target = Number(targetQtl);
@@ -715,6 +717,7 @@ app.post('/api/pools', async (req, res) => {
       participants: 1,
       members: [],
       createdBy: sanitizeInput(createdBy) || 'Community Farmer',
+      createdByUserId: sanitizeInput(createdByUserId) || '',
       createdAt: new Date()
     };
 
@@ -727,6 +730,7 @@ app.post('/api/pools', async (req, res) => {
     }
 
     console.log(`[LokVani FPO Pool Created]: ${newPool.commodity_en} (${newPool.targetQtl}Q @ ₹${newPool.offerPrice}/Q)`);
+    broadcastPoolEvent('POOL_CREATED', saved);
 
     return res.status(201).json({
       success: true,
@@ -738,7 +742,109 @@ app.post('/api/pools', async (req, res) => {
   }
 });
 
-// ─── 14. Join / Commit Crop to FPO Pool (POST /api/pools/:poolId/join) ───────
+// ─── 14. Edit / Update Crop Pool (PUT /api/pools/:poolId) ─────────────────────
+app.put('/api/pools/:poolId', async (req, res) => {
+  try {
+    const { poolId } = req.params;
+    const {
+      commodity_hi,
+      commodity_en,
+      category_hi,
+      category_en,
+      targetQtl,
+      buyerName,
+      buyerLocation,
+      offerPrice,
+      deadline,
+      qualityRequired,
+      createdByUserId
+    } = req.body || {};
+
+    const target = Number(targetQtl);
+    const price = Number(offerPrice);
+
+    const updateFields = {};
+    if (commodity_hi) updateFields.commodity_hi = sanitizeInput(commodity_hi);
+    if (commodity_en) updateFields.commodity_en = sanitizeInput(commodity_en);
+    if (category_hi) updateFields.category_hi = sanitizeInput(category_hi);
+    if (category_en) updateFields.category_en = sanitizeInput(category_en);
+    if (target && target > 0) updateFields.targetQtl = target;
+    if (price && price > 0) updateFields.offerPrice = price;
+    if (buyerName) updateFields.buyerName = sanitizeInput(buyerName);
+    if (buyerLocation) updateFields.buyerLocation = sanitizeInput(buyerLocation);
+    if (deadline) updateFields.deadline = sanitizeInput(deadline);
+    if (qualityRequired) updateFields.qualityRequired = sanitizeInput(qualityRequired);
+
+    let updated = null;
+    if (isMongoDBConnected()) {
+      const existing = await CropPoolModel.findOne({ poolId });
+      if (!existing) return res.status(404).json({ error: 'Pool not found.' });
+
+      // Ownership verify check (if pool has a createdByUserId)
+      if (existing.createdByUserId && createdByUserId && existing.createdByUserId !== createdByUserId) {
+        return res.status(403).json({ error: 'Permission denied. Only the pool creator can edit this card.' });
+      }
+
+      Object.assign(existing, updateFields);
+      if (existing.filledQtl >= existing.targetQtl) existing.status = 'CLOSED';
+      else if (existing.filledQtl > 0) existing.status = 'FILLING';
+      else existing.status = 'OPEN';
+
+      await existing.save();
+      updated = existing;
+    } else {
+      const memIndex = memoryCropPools.findIndex(p => p.poolId === poolId || p.id === poolId);
+      if (memIndex === -1) return res.status(404).json({ error: 'Pool not found.' });
+      const mem = memoryCropPools[memIndex];
+      Object.assign(mem, updateFields);
+      if (mem.filledQtl >= mem.targetQtl) mem.status = 'CLOSED';
+      else if (mem.filledQtl > 0) mem.status = 'FILLING';
+      else mem.status = 'OPEN';
+      updated = mem;
+    }
+
+    console.log(`[LokVani FPO Pool Edited]: ${updated.commodity_en} (${poolId})`);
+    broadcastPoolEvent('POOL_EDITED', updated);
+
+    return res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('[API PUT /api/pools/:poolId Error]:', error);
+    return res.status(500).json({ error: 'Failed to update crop pool.' });
+  }
+});
+
+// ─── 15. Delete Crop Pool (DELETE /api/pools/:poolId) ─────────────────────────
+app.delete('/api/pools/:poolId', async (req, res) => {
+  try {
+    const { poolId } = req.params;
+    const creatorId = req.query.creatorId || req.body?.creatorId;
+
+    if (isMongoDBConnected()) {
+      const existing = await CropPoolModel.findOne({ poolId });
+      if (!existing) {
+        return res.status(404).json({ error: 'Pool not found.' });
+      }
+
+      if (existing.createdByUserId && creatorId && existing.createdByUserId !== creatorId) {
+        return res.status(403).json({ error: 'Permission denied. Only the pool creator can delete this card.' });
+      }
+
+      await CropPoolModel.deleteOne({ poolId });
+    }
+
+    memoryCropPools = memoryCropPools.filter(p => p.poolId !== poolId && p.id !== poolId);
+
+    console.log(`[LokVani FPO Pool Deleted]: ${poolId}`);
+    broadcastPoolEvent('POOL_DELETED', { poolId });
+
+    return res.json({ success: true, message: 'Pool deleted successfully.' });
+  } catch (error) {
+    console.error('[API DELETE /api/pools/:poolId Error]:', error);
+    return res.status(500).json({ error: 'Failed to delete crop pool.' });
+  }
+});
+
+// ─── 16. Join / Commit Crop to FPO Pool (POST /api/pools/:poolId/join) ───────
 app.post('/api/pools/:poolId/join', async (req, res) => {
   try {
     const { poolId } = req.params;
@@ -760,6 +866,8 @@ app.post('/api/pools/:poolId/join', async (req, res) => {
       joinedAt: new Date()
     };
 
+    let updatedPool = null;
+
     if (isMongoDBConnected()) {
       const pool = await CropPoolModel.findOne({ poolId });
       if (!pool) return res.status(404).json({ error: 'Pool not found.' });
@@ -772,27 +880,25 @@ app.post('/api/pools/:poolId/join', async (req, res) => {
       pool.status = newStatus;
       pool.members.push(memberEntry);
       await pool.save();
+      updatedPool = pool;
+    } else {
+      const memPool = memoryCropPools.find(p => p.poolId === poolId || p.id === poolId);
+      if (!memPool) {
+        return res.status(404).json({ error: 'Crop pool not found.' });
+      }
 
-      return res.json({
-        success: true,
-        data: pool,
-        message: 'Successfully joined harvest pool!'
-      });
+      memPool.filledQtl = (memPool.filledQtl || 0) + commitQtl;
+      memPool.participants = (memPool.participants || 1) + 1;
+      memPool.status = memPool.filledQtl >= memPool.targetQtl ? 'CLOSED' : 'FILLING';
+      memPool.members = [...(memPool.members || []), memberEntry];
+      updatedPool = memPool;
     }
 
-    const memPool = memoryCropPools.find(p => p.poolId === poolId || p.id === poolId);
-    if (!memPool) {
-      return res.status(404).json({ error: 'Crop pool not found.' });
-    }
-
-    memPool.filledQtl = (memPool.filledQtl || 0) + commitQtl;
-    memPool.participants = (memPool.participants || 1) + 1;
-    memPool.status = memPool.filledQtl >= memPool.targetQtl ? 'CLOSED' : 'FILLING';
-    memPool.members = [...(memPool.members || []), memberEntry];
+    broadcastPoolEvent('POOL_UPDATED', updatedPool);
 
     return res.json({
       success: true,
-      data: memPool,
+      data: updatedPool,
       message: 'Successfully joined harvest pool!'
     });
   } catch (error) {
@@ -801,7 +907,7 @@ app.post('/api/pools/:poolId/join', async (req, res) => {
   }
 });
 
-// Start Express Server
+// Start Express & WebSocket Server
 const server = app.listen(PORT, () => {
   console.log(`===================================================`);
   console.log(`  LokVani AI Backend API listening on port ${PORT}`);
@@ -809,6 +915,46 @@ const server = app.listen(PORT, () => {
   console.log(`  CORS Allowed Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
   console.log(`===================================================`);
 });
+
+// Attach WebSocket Server for real-time live synchronization
+const wss = new WebSocketServer({ server });
+const wsClients = new Set();
+
+wss.on('connection', async (ws) => {
+  wsClients.add(ws);
+  console.log(`[LokVani WebSocket] Connected client. Total subscribers: ${wsClients.size}`);
+
+  // Fetch and send all current registered pools immediately on connection
+  try {
+    let pools = [];
+    if (isMongoDBConnected()) {
+      pools = await CropPoolModel.find().sort({ createdAt: -1 });
+    } else {
+      pools = memoryCropPools;
+    }
+    ws.send(JSON.stringify({ type: 'INIT_POOLS', payload: pools }));
+  } catch (err) {
+    console.warn('[LokVani WebSocket] Error sending initial pool data:', err.message);
+  }
+
+  ws.on('close', () => {
+    wsClients.delete(ws);
+    console.log(`[LokVani WebSocket] Disconnected client. Total subscribers: ${wsClients.size}`);
+  });
+
+  ws.on('error', () => {
+    wsClients.delete(ws);
+  });
+});
+
+function broadcastPoolEvent(type, payload) {
+  const msg = JSON.stringify({ type, payload });
+  for (const client of wsClients) {
+    if (client.readyState === 1 /* OPEN */) {
+      try { client.send(msg); } catch (_) {}
+    }
+  }
+}
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {

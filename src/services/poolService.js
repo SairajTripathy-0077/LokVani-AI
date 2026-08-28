@@ -9,6 +9,22 @@
 const API_BASE = '/api/pools';
 
 /**
+ * Get or create a persistent unique user ID for creator authorization.
+ */
+export function getOrCreateUserId() {
+  try {
+    let id = localStorage.getItem('lokvani_creator_user_id');
+    if (!id) {
+      id = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem('lokvani_creator_user_id', id);
+    }
+    return id;
+  } catch (_) {
+    return 'usr_guest_farmer';
+  }
+}
+
+/**
  * Fetch all active crop selling pools.
  * @param {string} [state]
  * @param {string} [district]
@@ -44,10 +60,16 @@ export async function fetchCropPools(state = '', district = '', category = 'All'
  */
 export async function createCropPool(poolData) {
   try {
+    const userId = getOrCreateUserId();
+    const payload = {
+      ...poolData,
+      createdByUserId: poolData.createdByUserId || userId
+    };
+
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(poolData)
+      body: JSON.stringify(payload)
     });
 
     const json = await res.json();
@@ -57,6 +79,60 @@ export async function createCropPool(poolData) {
     return normalizePool(json.data);
   } catch (err) {
     console.error('[poolService] createCropPool failed:', err.message);
+    throw err;
+  }
+}
+
+/**
+ * Update an existing Crop Pool (Creator only).
+ * @param {string} poolId
+ * @param {Object} updatedData
+ * @returns {Promise<Object>}
+ */
+export async function updateCropPool(poolId, updatedData) {
+  try {
+    const userId = getOrCreateUserId();
+    const payload = {
+      ...updatedData,
+      createdByUserId: updatedData.createdByUserId || userId
+    };
+
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(poolId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to update crop pool');
+    }
+    return normalizePool(json.data);
+  } catch (err) {
+    console.error('[poolService] updateCropPool failed:', err.message);
+    throw err;
+  }
+}
+
+/**
+ * Delete a Crop Pool (Creator only).
+ * @param {string} poolId
+ * @returns {Promise<boolean>}
+ */
+export async function deleteCropPool(poolId) {
+  try {
+    const userId = getOrCreateUserId();
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(poolId)}?creatorId=${encodeURIComponent(userId)}`, {
+      method: 'DELETE'
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Failed to delete crop pool');
+    }
+    return true;
+  } catch (err) {
+    console.error('[poolService] deleteCropPool failed:', err.message);
     throw err;
   }
 }
@@ -86,7 +162,7 @@ export async function joinCropPool(poolId, commitData) {
   }
 }
 
-function normalizePool(p) {
+export function normalizePool(p) {
   if (!p) return null;
   return {
     id: p.poolId || p._id || p.id,
@@ -107,6 +183,8 @@ function normalizePool(p) {
     coordinatorName_en: p.coordinatorName_en || 'Kirana Trust Node (Verified)',
     participants: Number(p.participants) || 1,
     members: Array.isArray(p.members) ? p.members : [],
+    createdBy: p.createdBy || 'Community Farmer',
+    createdByUserId: p.createdByUserId || '',
     createdAt: p.createdAt
   };
 }

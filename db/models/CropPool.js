@@ -26,7 +26,8 @@ const cropPoolSchema = new mongoose.Schema({
     qtl: Number,
     joinedAt: { type: Date, default: Date.now }
   }],
-  createdBy: { type: String, default: 'Community Farmer' }
+  createdBy: { type: String, default: 'Community Farmer' },
+  createdByUserId: { type: String, default: '' }
 }, {
   timestamps: true
 });
