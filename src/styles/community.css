@@ -8,7 +8,7 @@
  * Commit: feat(community): add scoped community.css design tokens and base styles
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap');
 
 /* ─── 1. Module-scoped Design Tokens ──────────────────────────────────────── */
 :root {
@@ -60,6 +60,15 @@
 .community-int__page h5,
 .community-int__page h6 {
   font-family: var(--font-heading);
+}
+
+/* ─── News Section Dedicated Hindi Typography ────────────────────────────── */
+.community-news-card,
+.community-news-card h4,
+.community-news-card p,
+.community-news-card span,
+.community-news-card a {
+  font-family: 'Noto Sans Devanagari', 'Mukta', sans-serif !important;
 }
 
 /* ─── 3. Section Dividers ─────────────────────────────────────────────────── */

@@ -45,14 +45,14 @@ export default function PriceCard({
     <article className="community-int__price-card" aria-label={`${item} ${location}: ${displayPrice}/${unit}`}>
       <div className="community-int__price-card__top">
         <div>
-          <h4 className="community-int__price-card__name">{item}</h4>
+          <h4 className="community-int__price-card__name" style={{ textWrap: 'balance' }}>{item}</h4>
           <p className="community-int__price-card__location">
             <MapPin size={12} color="var(--accent-primary)" aria-hidden="true" />
             {location}
           </p>
         </div>
         <div className="community-int__price-card__price-block">
-          <span className="community-int__price-card__price">{displayPrice}</span>
+          <span className="community-int__price-card__price" style={{ fontVariantNumeric: 'tabular-nums' }}>{displayPrice}</span>
           <span className="community-int__price-card__unit">/{unit}</span>
         </div>
       </div>

@@ -291,6 +291,11 @@
     .animate-pulse, .animate-bounce, .animate-spin { animation-duration: 0s !important; }
     html { scroll-behavior: auto; }
   }
+
+  /* ── Hindi Typography (scoped utility) ──────────────────────── */
+  .font-hindi {
+    font-family: 'Noto Sans Devanagari', 'Mukta', sans-serif;
+  }
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────── */
