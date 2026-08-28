@@ -283,13 +283,13 @@ export default function CommunityIntel() {
       fetchStorage(userLocation.state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
       
       // Fetch news
-      fetchLiveNews(userLocation.state, userLocation.district).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
+      fetchLiveNews(userLocation.state, userLocation.district, lang).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
 
       // Fetch initial live weather for current user location
       const initialLoc = userLocation.district || userLocation.city || 'Your Area';
       handleRegionChange(initialLoc, userLocation.lat, userLocation.lng);
     }
-  }, [fetchIntel, userLocation]);
+  }, [fetchIntel, userLocation, lang]);
 
   /* ── Form Submission ─────────────────────────────────────────────────────── */
   const handleSubmit = useCallback(async (formData) => {
