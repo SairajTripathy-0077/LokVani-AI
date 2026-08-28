@@ -1,4 +1,4 @@
-import React, { useState, useId, useEffect } from 'react';
+import React, { useState, useId, useEffect, useCallback } from 'react';
 import { 
   Users, 
   Package, 
@@ -11,9 +11,11 @@ import {
   Award,
   Layers,
   Sparkles,
-  Inbox
+  Inbox,
+  Radio
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
+import { fetchCropPools, createCropPool, joinCropPool } from '../../services/poolService.js';
 
 const STATUS_KEY_MAP = {
   OPEN:    'poolStatusOpen',
@@ -376,18 +378,45 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
   const [filterCategory, setFilterCategory] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
+  const loadLivePools = useCallback(async () => {
+    try {
+      const remotePools = await fetchCropPools();
+      if (remotePools && remotePools.length > 0) {
+        setPoolList(remotePools);
+        localStorage.setItem('lokvani_fpo_pools', JSON.stringify(remotePools));
+      }
+    } catch (err) {
+      console.warn('[FPOPooling] Live sync error:', err.message);
+    }
+  }, []);
+
+  // Initial fetch and 4-second live synchronization interval
   useEffect(() => {
-    localStorage.setItem('lokvani_fpo_pools', JSON.stringify(poolList));
-  }, [poolList]);
+    loadLivePools();
+
+    const interval = setInterval(() => {
+      loadLivePools();
+    }, 4000);
+
+    const handleFocus = () => loadLivePools();
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [loadLivePools]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_user_joined_pools', JSON.stringify(joinedPools));
   }, [joinedPools]);
 
-  function handleJoin({ poolId, volume }) {
+  async function handleJoin({ poolId, volume, farmerName, phone }) {
+    // 1. Optimistic local update
     setPoolList(prev => prev.map(p => {
-      if (p.id !== poolId) return p;
+      if (p.id !== poolId && p.poolId !== poolId) return p;
       const newFilled = Math.min(p.targetQtl, p.filledQtl + volume);
       return {
         ...p,
@@ -401,10 +430,36 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
       ...prev,
       [poolId]: (prev[poolId] || 0) + volume,
     }));
+
+    // 2. Persist to shared backend so all logged-in farmers get the update
+    try {
+      setIsSyncing(true);
+      await joinCropPool(poolId, { farmerName, phone, qtl: volume });
+      await loadLivePools();
+    } catch (err) {
+      console.error('[FPOPooling] Failed to join pool on server:', err);
+    } finally {
+      setIsSyncing(false);
+    }
   }
 
-  function handleCreatePool(newPool) {
+  async function handleCreatePool(newPool) {
+    // 1. Optimistic local update
     setPoolList(prev => [newPool, ...prev]);
+
+    // 2. Persist to shared backend
+    try {
+      setIsSyncing(true);
+      const saved = await createCropPool(newPool);
+      if (saved) {
+        setPoolList(prev => [saved, ...prev.filter(p => p.id !== newPool.id && p.poolId !== newPool.id)]);
+      }
+      await loadLivePools();
+    } catch (err) {
+      console.error('[FPOPooling] Failed to create pool on server:', err);
+    } finally {
+      setIsSyncing(false);
+    }
   }
 
   const filteredPools = poolList.filter(p => {
@@ -416,10 +471,26 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
     <section className="community-int__section" aria-labelledby="ci-fpo-heading">
       <div className="community-int__section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h3 className="community-int__section-title" id="ci-fpo-heading">
-            <Users size={20} color="var(--accent-primary, #15803d)" aria-hidden="true" />
-            {t('fpoSectionTitle', lang)}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 className="community-int__section-title" id="ci-fpo-heading" style={{ margin: 0 }}>
+              <Users size={20} color="var(--accent-primary, #15803d)" aria-hidden="true" />
+              {t('fpoSectionTitle', lang)}
+            </h3>
+            <span style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '5px', 
+              fontSize: '0.72rem', 
+              padding: '2px 8px', 
+              borderRadius: '12px', 
+              background: 'rgba(72,115,79,0.09)', 
+              color: 'var(--accent-primary, #15803d)', 
+              fontWeight: 700 
+            }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-primary, #15803d)' }} />
+              {lang === 'hi' ? 'लाइव सिंक' : 'Live Sync'}
+            </span>
+          </div>
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
             {t('fpoSectionSub', lang)}
           </p>

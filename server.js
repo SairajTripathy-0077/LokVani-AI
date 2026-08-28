@@ -7,6 +7,7 @@ import { connectDB, isMongoDBConnected } from './db/connection.js';
 import { QueryLog } from './db/models/QueryLog.js';
 import { TrustReview } from './db/models/TrustReview.js';
 import { CommunityIntelModel } from './db/models/CommunityIntel.js';
+import { CropPoolModel } from './db/models/CropPool.js';
 import { SchemeApplication } from './db/models/SchemeApplication.js';
 import { sendGrievanceEmail, generateComplaintId, getGrievanceEmail, loadDiskEnv } from './db/grievanceMailer.js';
 import { processVoiceQuery } from './src/services/geminiService.js';
@@ -72,6 +73,82 @@ let memoryCommunityIntel = [
 
 // In-Memory Fallback for Scheme Applications (if MongoDB is disconnected)
 let memorySchemeApplications = [];
+
+// In-Memory Fallback for FPO Crop Pools (Multi-User Real-Time Pooling)
+let memoryCropPools = [
+  {
+    poolId: 'pool_init_1',
+    commodity_hi: 'टमाटर (देसी संकर)',
+    commodity_en: 'Tomato (Hybrid Desi)',
+    category_hi: 'सब्ज़ी',
+    category_en: 'Vegetable',
+    targetQtl: 150,
+    filledQtl: 85,
+    buyerName: 'Mother Dairy Fresh Bulk Procurement',
+    buyerLocation: 'Azamgarh Mandi Gate 2',
+    state: 'Uttar Pradesh',
+    district: 'Azamgarh',
+    offerPrice: 2850,
+    deadline: '2026-09-05',
+    qualityRequired: 'Grade A Firm Red',
+    status: 'FILLING',
+    coordinatorName_hi: 'आज़मगढ़ किसान उत्पादक संघ (FPO)',
+    coordinatorName_en: 'Azamgarh FPO Consortium (Verified)',
+    participants: 9,
+    members: [
+      { farmerName: 'Ramesh Yadav', phone: '9876543210', village: 'Mubarakpur', qtl: 20, joinedAt: new Date() },
+      { farmerName: 'Shivpal Singh', phone: '9811223344', village: 'Sagri', qtl: 15, joinedAt: new Date() }
+    ],
+    createdBy: 'Azamgarh FPO',
+    createdAt: new Date()
+  },
+  {
+    poolId: 'pool_init_2',
+    commodity_hi: 'गेहूं (शरबती / HD-2967)',
+    commodity_en: 'Wheat (Sharbati HD-2967)',
+    category_hi: 'अनाज',
+    category_en: 'Grain',
+    targetQtl: 500,
+    filledQtl: 340,
+    buyerName: 'ITC Choupal Sagar Export Lot',
+    buyerLocation: 'Varanasi Direct Rail Terminal',
+    state: 'Uttar Pradesh',
+    district: 'Varanasi',
+    offerPrice: 2475,
+    deadline: '2026-09-12',
+    qualityRequired: 'Moisture < 12%, Clean Grain',
+    status: 'FILLING',
+    coordinatorName_hi: 'काशी कृषक विकास समिति',
+    coordinatorName_en: 'Kashi Agro Cooperative',
+    participants: 22,
+    members: [],
+    createdBy: 'Kashi FPO',
+    createdAt: new Date()
+  },
+  {
+    poolId: 'pool_init_3',
+    commodity_hi: 'हरी मिर्च (जी-4 तीखी)',
+    commodity_en: 'Green Chilli (G-4 Spicy)',
+    category_hi: 'सब्ज़ी',
+    category_en: 'Vegetable',
+    targetQtl: 80,
+    filledQtl: 15,
+    buyerName: 'Reliance Fresh Regional Distribution',
+    buyerLocation: 'Gorakhpur Transport Hub',
+    state: 'Uttar Pradesh',
+    district: 'Gorakhpur',
+    offerPrice: 3400,
+    deadline: '2026-09-08',
+    qualityRequired: 'Fresh Green 7-9cm',
+    status: 'OPEN',
+    coordinatorName_hi: 'पूर्वांचल एग्रो प्रोड्यूसर कंपनी',
+    coordinatorName_en: 'Poorvanchal Agro Producer Co.',
+    participants: 3,
+    members: [],
+    createdBy: 'Poorvanchal FPO',
+    createdAt: new Date()
+  }
+];
 
 const APPLICATION_STATUSES = ['WAITING', 'COMPLAINED', 'APPROVED', 'REJECTED', 'WITHDRAWN'];
 const COMPLAINT_COOLDOWN_DAYS = 7;
@@ -547,6 +624,180 @@ app.patch('/api/applications/:id/status', async (req, res) => {
   } catch (error) {
     console.error('[API PATCH /api/applications/:id/status Error]:', error);
     return res.status(500).json({ error: 'Failed to update application status.' });
+  }
+});
+
+// ─── 12. FPO Group Selling Pools (GET /api/pools) ───────────────────────────
+app.get('/api/pools', async (req, res) => {
+  try {
+    const { state, district, category } = req.query || {};
+
+    if (isMongoDBConnected()) {
+      const filter = {};
+      if (category && category !== 'All') {
+        filter.$or = [
+          { category_en: new RegExp(`^${category}$`, 'i') },
+          { category_hi: new RegExp(`^${category}$`, 'i') }
+        ];
+      }
+      const pools = await CropPoolModel.find(filter).sort({ createdAt: -1 });
+      return res.json({ success: true, data: pools });
+    }
+
+    let filtered = [...memoryCropPools];
+    if (category && category !== 'All') {
+      filtered = filtered.filter(p => 
+        p.category_en?.toLowerCase() === category.toLowerCase() ||
+        p.category_hi?.toLowerCase() === category.toLowerCase()
+      );
+    }
+    return res.json({ success: true, data: filtered });
+  } catch (error) {
+    console.error('[API GET /api/pools Error]:', error);
+    return res.status(500).json({ error: 'Failed to fetch crop pools.' });
+  }
+});
+
+// ─── 13. Create FPO Group Selling Pool (POST /api/pools) ─────────────────────
+app.post('/api/pools', async (req, res) => {
+  try {
+    const {
+      commodity_hi,
+      commodity_en,
+      category_hi,
+      category_en,
+      targetQtl,
+      buyerName,
+      buyerLocation,
+      state,
+      district,
+      offerPrice,
+      deadline,
+      qualityRequired,
+      coordinatorName_hi,
+      coordinatorName_en,
+      createdBy
+    } = req.body || {};
+
+    const target = Number(targetQtl);
+    const price = Number(offerPrice);
+
+    if (!commodity_hi && !commodity_en) {
+      return res.status(400).json({ error: 'Missing commodity name.' });
+    }
+    if (!target || target <= 0) {
+      return res.status(400).json({ error: 'Valid target quantity in quintals is required.' });
+    }
+    if (!price || price <= 0) {
+      return res.status(400).json({ error: 'Valid offer price is required.' });
+    }
+
+    const poolId = `pool_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`;
+
+    const newPool = {
+      poolId,
+      commodity_hi: sanitizeInput(commodity_hi) || sanitizeInput(commodity_en),
+      commodity_en: sanitizeInput(commodity_en) || sanitizeInput(commodity_hi),
+      category_hi: sanitizeInput(category_hi) || 'सब्ज़ी',
+      category_en: sanitizeInput(category_en) || 'Vegetable',
+      targetQtl: target,
+      filledQtl: 0,
+      buyerName: sanitizeInput(buyerName) || 'Regional Mandi FPO Lot',
+      buyerLocation: sanitizeInput(buyerLocation) || 'Local APMC Hub',
+      state: sanitizeInput(state) || 'Uttar Pradesh',
+      district: sanitizeInput(district) || 'Azamgarh',
+      offerPrice: price,
+      deadline: sanitizeInput(deadline) || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      qualityRequired: sanitizeInput(qualityRequired) || 'Grade A',
+      status: 'OPEN',
+      coordinatorName_hi: sanitizeInput(coordinatorName_hi) || 'किराना ट्रस्ट नोड (सत्यापित)',
+      coordinatorName_en: sanitizeInput(coordinatorName_en) || 'Kirana Trust Node (Verified)',
+      participants: 1,
+      members: [],
+      createdBy: sanitizeInput(createdBy) || 'Community Farmer',
+      createdAt: new Date()
+    };
+
+    let saved = null;
+    if (isMongoDBConnected()) {
+      saved = await CropPoolModel.create(newPool);
+    } else {
+      saved = { _id: `mem_pool_${Date.now()}`, ...newPool };
+      memoryCropPools.unshift(saved);
+    }
+
+    console.log(`[LokVani FPO Pool Created]: ${newPool.commodity_en} (${newPool.targetQtl}Q @ ₹${newPool.offerPrice}/Q)`);
+
+    return res.status(201).json({
+      success: true,
+      data: saved
+    });
+  } catch (error) {
+    console.error('[API POST /api/pools Error]:', error);
+    return res.status(500).json({ error: 'Failed to create crop pool.' });
+  }
+});
+
+// ─── 14. Join / Commit Crop to FPO Pool (POST /api/pools/:poolId/join) ───────
+app.post('/api/pools/:poolId/join', async (req, res) => {
+  try {
+    const { poolId } = req.params;
+    const { farmerName, phone, village, qtl } = req.body || {};
+
+    const commitQtl = Number(qtl);
+    if (!commitQtl || commitQtl <= 0) {
+      return res.status(400).json({ error: 'Valid committed quantity is required.' });
+    }
+    if (!farmerName || !phone) {
+      return res.status(400).json({ error: 'Farmer name and phone number are required.' });
+    }
+
+    const memberEntry = {
+      farmerName: sanitizeInput(farmerName),
+      phone: sanitizeInput(phone),
+      village: sanitizeInput(village) || 'Nearby Village',
+      qtl: commitQtl,
+      joinedAt: new Date()
+    };
+
+    if (isMongoDBConnected()) {
+      const pool = await CropPoolModel.findOne({ poolId });
+      if (!pool) return res.status(404).json({ error: 'Pool not found.' });
+
+      const newFilled = (pool.filledQtl || 0) + commitQtl;
+      const newStatus = newFilled >= pool.targetQtl ? 'CLOSED' : 'FILLING';
+
+      pool.filledQtl = newFilled;
+      pool.participants = (pool.participants || 1) + 1;
+      pool.status = newStatus;
+      pool.members.push(memberEntry);
+      await pool.save();
+
+      return res.json({
+        success: true,
+        data: pool,
+        message: 'Successfully joined harvest pool!'
+      });
+    }
+
+    const memPool = memoryCropPools.find(p => p.poolId === poolId || p.id === poolId);
+    if (!memPool) {
+      return res.status(404).json({ error: 'Crop pool not found.' });
+    }
+
+    memPool.filledQtl = (memPool.filledQtl || 0) + commitQtl;
+    memPool.participants = (memPool.participants || 1) + 1;
+    memPool.status = memPool.filledQtl >= memPool.targetQtl ? 'CLOSED' : 'FILLING';
+    memPool.members = [...(memPool.members || []), memberEntry];
+
+    return res.json({
+      success: true,
+      data: memPool,
+      message: 'Successfully joined harvest pool!'
+    });
+  } catch (error) {
+    console.error('[API POST /api/pools/:poolId/join Error]:', error);
+    return res.status(500).json({ error: 'Failed to commit quantity to crop pool.' });
   }
 });
 
