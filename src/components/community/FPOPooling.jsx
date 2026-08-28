@@ -383,7 +383,7 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   const loadLivePools = useCallback(async () => {
     try {
       const remotePools = await fetchCropPools();
-      if (remotePools && remotePools.length > 0) {
+      if (Array.isArray(remotePools) && remotePools.length > 0) {
         setPoolList(remotePools);
         localStorage.setItem('lokvani_fpo_pools', JSON.stringify(remotePools));
       }
@@ -392,13 +392,42 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
     }
   }, []);
 
-  // Initial fetch and 4-second live synchronization interval
+  // Initial fetch and auto-sync of locally created pools
   useEffect(() => {
-    loadLivePools();
+    async function initAndSync() {
+      try {
+        const remotePools = await fetchCropPools();
+        const remoteIds = new Set((remotePools || []).map(p => p.id || p.poolId));
+
+        // Check if there are local pools not yet on the server (e.g. created offline)
+        try {
+          const rawLocal = localStorage.getItem('lokvani_fpo_pools');
+          const localPools = rawLocal ? JSON.parse(rawLocal) : [];
+          const unsynced = localPools.filter(p => p && (p.id?.startsWith('pool_custom_') || p.poolId?.startsWith('pool_custom_')) && !remoteIds.has(p.id) && !remoteIds.has(p.poolId));
+
+          for (const pool of unsynced) {
+            try {
+              await createCropPool(pool);
+            } catch (_) {}
+          }
+        } catch (_) {}
+
+        // Reload fresh remote state
+        const refreshed = await fetchCropPools();
+        if (Array.isArray(refreshed) && refreshed.length > 0) {
+          setPoolList(refreshed);
+          localStorage.setItem('lokvani_fpo_pools', JSON.stringify(refreshed));
+        }
+      } catch (err) {
+        console.warn('[FPOPooling] Initial sync failed:', err);
+      }
+    }
+
+    initAndSync();
 
     const interval = setInterval(() => {
       loadLivePools();
-    }, 4000);
+    }, 3000);
 
     const handleFocus = () => loadLivePools();
     window.addEventListener('focus', handleFocus);
