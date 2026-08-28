@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { speechService } from '../services/speechService';
 import { processUserSpeechQuery } from '../services/aiCoreEngine';
 import {
@@ -94,12 +95,17 @@ function SkeletonCard() {
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function UserVoiceApp() {
+<<<<<<< HEAD
   const {
     language, setActiveTab, dialect, setDialect, isSpeaking, stopSpeaking,
     conversations, activeConvId, activeConversation, createConversation,
     selectConversation, deleteConversation, deleteMessageFromActiveConv, clearAllConversations,
     renameConversation, addMessageToActiveConv
   } = useApp();
+=======
+  const { language, setActiveTab, dialect, setDialect, userProfile } = useApp();
+  const { user } = useAuth();
+>>>>>>> upstream/main
 
   const [appState, setAppState]             = useState('IDLE');
   const [transcript, setTranscript]         = useState('');
@@ -193,8 +199,8 @@ export default function UserVoiceApp() {
           body: JSON.stringify({
             transcribed_text: trimmed,
             user_location: 'Azamgarh, UP',
-            userId: 'user_demo_1',
-            userName: 'Ramesh Kumar (Farmer)',
+            userId: user?.uid || 'user_demo_1',
+            userName: userProfile?.fullName || user?.displayName || 'Citizen',
             dialect: dialectInfo.promptName,
           })
         });

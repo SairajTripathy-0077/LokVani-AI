@@ -38,27 +38,26 @@ const OCCUPATIONS = [
 const CATEGORIES = ['Agriculture', 'Healthcare', 'Financial Inclusion', 'Housing', 'Women & Child', 'Social Security'];
 
 export default function PublicSchemesDashboard() {
+<<<<<<< HEAD
   const { language, user, pendingReviewsCount } = useApp();
+=======
+  const { language, userProfile, updateUserProfile } = useApp();
+  const { user } = useAuth();
+  const userId = user?.uid || 'user_demo_1';
 
-  const [profile, setProfile] = useState(() => {
-    const saved = localStorage.getItem('lokvani_user_profile');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return {
-      fullName: 'Ramesh Kumar',
-      age: 38,
-      gender: 'Male',
-      state: 'Uttar Pradesh',
-      district: 'Azamgarh',
-      occupation: 'Farmer',
-      annualIncome: 120000,
-      casteCategory: 'OBC',
-      landHoldingAcres: 1.8,
-      isBpl: true,
-      isDisability: false
-    };
-  });
+  const [dashboardView, setDashboardView] = useState('browse'); // 'browse' | 'applications'
+  const [appliedSchemeIds, setAppliedSchemeIds] = useState(new Set());
+  const [isApplyFormOpen, setIsApplyFormOpen] = useState(false);
+  const [applyRefNo, setApplyRefNo] = useState('');
+  const [applyState, setApplyState] = useState('idle'); // 'idle' | 'saving' | 'done'
+  const [applyError, setApplyError] = useState('');
+>>>>>>> upstream/main
+
+  const [profile, setProfile] = useState({ ...userProfile });
+
+  useEffect(() => {
+    setProfile({ ...userProfile });
+  }, [userProfile]);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [activeTab, setActiveTab] = useState('matched'); // 'matched' | 'all' | 'ai_assistant' | 'trust_node' | 'applications'
@@ -83,7 +82,7 @@ export default function PublicSchemesDashboard() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    localStorage.setItem('lokvani_user_profile', JSON.stringify(profile));
+    updateUserProfile(profile);
     setIsEditingProfile(false);
   };
 
@@ -163,6 +162,7 @@ export default function PublicSchemesDashboard() {
               />
             </div>
 
+<<<<<<< HEAD
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Age (Years)</label>
               <input
@@ -270,6 +270,70 @@ export default function PublicSchemesDashboard() {
                 <span>Specially Abled (Divyang)</span>
               </label>
             </div>
+=======
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label htmlFor="pf-name" className={labelCls}>Full name</label>
+                <input id="pf-name" type="text" name="fullName" value={profile.fullName || ''} onChange={handleProfileChange} required placeholder="e.g. Ramesh Kumar" className={inputCls} />
+              </div>
+
+              <div>
+                <label htmlFor="pf-age" className={labelCls}>Age</label>
+                <input id="pf-age" type="number" name="age" value={profile.age || ''} onChange={handleProfileChange} required placeholder="e.g. 38" className={inputCls} />
+              </div>
+
+              <div>
+                <label htmlFor="pf-gender" className={labelCls}>Gender</label>
+                <select id="pf-gender" name="gender" value={profile.gender || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Transgender">Transgender</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="pf-state" className={labelCls}>State</label>
+                <select id="pf-state" name="state" value={profile.state || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select State</option>
+                  {STATES_LIST.map(st => <option key={st} value={st}>{st}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="pf-district" className={labelCls}>District</label>
+                <input id="pf-district" type="text" name="district" value={profile.district || ''} onChange={handleProfileChange} placeholder="e.g. Azamgarh" className={inputCls} />
+              </div>
+
+              <div>
+                <label htmlFor="pf-occ" className={labelCls}>Occupation</label>
+                <select id="pf-occ" name="occupation" value={profile.occupation || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Occupation</option>
+                  {OCCUPATIONS.map(occ => <option key={occ} value={occ}>{occ}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="pf-income" className={labelCls}>Annual household income (₹)</label>
+                <input id="pf-income" type="number" name="annualIncome" value={profile.annualIncome || ''} onChange={handleProfileChange} step="5000" placeholder="e.g. 120000" className={inputCls} />
+              </div>
+
+              <div>
+                <label htmlFor="pf-land" className={labelCls}>Land holding (acres)</label>
+                <input id="pf-land" type="number" name="landHoldingAcres" value={profile.landHoldingAcres || ''} onChange={handleProfileChange} step="0.1" placeholder="e.g. 1.8" className={inputCls} />
+              </div>
+
+              <div>
+                <label htmlFor="pf-cat" className={labelCls}>Social category</label>
+                <select id="pf-cat" name="casteCategory" value={profile.casteCategory || ''} onChange={handleProfileChange} className={inputCls}>
+                  <option value="">Select Category</option>
+                  <option value="General">General</option>
+                  <option value="OBC">OBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                </select>
+              </div>
+>>>>>>> upstream/main
 
             <div className="sm:col-span-2 lg:col-span-3 flex justify-end gap-3 pt-4 border-t border-slate-100">
               <button

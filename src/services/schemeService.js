@@ -8,7 +8,14 @@ export { PUBLIC_SCHEMES };
  * Strictly disqualifies schemes that fail age, gender, income, land, or occupation bounds.
  */
 export function matchSchemesForProfile(profile) {
-  if (!profile) return PUBLIC_SCHEMES.map(s => ({ ...s, matchScore: 100, status: 'Eligible', matchReasons: ['Default catalog view'] }));
+  if (!profile || !profile.fullName || !profile.fullName.trim()) {
+    return PUBLIC_SCHEMES.map(s => ({
+      ...s,
+      matchScore: 100,
+      status: 'Eligible',
+      matchReasons: ['Catalog View — Complete your profile for personalized scoring']
+    }));
+  }
 
   const age = Number(profile.age) || 30;
   const income = Number(profile.annualIncome) || 150000;
@@ -107,18 +114,19 @@ export function matchSchemesForProfile(profile) {
  * Custom Gemini-powered Scheme Query Assistant
  */
 export async function querySchemeWithAi(profile, queryText, language = 'hi') {
-  const profileSummary = profile ? `
+  const hasProfile = Boolean(profile && profile.fullName && profile.fullName.trim());
+  const profileSummary = hasProfile ? `
 User Profile:
-- Age: ${profile.age || 30}
-- Gender: ${profile.gender || 'Male'}
-- State/District: ${profile.state || 'Uttar Pradesh'}, ${profile.district || 'Azamgarh'}
-- Occupation: ${profile.occupation || 'Farmer'}
-- Annual Income: ₹${profile.annualIncome || 120000}
-- Caste Category: ${profile.casteCategory || 'OBC'}
-- Land Holding: ${profile.landHoldingAcres || 1.5} Acres
+- Age: ${profile.age || 'Not specified'}
+- Gender: ${profile.gender || 'Not specified'}
+- State/District: ${profile.state || 'Not specified'}, ${profile.district || 'Not specified'}
+- Occupation: ${profile.occupation || 'Not specified'}
+- Annual Income: ₹${profile.annualIncome || 'Not specified'}
+- Caste Category: ${profile.casteCategory || 'Not specified'}
+- Land Holding: ${profile.landHoldingAcres || 'Not specified'} Acres
 - BPL Card: ${profile.isBpl ? 'Yes' : 'No'}
 - Disability: ${profile.isDisability ? 'Yes' : 'No'}
-  ` : 'No detailed profile provided.';
+  ` : 'No saved user profile available yet.';
 
   try {
     const aiResult = await geminiRotator.executeWithRotation(
