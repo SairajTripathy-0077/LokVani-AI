@@ -46,6 +46,43 @@ import { fetchLiveNews } from '../services/newsService';
 import LocationPrompt from './common/LocationPrompt.jsx';
 
 const DISTRICT_NEIGHBORS = {
+  // Odisha
+  'sundargarh': ['Jharsuguda', 'Sambalpur', 'Rourkela', 'Deogarh', 'Kendujhar', 'Bargarh', 'Simdega', 'Raigarh'],
+  'sundergarh': ['Jharsuguda', 'Sambalpur', 'Rourkela', 'Deogarh', 'Kendujhar', 'Bargarh', 'Simdega', 'Raigarh'],
+  'rourkela': ['Sundargarh', 'Jharsuguda', 'Kendujhar', 'Deogarh', 'West Singhbhum', 'Simdega'],
+  'sambalpur': ['Jharsuguda', 'Bargarh', 'Sundargarh', 'Deogarh', 'Sonepur', 'Angul'],
+  'jharsuguda': ['Sundargarh', 'Sambalpur', 'Bargarh', 'Raigarh'],
+  'bargarh': ['Sambalpur', 'Jharsuguda', 'Sonepur', 'Balangir', 'Mahasamund', 'Raigarh'],
+  'deogarh': ['Sundargarh', 'Sambalpur', 'Angul', 'Kendujhar'],
+  'kendujhar': ['Sundargarh', 'Mayurbhanj', 'Bhadrak', 'Jajpur', 'Dhenkanal', 'Deogarh', 'West Singhbhum'],
+  'keonjhar': ['Sundargarh', 'Mayurbhanj', 'Bhadrak', 'Jajpur', 'Dhenkanal', 'Deogarh', 'West Singhbhum'],
+  'cuttack': ['Bhubaneswar', 'Khurda', 'Jajpur', 'Kendrapara', 'Jagatsinghpur', 'Dhenkanal', 'Puri'],
+  'bhubaneswar': ['Cuttack', 'Khurda', 'Puri', 'Nayagarh', 'Jagatsinghpur'],
+  'khurda': ['Bhubaneswar', 'Cuttack', 'Puri', 'Nayagarh', 'Ganjam'],
+  'balasore': ['Bhadrak', 'Mayurbhanj', 'Kendujhar', 'East Medinipur'],
+  'puri': ['Khurda', 'Bhubaneswar', 'Cuttack', 'Jagatsinghpur', 'Ganjam'],
+  'ganjam': ['Gajapati', 'Nayagarh', 'Kandhamal', 'Puri', 'Srikakulam'],
+  'mayurbhanj': ['Balasore', 'Kendujhar', 'East Singhbhum', 'Jhargram'],
+  'koraput': ['Nabarangpur', 'Rayagada', 'Malkangiri', 'Visakhapatnam', 'Bastar'],
+  'angul': ['Dhenkanal', 'Cuttack', 'Sambalpur', 'Deogarh', 'Boudh'],
+  'dhenkanal': ['Angul', 'Cuttack', 'Jajpur', 'Kendujhar'],
+  'balangir': ['Bargarh', 'Sonepur', 'Kalahandi', 'Nuapada'],
+  'kalahandi': ['Balangir', 'Nuapada', 'Rayagada', 'Nabarangpur'],
+
+  // Jharkhand & Chhattisgarh
+  'simdega': ['Sundargarh', 'Gumla', 'West Singhbhum', 'Jashpur', 'Ranchi'],
+  'west singhbhum': ['Sundargarh', 'Kendujhar', 'East Singhbhum', 'Seraikela', 'Khunti', 'Simdega'],
+  'ranchi': ['Ramgarh', 'Khunti', 'Lohardaga', 'Gumla', 'Purulia', 'Bokaro'],
+  'jamshedpur': ['East Singhbhum', 'Seraikela', 'West Singhbhum', 'Purulia'],
+  'dhanbad': ['Bokaro', 'Giridih', 'Purulia', 'Jamtara'],
+  'bokaro': ['Dhanbad', 'Ramgarh', 'Giridih', 'Purulia', 'Ranchi'],
+  'raigarh': ['Sundargarh', 'Jharsuguda', 'Jashpur', 'Janjgir-Champa', 'Mahasamund', 'Korba'],
+  'jashpur': ['Sundargarh', 'Simdega', 'Gumla', 'Raigarh', 'Balrampur'],
+  'raipur': ['Durg', 'Bemetara', 'Balod', 'Dhamtari', 'Gariaband', 'Baloda Bazar'],
+  'bilaspur': ['Korba', 'Mungeli', 'Janjgir-Champa', 'Gaurela-Pendra-Marwahi', 'Baloda Bazar'],
+  'durg': ['Raipur', 'Bhilai', 'Bemetara', 'Balod', 'Rajnandgaon'],
+  'korba': ['Bilaspur', 'Janjgir-Champa', 'Raigarh', 'Surguja'],
+
   // Uttar Pradesh
   'azamgarh': ['Mau', 'Jaunpur', 'Gorakhpur', 'Ghazipur', 'Ballia', 'Ambedkar Nagar', 'Varanasi'],
   'mau': ['Azamgarh', 'Ballia', 'Ghazipur', 'Deoria', 'Gorakhpur'],
@@ -113,6 +150,10 @@ const DISTRICT_NEIGHBORS = {
 };
 
 const STATE_NEARBY_DISTRICTS = {
+  'Odisha': ['Sundargarh', 'Jharsuguda', 'Sambalpur', 'Rourkela', 'Bargarh', 'Deogarh', 'Kendujhar', 'Cuttack', 'Bhubaneswar', 'Balasore', 'Puri'],
+  'Orissa': ['Sundargarh', 'Jharsuguda', 'Sambalpur', 'Rourkela', 'Bargarh', 'Deogarh', 'Kendujhar', 'Cuttack', 'Bhubaneswar', 'Balasore', 'Puri'],
+  'Jharkhand': ['Simdega', 'Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Hazaribagh', 'West Singhbhum', 'East Singhbhum'],
+  'Chhattisgarh': ['Raigarh', 'Jashpur', 'Bilaspur', 'Raipur', 'Durg', 'Korba', 'Rajnandgaon'],
   'Uttar Pradesh': ['Azamgarh', 'Mau', 'Jaunpur', 'Gorakhpur', 'Varanasi', 'Ghazipur', 'Ballia', 'Lucknow'],
   'Bihar': ['Patna', 'Vaishali', 'Muzaffarpur', 'Gaya', 'Samastipur', 'Bhagalpur', 'Darbhanga'],
   'Madhya Pradesh': ['Indore', 'Ujjain', 'Dewas', 'Bhopal', 'Sehore', 'Jabalpur', 'Gwalior'],
@@ -121,12 +162,71 @@ const STATE_NEARBY_DISTRICTS = {
   'Punjab': ['Ludhiana', 'Jalandhar', 'Moga', 'Amritsar', 'Patiala', 'Bathinda'],
   'Haryana': ['Karnal', 'Kurukshetra', 'Panipat', 'Kaithal', 'Hisar', 'Rohtak'],
   'Gujarat': ['Ahmedabad', 'Gandhinagar', 'Kheda', 'Surat', 'Rajkot', 'Vadodara'],
-  'West Bengal': ['Kolkata', 'Hooghly', 'Howrah', 'Burdwan', 'Nadia', 'Murshidabad'],
+  'West Bengal': ['Kolkata', 'Hooghly', 'Howrah', 'Burdwan', 'Nadia', 'Murshidabad', 'Purulia'],
   'Tamil Nadu': ['Coimbatore', 'Tiruppur', 'Erode', 'Salem', 'Madurai', 'Trichy'],
   'Karnataka': ['Bangalore', 'Ramanagara', 'Tumkur', 'Mysore', 'Mandya', 'Hubli'],
   'Andhra Pradesh': ['Vijayawada', 'Guntur', 'Krishna', 'Visakhapatnam', 'Kurnool', 'Tirupati'],
   'Telangana': ['Hyderabad', 'Rangareddy', 'Medchal', 'Sangareddy', 'Warangal', 'Nizamabad'],
 };
+
+// Known major district coordinates for proximity calculation
+const INDIAN_DISTRICT_COORDS = [
+  { name: 'Sundargarh', state: 'Odisha', lat: 22.12, lon: 84.03 },
+  { name: 'Jharsuguda', state: 'Odisha', lat: 21.85, lon: 84.01 },
+  { name: 'Sambalpur', state: 'Odisha', lat: 21.47, lon: 83.97 },
+  { name: 'Rourkela', state: 'Odisha', lat: 22.26, lon: 84.85 },
+  { name: 'Bargarh', state: 'Odisha', lat: 21.33, lon: 83.62 },
+  { name: 'Deogarh', state: 'Odisha', lat: 21.53, lon: 84.73 },
+  { name: 'Kendujhar', state: 'Odisha', lat: 21.63, lon: 85.58 },
+  { name: 'Simdega', state: 'Jharkhand', lat: 22.61, lon: 84.50 },
+  { name: 'Raigarh', state: 'Chhattisgarh', lat: 21.90, lon: 83.40 },
+  { name: 'Jashpur', state: 'Chhattisgarh', lat: 22.88, lon: 84.14 },
+  { name: 'Cuttack', state: 'Odisha', lat: 20.46, lon: 85.88 },
+  { name: 'Bhubaneswar', state: 'Odisha', lat: 20.29, lon: 85.82 },
+  { name: 'Balasore', state: 'Odisha', lat: 21.49, lon: 86.93 },
+  { name: 'Puri', state: 'Odisha', lat: 19.81, lon: 85.83 },
+  { name: 'Ranchi', state: 'Jharkhand', lat: 23.34, lon: 85.31 },
+  { name: 'Jamshedpur', state: 'Jharkhand', lat: 22.80, lon: 86.20 },
+  { name: 'Raipur', state: 'Chhattisgarh', lat: 21.25, lon: 81.63 },
+  { name: 'Bilaspur', state: 'Chhattisgarh', lat: 22.08, lon: 82.14 },
+  { name: 'Azamgarh', state: 'Uttar Pradesh', lat: 26.07, lon: 83.18 },
+  { name: 'Mau', state: 'Uttar Pradesh', lat: 25.94, lon: 83.56 },
+  { name: 'Jaunpur', state: 'Uttar Pradesh', lat: 25.75, lon: 82.68 },
+  { name: 'Gorakhpur', state: 'Uttar Pradesh', lat: 26.76, lon: 83.37 },
+  { name: 'Varanasi', state: 'Uttar Pradesh', lat: 25.31, lon: 82.97 },
+  { name: 'Ghazipur', state: 'Uttar Pradesh', lat: 25.58, lon: 83.58 },
+  { name: 'Ballia', state: 'Uttar Pradesh', lat: 25.76, lon: 84.15 },
+  { name: 'Lucknow', state: 'Uttar Pradesh', lat: 26.84, lon: 80.94 },
+  { name: 'Kanpur', state: 'Uttar Pradesh', lat: 26.44, lon: 80.33 },
+  { name: 'Patna', state: 'Bihar', lat: 25.59, lon: 85.13 },
+  { name: 'Muzaffarpur', state: 'Bihar', lat: 26.12, lon: 85.39 },
+  { name: 'Gaya', state: 'Bihar', lat: 24.79, lon: 85.00 },
+  { name: 'Indore', state: 'Madhya Pradesh', lat: 22.71, lon: 75.85 },
+  { name: 'Bhopal', state: 'Madhya Pradesh', lat: 23.25, lon: 77.41 },
+  { name: 'Pune', state: 'Maharashtra', lat: 18.52, lon: 73.85 },
+  { name: 'Nashik', state: 'Maharashtra', lat: 19.99, lon: 73.78 },
+  { name: 'Nagpur', state: 'Maharashtra', lat: 21.14, lon: 79.08 },
+  { name: 'Jaipur', state: 'Rajasthan', lat: 26.91, lon: 75.78 },
+  { name: 'Ahmedabad', state: 'Gujarat', lat: 23.02, lon: 72.57 },
+  { name: 'Ludhiana', state: 'Punjab', lat: 30.90, lon: 75.85 },
+  { name: 'Karnal', state: 'Haryana', lat: 29.68, lon: 76.99 },
+  { name: 'Bangalore', state: 'Karnataka', lat: 12.97, lon: 77.59 },
+  { name: 'Hyderabad', state: 'Telangana', lat: 17.38, lon: 78.48 },
+  { name: 'Coimbatore', state: 'Tamil Nadu', lat: 11.01, lon: 76.95 },
+  { name: 'Vijayawada', state: 'Andhra Pradesh', lat: 16.50, lon: 80.64 },
+];
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 // ── Scoped styles (never touches index.css) ──────────────────────────────────
 import '../styles/community.css';
@@ -142,6 +242,7 @@ import IntelFeed           from './community/IntelFeed.jsx';
 import TrustSystem         from './community/TrustSystem.jsx';
 import FPOPooling          from './community/FPOPooling.jsx';
 import LogisticsStorage    from './community/LogisticsStorage.jsx';
+import WeatherPictorialArt, { getLocalizedCondition, getWeatherForecastIcon } from './community/WeatherVisual.jsx';
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import {
@@ -297,23 +398,53 @@ export default function CommunityIntel() {
   const userState = userLocation?.state || 'Uttar Pradesh';
 
   const nearbyLocations = useMemo(() => {
-    const normDist = userDistrict.trim().toLowerCase();
-    
-    // 1. Direct exact match in district adjacency map
+    // Clean district name: strip (Current), district, sadar, division, punctuation
+    const cleanDist = userDistrict
+      .replace(/\(current\)/gi, '')
+      .replace(/\(आपकी लोकेशन\)/gi, '')
+      .replace(/district/gi, '')
+      .replace(/sadar/gi, '')
+      .replace(/[^\w\s\u0900-\u097F]/gi, '')
+      .trim();
+    const normDist = cleanDist.toLowerCase();
+
+    // 1. Direct match in adjacency map
     if (DISTRICT_NEIGHBORS[normDist]) {
       return DISTRICT_NEIGHBORS[normDist].slice(0, 6);
     }
-    
-    // 2. Fuzzy match for composite names (e.g. "Azamgarh Sadar" -> "azamgarh")
-    const matchKey = Object.keys(DISTRICT_NEIGHBORS).find(k => normDist.includes(k) || k.includes(normDist));
+
+    // 2. Fuzzy match in adjacency map
+    const matchKey = Object.keys(DISTRICT_NEIGHBORS).find(k => 
+      (normDist.length >= 3 && (k.includes(normDist) || normDist.includes(k)))
+    );
     if (matchKey && DISTRICT_NEIGHBORS[matchKey]) {
       return DISTRICT_NEIGHBORS[matchKey].slice(0, 6);
     }
 
-    // 3. Fallback to state cluster without current district
-    const stateList = STATE_NEARBY_DISTRICTS[userState] || STATE_NEARBY_DISTRICTS['Uttar Pradesh'];
+    // 3. Proximity via geographic coordinates (lat / lon) if available
+    const userLat = Number(userLocation?.lat);
+    const userLon = Number(userLocation?.lng || userLocation?.lon);
+    if (!isNaN(userLat) && !isNaN(userLon) && userLat !== 0 && userLon !== 0) {
+      const sortedByDistance = INDIAN_DISTRICT_COORDS
+        .filter(d => d.name.toLowerCase() !== normDist && !normDist.includes(d.name.toLowerCase()))
+        .map(d => ({
+          ...d,
+          distance: calculateDistanceKm(userLat, userLon, d.lat, d.lon)
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      if (sortedByDistance.length > 0 && sortedByDistance[0].distance < 350) {
+        return sortedByDistance.slice(0, 6).map(d => d.name);
+      }
+    }
+
+    // 4. Fallback to state cluster
+    const normalizedState = (userState || '').trim();
+    const stateList = STATE_NEARBY_DISTRICTS[normalizedState] || 
+      (normalizedState.toLowerCase().includes('odi') || normalizedState.toLowerCase().includes('oris') ? STATE_NEARBY_DISTRICTS['Odisha'] : null) ||
+      STATE_NEARBY_DISTRICTS['Uttar Pradesh'];
     return stateList.filter(d => d.toLowerCase() !== normDist).slice(0, 6);
-  }, [userState, userDistrict]);
+  }, [userState, userDistrict, userLocation]);
 
   const handleRegionChange = async (cityName, lat = null, lon = null) => {
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: regionWeather });
@@ -806,61 +937,91 @@ export default function CommunityIntel() {
                 </div>
 
                 {/* Current Selected Weather Summary Box */}
-                <div style={{
-                  background: 'linear-gradient(135deg, rgba(240,253,244,0.7) 0%, rgba(254,249,195,0.4) 100%)',
-                  border: '1px solid var(--border-muted, #dbe7d4)',
-                  borderRadius: '12px',
-                  padding: '20px 24px',
-                  marginBottom: '20px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
-                        <MapPin size={15} />
-                        <span>{regionWeather?.city || selectedRegion || userDistrict}</span>
+                {(() => {
+                  const currentCondition = regionWeather?.condition || liveWeather?.condition || 'Light Rain & Drizzle';
+                  const currentTemp = regionWeather ? Math.round(regionWeather.temp) : (liveWeather ? Math.round(liveWeather.temp) : 25);
+                  const currentRain = regionWeather?.precipitation ?? (liveWeather?.precipitation ?? 0);
+                  const currentWind = regionWeather?.windSpeed ?? (liveWeather?.windSpeed ?? 12);
+                  const currentLoc = regionWeather?.city || selectedRegion || userDistrict;
+
+                  return (
+                    <div style={{
+                      background: 'linear-gradient(135deg, rgba(244, 248, 242, 0.95) 0%, rgba(251, 251, 250, 0.9) 100%)',
+                      border: '1px solid var(--border-muted, #dbe7d4)',
+                      borderRadius: '16px',
+                      padding: '22px 26px',
+                      marginBottom: '22px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                        {/* Left: Pictorial Illustration + Temp & Condition */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                          <WeatherPictorialArt condition={currentCondition} size={84} />
+                          <div>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
+                              <MapPin size={15} />
+                              <span>{currentLoc}</span>
+                            </div>
+                            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '2px 0 4px 0', color: 'var(--text-main)', lineHeight: 1 }}>
+                              {currentTemp}°C
+                            </h2>
+                            <div style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: 'var(--bg-hover, #f4f8f2)',
+                              border: '1px solid var(--border-subtle, #e4ede2)',
+                              padding: '3px 10px',
+                              borderRadius: '20px',
+                              fontSize: '0.84rem',
+                              fontWeight: 700,
+                              color: 'var(--accent-primary, #3d6544)',
+                              marginTop: '4px'
+                            }}>
+                              {getWeatherForecastIcon(currentCondition, 15)}
+                              <span>{getLocalizedCondition(currentCondition, lang)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Key Metrics with theme badges */}
+                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                          <div style={{ background: 'var(--bg-surface, #ffffff)', padding: '12px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle, #e5e7eb)', minWidth: '120px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                              <Droplets size={13} color="var(--accent-primary)" />
+                              {lang === 'hi' ? '24 घंटे में बारिश' : '24h Rain'}
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                              {currentRain} mm
+                            </div>
+                          </div>
+
+                          <div style={{ background: 'var(--bg-surface, #ffffff)', padding: '12px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle, #e5e7eb)', minWidth: '120px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                              <Wind size={13} color="var(--accent-primary)" />
+                              {lang === 'hi' ? 'हवा की गति' : 'Wind Speed'}
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                              {currentWind} km/h
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: '8px 0 4px 0', color: 'var(--text-main)' }}>
-                        {regionWeather ? `${Math.round(regionWeather.temp)}°C` : (liveWeather ? `${Math.round(liveWeather.temp)}°C` : '31°C')}
-                      </h2>
-                      <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
-                        {regionWeather?.condition || liveWeather?.condition || 'Clear Sky'}
-                      </p>
+
+                      {/* Agricultural Advisory Text */}
+                      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
+                          <strong>🌾 {lang === 'hi' ? 'किसान सलाह:' : 'Farming Advisory:'}</strong>{' '}
+                          {lang === 'hi' 
+                            ? (regionWeather?.advisory_hi || liveWeather?.advisory_hi || 'मौसम सामान्य है। फसल सिंचाई और कटाई के लिए उत्तम मौसम है।')
+                            : (regionWeather?.advisory_en || liveWeather?.advisory_en || 'Weather is normal. Suitable for crop irrigation and harvesting.')}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Key Metrics */}
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.7)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                          <Droplets size={12} color="var(--accent-cyan)" />
-                          {lang === 'hi' ? '24 घंटे में बारिश' : '24h Rain'}
-                        </div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
-                          {regionWeather?.precipitation ?? (liveWeather?.precipitation ?? 0)} mm
-                        </div>
-                      </div>
-
-                      <div style={{ background: 'rgba(255,255,255,0.7)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                          <Wind size={12} color="var(--accent-primary)" />
-                          {lang === 'hi' ? 'हवा की गति' : 'Wind Speed'}
-                        </div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
-                          {regionWeather?.windSpeed ?? (liveWeather?.windSpeed ?? 12)} km/h
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Agricultural Advisory Text */}
-                  <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
-                      <strong>🌾 {lang === 'hi' ? 'किसान सलाह:' : 'Farming Advisory:'}</strong>{' '}
-                      {lang === 'hi' 
-                        ? (regionWeather?.advisory_hi || liveWeather?.advisory_hi || 'मौसम सामान्य है। फसल सिंचाई और कटाई के लिए उत्तम मौसम है।')
-                        : (regionWeather?.advisory_en || liveWeather?.advisory_en || 'Weather is normal. Suitable for crop irrigation and harvesting.')}
-                    </p>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* 7-Day Forecast Horizon */}
                 <WeatherForecast weather={regionWeather || liveWeather} lang={lang} />
@@ -1002,47 +1163,50 @@ function WeatherForecast({ weather, lang = 'en' }) {
 
   return (
     <div style={{ marginTop: '24px' }}>
-      <h4 style={{ fontSize: '1rem', marginBottom: '12px', color: 'var(--text-main)' }}>
-        {lang === 'hi' ? 'अगले 7 दिनों का अनुमान' : '7-Day Forecast'}
+      <h4 style={{ fontSize: '1.05rem', marginBottom: '14px', color: 'var(--text-main)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <CloudSun size={18} color="var(--accent-primary)" />
+        {lang === 'hi' ? 'अगले 7 दिनों का मौसम पूर्वानुमान' : '7-Day Weather Horizon Forecast'}
       </h4>
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
         {weather.dailyForecast.map((day, i) => {
           const date = new Date(day.date);
           const dayName = date.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'short' });
           const isToday = i === 0;
+          const dayCondition = day.rain > 2 ? 'Light Rain & Drizzle' : (day.rain > 0.2 ? 'Light Rain' : 'Clear Sky');
 
           return (
             <div key={day.date} style={{ 
-              minWidth: '80px', 
-              padding: '12px 8px', 
-              borderRadius: '8px', 
-              backgroundColor: isToday ? 'var(--bg-secondary)' : 'var(--bg-panel)', 
-              border: isToday ? '1px solid var(--accent-gold)' : '1px solid var(--border-subtle)',
+              padding: '14px 10px', 
+              borderRadius: '10px', 
+              backgroundColor: isToday ? 'var(--bg-hover, #f4f8f2)' : 'var(--bg-surface, #ffffff)', 
+              border: isToday ? '1.5px solid var(--accent-primary, #3d6544)' : '1px solid var(--border-subtle, #e5e7eb)',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px'
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: isToday ? '0 2px 6px rgba(61,101,68,0.08)' : 'none'
             }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isToday ? 'var(--accent-gold)' : 'var(--text-main)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isToday ? 'var(--accent-primary)' : 'var(--text-main)' }}>
                 {isToday ? (lang === 'hi' ? 'आज' : 'Today') : dayName}
               </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 {date.getDate()}/{date.getMonth() + 1}
               </span>
-              <div style={{ margin: '8px 0', fontSize: '0.8rem', fontWeight: 700 }}>
-                <span style={{ color: 'var(--ci-trend-up)' }}>{Math.round(day.maxTemp)}°</span>
-                {' / '}
-                <span style={{ color: 'var(--ci-trend-down)' }}>{Math.round(day.minTemp)}°</span>
+              
+              <div style={{ margin: '4px 0' }}>
+                {getWeatherForecastIcon(dayCondition, 24)}
               </div>
-              {day.rain > 0 ? (
-                <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)' }}>
-                  {day.rain}mm
-                </span>
-              ) : (
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  0mm
-                </span>
-              )}
+
+              <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                <span style={{ color: 'var(--ci-trend-up, #3d6544)' }}>{Math.round(day.maxTemp)}°</span>
+                {' / '}
+                <span style={{ color: 'var(--ci-trend-down, #52525b)' }}>{Math.round(day.minTemp)}°</span>
+              </div>
+              
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: day.rain > 0 ? 'var(--accent-primary, #3d6544)' : 'var(--text-dim)' }}>
+                {day.rain > 0 ? `${day.rain} mm` : '0 mm'}
+              </span>
             </div>
           );
         })}
