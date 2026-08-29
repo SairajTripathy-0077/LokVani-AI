@@ -364,6 +364,10 @@ export default function UserVoiceApp() {
       text: m.text
     }));
 
+    const activeLocStr = userLocation?.district
+      ? `${userLocation.district}, ${userLocation.state || 'Uttar Pradesh'}`
+      : (userProfile?.district ? `${userProfile.district}, ${userProfile.state || 'Uttar Pradesh'}` : 'Azamgarh, Uttar Pradesh');
+
     try {
       let data = null;
       try {
@@ -373,7 +377,7 @@ export default function UserVoiceApp() {
           signal: ctrl.signal,
           body: JSON.stringify({
             transcribed_text: trimmed,
-            user_location: 'Azamgarh, UP',
+            user_location: activeLocStr,
             userId: user?.uid || 'user_demo_1',
             userName: userProfile?.fullName || user?.displayName || 'Citizen',
             dialect: dialectInfo.promptName,
