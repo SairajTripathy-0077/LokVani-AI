@@ -937,46 +937,7 @@ export default function UserVoiceApp() {
                 </div>
               )}
 
-              {/* Actionable steps */}
-              {activeResult.actionableSteps?.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
-                    {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
-                  </p>
-                  <div className="space-y-2.5">
-                    {activeResult.actionableSteps.map((step, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border/40">
-                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
-                          {i + 1}
-                        </span>
-                        <p className="text-sm text-foreground">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {/* Follow-up questions */}
-              {activeResult.followUpQuestions?.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
-                    {language === 'hi' ? 'आगे पूछें' : 'Follow-up Questions'}
-                  </p>
-                  <div className="flex flex-col gap-2.5">
-                    {activeResult.followUpQuestions.map((q, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleProcessQuery(q)}
-                        disabled={isProcessing}
-                        className="text-left flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-sm font-medium text-primary transition-all disabled:opacity-50"
-                      >
-                        <ArrowRight size={13} className="shrink-0" />
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <Separator />
 
