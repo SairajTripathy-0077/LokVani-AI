@@ -471,11 +471,11 @@ export default function CommunityIntel() {
 
   /* ── Data Fetching ───────────────────────────────────────────────────────── */
   const fetchIntel = useCallback(async () => {
-    if (!userLocation) return;
     dispatch({ type: 'FETCH_START' });
     try {
-      const currentDist = userLocation.district || userLocation.city || '';
-      const data = await fetchLiveMandiRates(userLocation.state, currentDist);
+      const state = userLocation?.state || 'Uttar Pradesh';
+      const currentDist = userLocation?.district || userLocation?.city || '';
+      const data = await fetchLiveMandiRates(state, currentDist);
       dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
       console.error('Error loading intel dataset:', err);
@@ -484,25 +484,24 @@ export default function CommunityIntel() {
   }, [userLocation]);
 
   useEffect(() => {
-    if (userLocation) {
-      fetchIntel();
-      
-      const currentDist = userLocation.district || userLocation.city || 'Azamgarh';
+    fetchIntel();
+    
+    const state = userLocation?.state || 'Uttar Pradesh';
+    const currentDist = userLocation?.district || userLocation?.city || '';
 
-      // Fetch location-optimized buyers
-      fetchBuyers(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
+    // Fetch location-optimized buyers
+    fetchBuyers(state, currentDist).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
 
-      // Fetch location-optimized transport & storage
-      fetchTransport(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
-      fetchStorage(userLocation.state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
-      
-      // Fetch news
-      fetchLiveNews(userLocation.state, userLocation.district, lang).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
+    // Fetch location-optimized transport & storage
+    fetchTransport(state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+    fetchStorage(state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
+    
+    // Fetch news
+    fetchLiveNews(state, currentDist, lang).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
 
-      // Fetch initial live weather for current user location
-      const initialLoc = userLocation.district || userLocation.city || 'Your Area';
-      handleRegionChange(initialLoc, userLocation.lat, userLocation.lng);
-    }
+    // Fetch initial live weather for current user location
+    const initialLoc = currentDist || (state ? state : 'Your Area');
+    handleRegionChange(initialLoc, userLocation?.lat, userLocation?.lng || userLocation?.lon);
   }, [fetchIntel, userLocation, lang]);
 
   /* ── Form Submission ─────────────────────────────────────────────────────── */
