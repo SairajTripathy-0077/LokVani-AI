@@ -243,6 +243,7 @@ import TrustSystem         from './community/TrustSystem.jsx';
 import FPOPooling          from './community/FPOPooling.jsx';
 import LogisticsStorage    from './community/LogisticsStorage.jsx';
 import WeatherPictorialArt, { getLocalizedCondition, getWeatherForecastIcon } from './community/WeatherVisual.jsx';
+import PriceCompareGraph   from './community/PriceCompareGraph.jsx';
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import {
@@ -811,6 +812,7 @@ export default function CommunityIntel() {
                     </h3>
                   </div>
                   <ComparisonTable intelList={intelList} lang={lang} />
+                  <PriceCompareGraph intelList={intelList} lang={lang} />
                 </section>
               )}
             </React.Fragment>
