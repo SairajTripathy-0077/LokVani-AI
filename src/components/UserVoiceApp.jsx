@@ -8,7 +8,7 @@ import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
   ChevronDown, ChevronUp, MessageSquare, Gauge, Clock, MapPin,
-  ThumbsUp, ThumbsDown, Globe, Plus, Trash2
+  Globe, Plus, Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -807,44 +807,7 @@ Provide responses in valid JSON:
         {/* Skeleton while thinking */}
         {isProcessing && <SkeletonCard />}
 
-        {/* Active Chat Thread History Timeline */}
-        {(() => {
-          const activeSession = chatSessions.find(s => s.id === activeSessionId);
-          if (!activeSession || !activeSession.messages || activeSession.messages.length <= 2) return null;
-          
-          return (
-            <div className="rounded-2xl bg-zinc-100/90 border border-zinc-200/90 p-4 space-y-3 shadow-2xs">
-              <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
-                <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <MessageSquare size={13} className="text-[#48734f]" />
-                  <span>{activeSession.title}</span>
-                </h4>
-                <span className="text-[10px] font-mono font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-md border border-zinc-200">
-                  {Math.floor(activeSession.messages.length / 2)} {language === 'hi' ? 'बातचीत इतिहास' : 'Q&A History'}
-                </span>
-              </div>
-              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                {activeSession.messages.map((msg, idx) => (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      'p-2.5 rounded-xl text-xs space-y-1 transition-all',
-                      msg.role === 'user'
-                        ? 'bg-[#48734f]/10 border border-[#48734f]/20 text-zinc-900 font-medium ml-4'
-                        : 'bg-white border border-zinc-200 text-zinc-800 mr-4 shadow-2xs'
-                    )}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-zinc-400">
-                      <span>{msg.role === 'user' ? (language === 'hi' ? '👤 आपका सवाल' : '👤 You') : (language === 'hi' ? '🤖 लोकवाणी AI' : '🤖 LokVani AI')}</span>
-                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <p className="leading-relaxed font-medium">{msg.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
+        {/* Chat history is stored in localStorage but not rendered inline */}
 
         {/* Result Card */}
         {!isProcessing && activeResult && (
@@ -1029,19 +992,7 @@ Provide responses in valid JSON:
                       {activeResult.engineSource.replace('_', ' ')}
                     </Badge>
                   )}
-                  {/* Feedback buttons */}
-                  <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-emerald-600 transition-colors cursor-pointer" aria-label="Helpful">
-                      <ThumbsUp size={12} />
-                    </TooltipTrigger>
-                    <TooltipContent><p>Helpful</p></TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-red-500 transition-colors cursor-pointer" aria-label="Not helpful">
-                      <ThumbsDown size={12} />
-                    </TooltipTrigger>
-                    <TooltipContent><p>Not helpful</p></TooltipContent>
-                  </Tooltip>
+
                 </div>
               </div>
             </CardContent>
