@@ -12,7 +12,7 @@ import { fetchLocationOptimizedLogistics } from './realDataService.js';
 /**
  * Fetch storage facilities dynamically tailored to district & state
  */
-export async function fetchStorage(state = 'Uttar Pradesh', district = '') {
+export async function fetchStorage(state = '', district = '') {
   const { storage } = fetchLocationOptimizedLogistics(district, state);
   return storage;
 }
@@ -20,7 +20,7 @@ export async function fetchStorage(state = 'Uttar Pradesh', district = '') {
 /**
  * Fetch transport listings dynamically tailored to district & state APMC routes
  */
-export async function fetchTransport(state = 'Uttar Pradesh', district = '') {
+export async function fetchTransport(state = '', district = '') {
   const { transport } = fetchLocationOptimizedLogistics(district, state);
   return transport;
 }

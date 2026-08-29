@@ -77,33 +77,39 @@ function DistressDamageBar({ result, dialect }) {
   let impactEn = result.damageImpactEn || result.damage_impact_en;
   let impactHi = result.damageImpactHi || result.damage_impact_hi;
 
-  // Heuristic calculation if not explicitly provided by backend
-  if (score === undefined || score === null) {
-    if (result.domain === 'AGRI_ADVISORY' && (result.riskCategory === 'PESTICIDE_SAFETY' || result.riskCategory === 'AGRICULTURAL_DOSAGE')) {
+  // Dynamic Distress Score calculation based on query sentiment & AI evaluation
+  const queryText = (result.transcribedText || '').toLowerCase();
+  if (score === undefined || score === null || isNaN(Number(score))) {
+    if (queryText.includes('नुकसान') || queryText.includes('रोग') || queryText.includes('कीड़ा') || queryText.includes('सड़') || queryText.includes('die') || queryText.includes('rot') || queryText.includes('disease') || queryText.includes('loss') || queryText.includes('ruin') || queryText.includes('damage') || queryText.includes('emergency')) {
+      score = 88;
+      level = 'CRITICAL';
+      impactEn = 'Urgent Agricultural Distress: Potential 45%–65% crop/financial loss risk. Immediate treatment required.';
+      impactHi = 'गंभीर फसल व आर्थिक संकट: तुरंत समाधान न करने पर 45%-65% तक क्षति का जोखिम।';
+    } else if (queryText.includes('मौसम') || queryText.includes('बारिश') || queryText.includes('rain') || queryText.includes('flood') || queryText.includes('storm')) {
+      score = 72;
+      level = 'HIGH';
+      impactEn = 'Weather Impact Distress: Produce damage risk due to adverse weather anomalies.';
+      impactHi = 'मौसम प्रभाव क्षति जोखिम: प्रतिकूल मौसम से फसल व मंडी माल नुकसान की संभावना।';
+    } else if (result.domain === 'AGRI_ADVISORY' && (result.riskCategory === 'PESTICIDE_SAFETY' || result.riskCategory === 'AGRICULTURAL_DOSAGE')) {
       score = 85;
       level = 'CRITICAL';
-      impactEn = 'High Crop Damage Risk: Potential 35%–55% crop yield loss if pest/fungal blight is untreated within 48 hours.';
-      impactHi = 'उच्च फसल क्षति जोखिम: 48 घंटे में उचित कीटनाशक न छिड़कने पर 35%-55% तक फसल नुकसान की संभावना।';
-    } else if (result.domain === 'WEATHER') {
-      score = 65;
-      level = 'HIGH';
-      impactEn = 'Weather Impact Risk: 20%–30% harvest damage risk from rain/waterlogging. Cover harvested produce immediately.';
-      impactHi = 'मौसम प्रभाव जोखिम: बारिश/जलभराव से 20%-30% कटी फसल नुकसान का खतरा। तुरंत तिरपाल से ढकें।';
+      impactEn = 'High Crop Damage Risk: Potential crop yield loss if chemical treatment is misapplied.';
+      impactHi = 'उच्च फसल क्षति जोखिम: रासायनिक उपचार का गलत प्रयोग होने पर नुकसान की संभावना।';
     } else if (result.domain === 'GOVT_SCHEME' || result.isHighStakes) {
-      score = 75;
+      score = 70;
       level = 'HIGH';
-      impactEn = 'Financial Eligibility Risk: Risk of subsidy delay or application rejection without land record verification.';
-      impactHi = 'वित्तीय पात्रता जोखिम: दस्तावेज सत्यापन के बिना सब्सिडी रुकने या आवेदन निरस्त होने की संभावना।';
+      impactEn = 'Financial Eligibility Risk: Subsidy or scheme application rejection risk without document verification.';
+      impactHi = 'वित्तीय पात्रता जोखिम: दस्तावेज सत्यापन न होने पर योजना लाभ रुकने का खतरा।';
     } else if (result.domain === 'MARKET_PRICE') {
-      score = 35;
+      score = 40;
       level = 'MODERATE';
-      impactEn = 'Market Price Risk: Moderate 10%–15% income variance based on market location and quality grade.';
-      impactHi = 'मंडी भाव जोखिम: बाजार स्थान और गुणवत्ता ग्रेड के आधार पर 10%-15% आय में उतार-चढ़ाव की संभावना।';
+      impactEn = 'Market Variance Distress: 10%–15% income variance risk depending on market timing.';
+      impactHi = 'मंडी भाव उतार-चढ़ाव जोखिम: बाजार समय के आधार पर 10%-15% आय अंतर की संभावना।';
     } else {
-      score = 20;
+      score = 25;
       level = 'LOW';
-      impactEn = 'Low Business Impact: Standard informational query with minimal operational risk.';
-      impactHi = 'कम व्यावसायिक जोखिम: सामान्य जानकारी प्रश्न; न्यूनतम परिचालन जोखिम।';
+      impactEn = 'Low Distress Impact: Standard informational question with minimal operational risk.';
+      impactHi = 'सामान्य प्रश्न: न्यूनतम परिचालन व वित्तीय क्षति जोखिम।';
     }
   }
 
@@ -212,7 +218,7 @@ export default function UserVoiceApp() {
   const [showModal, setShowModal]           = useState(false);
   const [reportItem,     setReportItem]     = useState('Tamatar (Tomato)');
   const [reportPrice,    setReportPrice]    = useState('30');
-  const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
+  const [reportLocation, setReportLocation] = useState(() => (userProfile?.district || userLocation?.district ? `${userProfile?.district || userLocation?.district} Mandi` : 'Local Mandi'));
 
   // Multi-Turn Chat Sessions with localStorage Persistence
   const [chatSessions, setChatSessions]     = useState(() => {
@@ -309,6 +315,25 @@ export default function UserVoiceApp() {
   const targetDialectInfo = DIALECT_MAP[targetLangCode] || DIALECT_MAP.hi;
   const activeTtsLocale = targetLangCode === 'en' ? 'en-IN' : targetDialectInfo.locale;
 
+  const handlePlayTTS = useCallback((textToSpeak) => {
+    if (!textToSpeak) return;
+    if (appState === 'SPEAKING') {
+      speechService.stopSpeaking();
+      setAppState('IDLE');
+      return;
+    }
+
+    setAppState('SPEAKING');
+    speechService.speakText(
+      textToSpeak,
+      activeTtsLocale,
+      () => {
+        setAppState('IDLE');
+      },
+      ttsRate
+    );
+  }, [appState, activeTtsLocale, ttsRate]);
+
   const primaryAnswer = (r) => {
     if (!r) return '';
     if (targetLangCode === 'en') return r.shortAnswerEn || r.shortAnswerHi || '';
@@ -365,8 +390,8 @@ export default function UserVoiceApp() {
     }));
 
     const resolvedUserLoc = userProfile?.district 
-      ? `${userProfile.district}, ${userProfile.state || 'India'}` 
-      : 'Azamgarh, UP';
+      ? `${userProfile.district}${userProfile.state ? `, ${userProfile.state}` : ''}` 
+      : (userLocation?.district ? `${userLocation.district}${userLocation.state ? `, ${userLocation.state}` : ''}` : (userProfile?.state || userLocation?.state || ''));
 
     try {
       let data = null;
@@ -414,6 +439,10 @@ Provide responses in valid JSON:
   "domain": "AGRI_ADVISORY",
   "is_high_stakes": false,
   "risk_category": "NONE",
+  "distress_score": 75,
+  "distress_level": "CRITICAL | HIGH | MODERATE | LOW",
+  "damage_impact_hi": "string explanation of crop/financial distress impact",
+  "damage_impact_en": "string explanation of crop/financial distress impact",
   "trust_note": "AI Generated Answer",
   "actionable_steps": ["step 1", "step 2"]
 }`,
@@ -441,6 +470,10 @@ Provide responses in valid JSON:
               domain: parsed.domain || 'AGRI_ADVISORY',
               isHighStakes: parsed.is_high_stakes || false,
               riskCategory: parsed.risk_category || 'NONE',
+              distressScore: parsed.distress_score || parsed.distressScore || 50,
+              distressLevel: parsed.distress_level || parsed.distressLevel || 'MODERATE',
+              damageImpactHi: parsed.damage_impact_hi || parsed.damageImpactHi || '',
+              damageImpactEn: parsed.damage_impact_en || parsed.damageImpactEn || '',
               trustNote: 'Direct Gemini AI Engine',
               actionableSteps: parsed.actionable_steps || [],
               status: 'AUTO_VERIFIED',
@@ -546,12 +579,7 @@ Provide responses in valid JSON:
     else setAppState('IDLE');
   }, [transcript, handleProcessQuery]);
 
-  const handlePlayTTS = useCallback((text) => {
-    if (appState === 'SPEAKING') { speechService.stopSpeaking(); setAppState('IDLE'); return; }
-    if (!text) return;
-    setAppState('SPEAKING');
-    speechService.speakText(text, activeTtsLocale, () => setAppState('IDLE'), ttsRate);
-  }, [appState, activeTtsLocale, ttsRate]);
+
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;

@@ -23,7 +23,7 @@ export function matchSchemesForProfile(profile) {
   const occ = profile.occupation || 'Farmer';
   const category = profile.casteCategory || 'General';
   const gender = profile.gender || 'Male';
-  const userState = (profile.state || 'Uttar Pradesh').toLowerCase();
+  const userState = (profile.state || '').toLowerCase();
   const isBpl = Boolean(profile.isBpl);
   const isDisability = Boolean(profile.isDisability);
 

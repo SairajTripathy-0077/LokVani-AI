@@ -168,6 +168,21 @@ export function AppProvider({ children }) {
 
       const weather = await fetchLiveWeatherData(district, userLocation?.lat, userLocation?.lng);
       setLiveWeather(weather);
+  // Automatically request browser location if not set yet
+  useEffect(() => {
+    if (!userLocation && navigator.geolocation) {
+      requestLocation().catch(() => {});
+    }
+  }, []);
+
+  // Load Real-Time Data for the user's specific location on mount or location update
+  useEffect(() => {
+    async function loadRealData() {
+      const activeLocation = userProfile?.district || userLocation?.district || userProfile?.state || userLocation?.state || '';
+      if (activeLocation) {
+        const weather = await fetchLiveWeatherData(activeLocation);
+        setLiveWeather(weather);
+      }
 
       const livePrices = await fetchLiveMandiPrices(state, district);
       if (livePrices && livePrices.length > 0) {
@@ -180,6 +195,7 @@ export function AppProvider({ children }) {
     }
     loadRealData();
   }, [userLocation]);
+  }, [userLocation?.district, userProfile?.district]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_real_queries', JSON.stringify(queries));

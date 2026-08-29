@@ -49,7 +49,7 @@ export function isAgriculturePredictionQuery(text) {
  * @param {string} defaultLocation
  * @returns {object}
  */
-export function extractPredictionInputs(text, defaultLocation = 'Uttar Pradesh') {
+export function extractPredictionInputs(text, defaultLocation = '') {
   const lower = (text || '').toLowerCase();
   const inputs = {};
 

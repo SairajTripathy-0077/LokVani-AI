@@ -159,9 +159,9 @@ export async function fetchLiveMandiPrices(state = 'Uttar Pradesh', district = '
 /**
  * Location-Optimized Logistics & Warehouse Storage Service
  */
-export function fetchLocationOptimizedLogistics(district = 'Azamgarh', state = 'Uttar Pradesh') {
-  const dist = district || 'Azamgarh';
-  const st = state || 'Uttar Pradesh';
+export function fetchLocationOptimizedLogistics(district = '', state = '') {
+  const dist = district || '';
+  const st = state || '';
 
   const stateHubs = {
     'Uttar Pradesh': ['Lucknow APMC', 'Varanasi Mandi', 'Kanpur Grain Market', 'Delhi (Azadpur Mandi)'],
