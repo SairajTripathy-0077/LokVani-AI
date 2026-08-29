@@ -1,7 +1,7 @@
 /**
  * LokVani AI Real-Time Data Integration Service
  * Connects to live public APIs (Open-Meteo Weather API, Agmarknet Mandi Open Data)
- * to replace static mock data with real-time live data feeds.
+ * Uses backend proxies to eliminate browser CORS policy errors.
  */
 
 // 1. Live Weather API (Open-Meteo - Free, No API Key Required)
@@ -15,9 +15,6 @@ const REGIONAL_COORDINATES = {
 /**
  * Fetch live weather forecast for any Indian district/city from Open-Meteo
  * Supports direct (lat, lon) or geocoded lookup for any location
- * @param {string} city - Location name (e.g., district or city)
- * @param {number|null} lat - Optional latitude
- * @param {number|null} lon - Optional longitude
  */
 export async function fetchLiveWeatherData(city = 'Azamgarh', lat = null, lon = null) {
   let coords = null;
@@ -40,9 +37,7 @@ export async function fetchLiveWeatherData(city = 'Azamgarh', lat = null, lon = 
           };
         }
       }
-    } catch (geoErr) {
-      console.warn('Geocoding lookup failed:', geoErr.message);
-    }
+    } catch (_) {}
   }
 
   // Fallback to Azamgarh if coordinates couldn't be resolved
@@ -90,8 +85,7 @@ export async function fetchLiveWeatherData(city = 'Azamgarh', lat = null, lon = 
         ? `Rainfall of ${dailyRain}mm expected in next 24h. Cover harvested crops with tarpaulin.`
         : `Weather is clear. Temperature is ${current.temperature}°C. Suitable for irrigation and harvesting.`
     };
-  } catch (err) {
-    console.warn('Live weather API fetch failed, falling back to cached weather data:', err.message);
+  } catch (_) {
     return {
       city,
       temp: 31,
@@ -104,9 +98,6 @@ export async function fetchLiveWeatherData(city = 'Azamgarh', lat = null, lon = 
   }
 }
 
-/**
- * Map WMO weather codes to human readable weather description
- */
 function getWeatherDescription(code) {
   if (code === 0) return 'Clear Sky';
   if (code >= 1 && code <= 3) return 'Partly Cloudy';
@@ -117,37 +108,29 @@ function getWeatherDescription(code) {
 }
 
 /**
- * Fetch live Mandi market rates from Govt Data API (or fallback to live Agmarknet proxy)
- * @param {string} apiKey - Data.gov.in API Key (Optional)
+ * Fetch live Mandi market rates via backend proxy (/api/intel)
+ * Eliminates direct browser CORS blocks.
  */
-export async function fetchLiveMandiPrices(apiKey = null) {
-  const defaultDataGovKey = apiKey || '579b464db66ec23bdd000001cdd3946e44ce43727582b88b394f4cda';
-
+export async function fetchLiveMandiPrices() {
   try {
-    const url = `https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=${defaultDataGovKey}&format=json&limit=10`;
-    const response = await fetch(url, { mode: 'cors' }).catch(() => null);
-    
-    if (response && response.ok) {
-      const text = await response.text();
-      let result = {};
-      try { result = JSON.parse(text); } catch (_) {}
-      if (result.records && result.records.length > 0) {
-        return result.records.map((r, idx) => ({
-          id: `live-${idx}-${Date.now()}`,
-          item: r.commodity || 'Vegetable',
-          price: Math.round(Number(r.modal_price) / 100) || 28, // Convert Quintal rate to per kg
-          unit: 'kg',
-          location: `${r.market || 'Local'} Mandi (${r.district || 'UP'})`,
-          reporter: 'Agmarknet Live API',
-          timestamp: 'Just now',
+    const response = await fetch('/api/intel');
+    if (response.ok) {
+      const json = await response.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        return json.data.map((r, idx) => ({
+          id: r.id || `live-${idx}`,
+          item: r.item || r.commodity || 'Crop',
+          price: Number(r.price) || 28,
+          unit: r.unit || 'kg',
+          location: r.location || 'Mandi Hub',
+          reporter: r.reportedBy || 'Mandi Board',
+          timestamp: 'Live',
           verified: true,
-          trend: 'up'
+          trend: r.trend || 'stable'
         }));
       }
     }
-  } catch (err) {
-    // Silently fall back to cached mandi rates
-  }
+  } catch (_) {}
 
   // Fallback to real-time daily updated market rates
   return [
@@ -160,14 +143,11 @@ export async function fetchLiveMandiPrices(apiKey = null) {
 
 /**
  * Location-Optimized Logistics & Warehouse Storage Service
- * Generates verified district APMC transport routes and State/Central Warehousing (SWC/CWC)
- * facilities specifically tailored to the user's district and state.
  */
 export function fetchLocationOptimizedLogistics(district = 'Azamgarh', state = 'Uttar Pradesh') {
   const dist = district || 'Azamgarh';
   const st = state || 'Uttar Pradesh';
 
-  // Major Mandi hubs mapped by state
   const stateHubs = {
     'Uttar Pradesh': ['Lucknow APMC', 'Varanasi Mandi', 'Kanpur Grain Market', 'Delhi (Azadpur Mandi)'],
     'Bihar': ['Patna APMC', 'Muzaffarpur Fruit Terminal', 'Gaya Mandi'],
@@ -201,7 +181,7 @@ export function fetchLocationOptimizedLogistics(district = 'Azamgarh', state = '
       availableSpace: 4.5,
       ratePerQtl: 240,
       vehicleType: '12T Tata LPT',
-      contact: `Kisan Rath / +91 ${Math.floor(7000000000 + Math.random() * 2000000000)}`,
+      contact: `Kisan Rath / +91 9876543210`,
       status: 'AVAILABLE',
     },
     {
@@ -215,22 +195,8 @@ export function fetchLocationOptimizedLogistics(district = 'Azamgarh', state = '
       availableSpace: 2.0,
       ratePerQtl: 180,
       vehicleType: '8T Mini Truck',
-      contact: `APMC Verified / +91 ${Math.floor(7000000000 + Math.random() * 2000000000)}`,
+      contact: `APMC Verified / +91 9876543211`,
       status: 'FILLING',
-    },
-    {
-      id: `tr_${dist}_3`,
-      operator: `National Cold Chain Link (${st})`,
-      route_hi: `${dist} → ${hub3}`,
-      route_en: `${dist} → ${hub3}`,
-      departureDate: d3,
-      departureTime: '9:00 PM',
-      totalCapacity: 20,
-      availableSpace: 11.5,
-      ratePerQtl: 390,
-      vehicleType: '20T Refrigerated Container',
-      contact: `Agro Movers / +91 ${Math.floor(7000000000 + Math.random() * 2000000000)}`,
-      status: 'AVAILABLE',
     },
   ];
 
@@ -246,39 +212,10 @@ export function fetchLocationOptimizedLogistics(district = 'Azamgarh', state = '
       availableCapacity: 1850,
       ratePerBag: 4.2,
       minDays: 7,
-      contact: `SWC Toll-Free / 1800-${Math.floor(100 + Math.random() * 900)}-8920`,
+      contact: `SWC Toll-Free / 1800-180-8920`,
       status: 'AVAILABLE',
-    },
-    {
-      id: `st_${dist}_2`,
-      facilityName_hi: `${dist} APMC अनाज गोदाम (WDRA Registered)`,
-      facilityName_en: `${dist} APMC Grain Silo (WDRA Registered)`,
-      operator: `Central Warehousing Corp (CWC)`,
-      type: 'DRY',
-      location: `${dist} APMC Yard, ${st}`,
-      totalCapacity: 10000,
-      availableCapacity: 4200,
-      ratePerBag: 2.5,
-      minDays: 14,
-      contact: `CWC Mandi Node / +91 ${Math.floor(7000000000 + Math.random() * 2000000000)}`,
-      status: 'AVAILABLE',
-    },
-    {
-      id: `st_${dist}_3`,
-      facilityName_hi: `${dist} किसान उत्पादक वेयरहाउस (FPO)`,
-      facilityName_en: `${dist} Farmer Producer Warehouse (FPO)`,
-      operator: `Kisaan Connect Cooperative`,
-      type: 'WAREHOUSE',
-      location: `${dist} Bypass, ${st}`,
-      totalCapacity: 5000,
-      availableCapacity: 800,
-      ratePerBag: 3.0,
-      minDays: 3,
-      contact: `FPO Office / +91 ${Math.floor(7000000000 + Math.random() * 2000000000)}`,
-      status: 'FILLING',
     },
   ];
 
   return { transport, storage };
 }
-
