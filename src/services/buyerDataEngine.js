@@ -17,7 +17,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 6800,
       offerUnit: 'quintal',
       badge: 'FPO Partner',
-      contactInfo: '***-***-8821',
+      phone: '9437088211',
+      contactInfo: '+91 94370 88211',
       rating: 4.8,
       verifiedTransactions: 142
     },
@@ -31,7 +32,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2280,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-5510',
+      phone: '9861055100',
+      contactInfo: '+91 98610 55100',
       rating: 4.7,
       verifiedTransactions: 215
     },
@@ -45,7 +47,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 7750,
       offerUnit: 'quintal',
       badge: 'Verified Buyer',
-      contactInfo: '***-***-3349',
+      phone: '9437133349',
+      contactInfo: '+91 94371 33349',
       rating: 4.9,
       verifiedTransactions: 310
     },
@@ -59,7 +62,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2325,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-9920',
+      phone: '9438099200',
+      contactInfo: '+91 94380 99200',
       rating: 4.6,
       verifiedTransactions: 185
     },
@@ -73,7 +77,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2203,
       offerUnit: 'quintal',
       badge: 'FPO Partner',
-      contactInfo: '***-***-1144',
+      phone: '9861211144',
+      contactInfo: '+91 98612 11144',
       rating: 4.8,
       verifiedTransactions: 270
     },
@@ -87,7 +92,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 8200,
       offerUnit: 'quintal',
       badge: 'Export Certified',
-      contactInfo: '***-***-6602',
+      phone: '9437266602',
+      contactInfo: '+91 94372 66602',
       rating: 4.9,
       verifiedTransactions: 98
     },
@@ -101,7 +107,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2600,
       offerUnit: 'quintal',
       badge: 'Verified Buyer',
-      contactInfo: '***-***-4488',
+      phone: '9861444888',
+      contactInfo: '+91 98614 44888',
       rating: 4.5,
       verifiedTransactions: 130
     }
@@ -118,7 +125,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2420,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-4421',
+      phone: '9450044211',
+      contactInfo: '+91 94500 44211',
       rating: 4.7,
       verifiedTransactions: 340
     },
@@ -132,7 +140,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 9200,
       offerUnit: 'quintal',
       badge: 'FPO Partner',
-      contactInfo: '***-***-3312',
+      phone: '9451033312',
+      contactInfo: '+91 94510 33312',
       rating: 4.9,
       verifiedTransactions: 420
     },
@@ -146,7 +155,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2400,
       offerUnit: 'quintal',
       badge: 'Verified Buyer',
-      contactInfo: '***-***-7890',
+      phone: '9452078900',
+      contactInfo: '+91 94520 78900',
       rating: 4.8,
       verifiedTransactions: 512
     },
@@ -160,7 +170,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 3650,
       offerUnit: 'quintal',
       badge: 'Export Certified',
-      contactInfo: '***-***-0065',
+      phone: '9453000655',
+      contactInfo: '+91 94530 00655',
       rating: 4.7,
       verifiedTransactions: 190
     },
@@ -174,7 +185,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2290,
       offerUnit: 'quintal',
       badge: 'Verified Buyer',
-      contactInfo: '***-***-9801',
+      phone: '9454098011',
+      contactInfo: '+91 94540 98011',
       rating: 4.6,
       verifiedTransactions: 165
     }
@@ -191,7 +203,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 4650,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-8871',
+      phone: '9826088711',
+      contactInfo: '+91 98260 88711',
       rating: 4.9,
       verifiedTransactions: 620
     },
@@ -205,7 +218,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2600,
       offerUnit: 'quintal',
       badge: 'FPO Partner',
-      contactInfo: '***-***-3341',
+      phone: '9827033341',
+      contactInfo: '+91 98270 33341',
       rating: 4.8,
       verifiedTransactions: 280
     }
@@ -222,7 +236,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 3100,
       offerUnit: 'quintal',
       badge: 'Export Certified',
-      contactInfo: '***-***-9900',
+      phone: '9822099001',
+      contactInfo: '+91 98220 99001',
       rating: 4.9,
       verifiedTransactions: 840
     },
@@ -236,7 +251,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 7250,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-5522',
+      phone: '9823055220',
+      contactInfo: '+91 98230 55220',
       rating: 4.8,
       verifiedTransactions: 430
     }
@@ -253,7 +269,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 5520,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-1122',
+      phone: '9414011220',
+      contactInfo: '+91 94140 11220',
       rating: 4.8,
       verifiedTransactions: 390
     },
@@ -267,7 +284,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 5780,
       offerUnit: 'quintal',
       badge: 'FPO Partner',
-      contactInfo: '***-***-8833',
+      phone: '9414588330',
+      contactInfo: '+91 94145 88330',
       rating: 4.7,
       verifiedTransactions: 260
     }
@@ -284,7 +302,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2183,
       offerUnit: 'quintal',
       badge: 'APMC Registered',
-      contactInfo: '***-***-4455',
+      phone: '9431044550',
+      contactInfo: '+91 94310 44550',
       rating: 4.7,
       verifiedTransactions: 310
     },
@@ -298,7 +317,8 @@ export const STATE_BUYERS_DB = {
       offerPrice: 2150,
       offerUnit: 'quintal',
       badge: 'Export Certified',
-      contactInfo: '***-***-7766',
+      phone: '9431277660',
+      contactInfo: '+91 94312 77660',
       rating: 4.9,
       verifiedTransactions: 480
     }
