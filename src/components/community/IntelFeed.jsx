@@ -137,16 +137,19 @@ function NewsCard({ item, lang }) {
       {/* Headline & Detail */}
       <div>
         <h4 style={{
+          fontFamily: 'var(--font-heading, "Roboto Condensed", sans-serif)',
           fontSize: '1.05rem',
           fontWeight: 700,
           color: 'var(--text-main, #111827)',
           margin: '0 0 6px 0',
           lineHeight: 1.4,
+          letterSpacing: '-0.01em',
         }}>
           {displayedHeadline}
         </h4>
         {displayedDetail && displayedDetail !== displayedHeadline && (
           <p style={{
+            fontFamily: 'var(--font-body, "Roboto Condensed", sans-serif)',
             fontSize: '0.86rem',
             color: 'var(--text-muted, #4b5563)',
             lineHeight: 1.55,
