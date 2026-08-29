@@ -876,65 +876,39 @@ app.post('/api/pools/:poolId/join', async (req, res) => {
   }
 });
 
-// Start Express & WebSocket Server
-const server = app.listen(PORT, () => {
-  console.log(`===================================================`);
-  console.log(`  LokVani AI Backend API listening on port ${PORT}`);
-  console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`  CORS Allowed Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
-  console.log(`===================================================`);
-});
-
-// Attach WebSocket Server for real-time live synchronization
-const wss = new WebSocketServer({ server });
-const wsClients = new Set();
-
-wss.on('connection', async (ws) => {
-  wsClients.add(ws);
-  console.log(`[LokVani WebSocket] Connected client. Total subscribers: ${wsClients.size}`);
-
-  // Fetch and send all current registered pools immediately on connection
+// Start Express & WebSocket Server (Only in standalone Node mode, not on Vercel Serverless)
+if (!process.env.VERCEL) {
   try {
-    let pools = [];
-    if (isMongoDBConnected()) {
-      pools = await CropPoolModel.find().sort({ createdAt: -1 });
-    } else {
-      pools = memoryCropPools;
-    }
-    ws.send(JSON.stringify({ type: 'INIT_POOLS', payload: pools }));
+    const server = app.listen(PORT, () => {
+      console.log(`===================================================`);
+      console.log(`  LokVani AI Backend API listening on port ${PORT}`);
+      console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`  CORS Allowed Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+      console.log(`===================================================`);
+    });
+
+    const wss = new WebSocketServer({ server });
+    wss.on('connection', async (ws) => {
+      wsClients.add(ws);
+      try {
+        let pools = isMongoDBConnected() ? await CropPoolModel.find().sort({ createdAt: -1 }) : memoryCropPools;
+        ws.send(JSON.stringify({ type: 'INIT_POOLS', payload: pools }));
+      } catch (_) {}
+      ws.on('close', () => wsClients.delete(ws));
+      ws.on('error', () => wsClients.delete(ws));
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        setTimeout(() => {
+          try { server.close(); } catch (_) {}
+          app.listen(PORT);
+        }, 1500);
+      }
+    });
   } catch (err) {
-    console.warn('[LokVani WebSocket] Error sending initial pool data:', err.message);
-  }
-
-  ws.on('close', () => {
-    wsClients.delete(ws);
-    console.log(`[LokVani WebSocket] Disconnected client. Total subscribers: ${wsClients.size}`);
-  });
-
-  ws.on('error', () => {
-    wsClients.delete(ws);
-  });
-});
-
-function broadcastPoolEvent(type, payload) {
-  const msg = JSON.stringify({ type, payload });
-  for (const client of wsClients) {
-    if (client.readyState === 1 /* OPEN */) {
-      try { client.send(msg); } catch (_) {}
-    }
+    console.warn('[LokVani Server] Local server init warning:', err.message);
   }
 }
-
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.warn(`[LokVani Server] Port ${PORT} is occupied. Retrying connection in 1.5s...`);
-    setTimeout(() => {
-      try { server.close(); } catch (_) {}
-      app.listen(PORT);
-    }, 1500);
-  } else {
-    console.error('[LokVani Server] Unexpected error:', err);
-  }
-});
 
 export default app;

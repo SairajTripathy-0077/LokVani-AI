@@ -993,18 +993,14 @@ export default function UserVoiceApp() {
                   )}
                   {/* Feedback buttons */}
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-emerald-600" aria-label="Helpful">
-                        <ThumbsUp size={12} />
-                      </Button>
+                    <TooltipTrigger className="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-emerald-600 transition-colors cursor-pointer" aria-label="Helpful">
+                      <ThumbsUp size={12} />
                     </TooltipTrigger>
                     <TooltipContent><p>Helpful</p></TooltipContent>
                   </Tooltip>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-500" aria-label="Not helpful">
-                        <ThumbsDown size={12} />
-                      </Button>
+                    <TooltipTrigger className="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted-foreground hover:text-red-500 transition-colors cursor-pointer" aria-label="Not helpful">
+                      <ThumbsDown size={12} />
                     </TooltipTrigger>
                     <TooltipContent><p>Not helpful</p></TooltipContent>
                   </Tooltip>
