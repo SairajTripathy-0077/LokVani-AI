@@ -392,24 +392,23 @@ export default function UserVoiceApp() {
       }
 
       if (!data || (!data.shortAnswerHi && !data.shortAnswerEn)) {
-        const local = processUserSpeechQuery(trimmed, { userLocation: 'Azamgarh, UP' });
         data = {
-          _id: `local_${Date.now()}`,
+          _id: `offline_${Date.now()}`,
           transcribedText: trimmed,
           userLocation: 'Azamgarh, UP',
-          shortAnswerHi: local.shortAnswerHi   || '',
-          shortAnswerEn: local.shortAnswerEn   || '',
-          detailedAnswerHi: local.detailedAnswerHi || local.shortAnswerHi || '',
-          detailedAnswerEn: local.detailedAnswerEn || local.shortAnswerEn || '',
-          confidence: local.confidence || 'LOW',
-          followUpQuestions: local.follow_up_questions || [],
-          domain: local.domain || 'AGRI_ADVISORY',
-          isHighStakes: local.isHighStakes || false,
-          riskCategory: local.riskCategory || 'NONE',
-          trustNote: local.trustNote || '',
-          actionableSteps: local.actionableSteps || [],
-          status: local.isHighStakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED (Offline)',
-          engineSource: 'LOCAL_NLP_FALLBACK',
+          shortAnswerHi: 'AI सेवा अस्थायी रूप से अनुपलब्ध है। कृपया कुछ समय बाद पुनः प्रयास करें।',
+          shortAnswerEn: 'AI service is temporarily out of service. Please try again in a moment.',
+          detailedAnswerHi: 'AI मॉडल सर्वर से संपर्क नहीं हो सका। कृपया अपना नेटवर्क कनेक्शन जांचें और पुनः प्रयास करें।',
+          detailedAnswerEn: 'The AI model server was unable to respond. Please check your network connection and try again.',
+          confidence: 'LOW',
+          followUpQuestions: ['पुनः प्रयास करें / Try again', 'मंडी भाव देखें / Check mandi rates'],
+          domain: 'AGRI_ADVISORY',
+          isHighStakes: false,
+          riskCategory: 'NONE',
+          trustNote: 'AI Service Out of Service',
+          actionableSteps: ['कृपया कुछ समय बाद पुनः प्रयास करें / Please try again shortly.'],
+          status: 'OUT_OF_SERVICE',
+          engineSource: 'AI_OUT_OF_SERVICE',
           createdAt: new Date(),
         };
       }

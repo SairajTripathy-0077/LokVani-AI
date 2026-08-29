@@ -110,16 +110,13 @@ export function subscribeCropPools(onUpdate) {
             }
           });
         }
-      }, (err) => {
-        console.warn('[poolService] Firestore real-time snapshot warning:', err.message);
+      }, () => {
         fetchCropPoolsFromMongo().then(pools => {
           if (isSubscribed && pools.length > 0) onUpdate(pools);
         });
       });
     }
-  } catch (err) {
-    console.warn('[poolService] Firestore init warning:', err.message);
-  }
+  } catch (_) {}
 
   // 3. One-time MongoDB fetch to ensure all pools are in sync
   fetchCropPoolsFromMongo().then(pools => {

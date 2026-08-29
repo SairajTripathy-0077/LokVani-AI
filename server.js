@@ -220,23 +220,26 @@ app.post('/api/query', async (req, res) => {
     try {
       aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history);
     } catch (geminiErr) {
-      console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
-      const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
+      console.warn('[API /api/query] AI engine unavailable:', geminiErr.message);
       aiResult = {
-        short_answer_hi: fallback.shortAnswerHi,
-        short_answer_en: fallback.shortAnswerEn,
-        detailed_answer_hi: fallback.detailedAnswerHi,
-        detailed_answer_en: fallback.detailedAnswerEn,
-        confidence: fallback.confidence || 'LOW',
-        follow_up_questions: fallback.follow_up_questions || [],
-        domain: fallback.domain || 'AGRI_ADVISORY',
-        is_high_stakes: fallback.isHighStakes || false,
-        risk_category: fallback.riskCategory || 'NONE',
-        trust_note: fallback.trustNote || '',
-        actionable_steps: fallback.actionableSteps || [],
+        short_answer_hi: 'AI सेवा अस्थायी रूप से अनुपलब्ध है। कृपया कुछ समय बाद पुनः प्रयास करें।',
+        short_answer_en: 'AI service is temporarily out of service. Please try again in a moment.',
+        detailed_answer_hi: 'AI मॉडल सर्वर कनेक्ट करने में असमर्थ था। कृपया इंटरनेट कनेक्शन या API स्थिति की जांच करें और पुनः प्रयास करें।',
+        detailed_answer_en: 'The AI model server was unable to respond. Please check your network connection or API status and try again.',
+        confidence: 'LOW',
+        follow_up_questions: ['पुनः प्रयास करें / Try again', 'मंडी भाव देखें / Check mandi rates'],
+        domain: 'AGRI_ADVISORY',
+        is_high_stakes: false,
+        risk_category: 'NONE',
+        trust_note: 'AI Service Out of Service',
+        actionable_steps: ['कृपया कुछ समय बाद पुनः प्रयास करें / Please try again shortly.'],
+        distress_score: 0,
+        distress_level: 'LOW',
+        damage_impact_hi: 'अस्थायी AI सेवा बाधा।',
+        damage_impact_en: 'Temporary AI service disruption.',
         apiKeyIndexUsed: -1
       };
-      engineSource = 'LOCAL_NLP_FALLBACK';
+      engineSource = 'AI_OUT_OF_SERVICE';
     }
 
     const initialStatus = aiResult.is_high_stakes ? 'PENDING_TRUST_REVIEW' : 'AUTO_VERIFIED';
