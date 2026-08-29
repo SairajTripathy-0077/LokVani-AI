@@ -371,6 +371,7 @@ export default function UserVoiceApp() {
     try {
       let data = null;
       try {
+        const fetchTimeout = setTimeout(() => ctrl.abort(), 3000);
         const res = await fetch('/api/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -384,6 +385,7 @@ export default function UserVoiceApp() {
             conversation_history: conversationHistory
           })
         });
+        clearTimeout(fetchTimeout);
         if (res.ok) {
           const text = await res.text();
           try {
@@ -519,11 +521,11 @@ export default function UserVoiceApp() {
         if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
         if (r.transcript && r.transcript.trim()) {
-          // Wait 2.2 seconds of silence to ensure user has finished their complete statement
+          // Fast 800ms silence auto-submit
           silenceTimerRef.current = setTimeout(() => {
             speechService.stopListening();
             handleProcessQuery(r.transcript);
-          }, 2200);
+          }, 800);
         }
       },
       (e) => {
