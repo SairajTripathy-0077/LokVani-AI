@@ -46,6 +46,43 @@ import { fetchLiveNews } from '../services/newsService';
 import LocationPrompt from './common/LocationPrompt.jsx';
 
 const DISTRICT_NEIGHBORS = {
+  // Odisha
+  'sundargarh': ['Jharsuguda', 'Sambalpur', 'Rourkela', 'Deogarh', 'Kendujhar', 'Bargarh', 'Simdega', 'Raigarh'],
+  'sundergarh': ['Jharsuguda', 'Sambalpur', 'Rourkela', 'Deogarh', 'Kendujhar', 'Bargarh', 'Simdega', 'Raigarh'],
+  'rourkela': ['Sundargarh', 'Jharsuguda', 'Kendujhar', 'Deogarh', 'West Singhbhum', 'Simdega'],
+  'sambalpur': ['Jharsuguda', 'Bargarh', 'Sundargarh', 'Deogarh', 'Sonepur', 'Angul'],
+  'jharsuguda': ['Sundargarh', 'Sambalpur', 'Bargarh', 'Raigarh'],
+  'bargarh': ['Sambalpur', 'Jharsuguda', 'Sonepur', 'Balangir', 'Mahasamund', 'Raigarh'],
+  'deogarh': ['Sundargarh', 'Sambalpur', 'Angul', 'Kendujhar'],
+  'kendujhar': ['Sundargarh', 'Mayurbhanj', 'Bhadrak', 'Jajpur', 'Dhenkanal', 'Deogarh', 'West Singhbhum'],
+  'keonjhar': ['Sundargarh', 'Mayurbhanj', 'Bhadrak', 'Jajpur', 'Dhenkanal', 'Deogarh', 'West Singhbhum'],
+  'cuttack': ['Bhubaneswar', 'Khurda', 'Jajpur', 'Kendrapara', 'Jagatsinghpur', 'Dhenkanal', 'Puri'],
+  'bhubaneswar': ['Cuttack', 'Khurda', 'Puri', 'Nayagarh', 'Jagatsinghpur'],
+  'khurda': ['Bhubaneswar', 'Cuttack', 'Puri', 'Nayagarh', 'Ganjam'],
+  'balasore': ['Bhadrak', 'Mayurbhanj', 'Kendujhar', 'East Medinipur'],
+  'puri': ['Khurda', 'Bhubaneswar', 'Cuttack', 'Jagatsinghpur', 'Ganjam'],
+  'ganjam': ['Gajapati', 'Nayagarh', 'Kandhamal', 'Puri', 'Srikakulam'],
+  'mayurbhanj': ['Balasore', 'Kendujhar', 'East Singhbhum', 'Jhargram'],
+  'koraput': ['Nabarangpur', 'Rayagada', 'Malkangiri', 'Visakhapatnam', 'Bastar'],
+  'angul': ['Dhenkanal', 'Cuttack', 'Sambalpur', 'Deogarh', 'Boudh'],
+  'dhenkanal': ['Angul', 'Cuttack', 'Jajpur', 'Kendujhar'],
+  'balangir': ['Bargarh', 'Sonepur', 'Kalahandi', 'Nuapada'],
+  'kalahandi': ['Balangir', 'Nuapada', 'Rayagada', 'Nabarangpur'],
+
+  // Jharkhand & Chhattisgarh
+  'simdega': ['Sundargarh', 'Gumla', 'West Singhbhum', 'Jashpur', 'Ranchi'],
+  'west singhbhum': ['Sundargarh', 'Kendujhar', 'East Singhbhum', 'Seraikela', 'Khunti', 'Simdega'],
+  'ranchi': ['Ramgarh', 'Khunti', 'Lohardaga', 'Gumla', 'Purulia', 'Bokaro'],
+  'jamshedpur': ['East Singhbhum', 'Seraikela', 'West Singhbhum', 'Purulia'],
+  'dhanbad': ['Bokaro', 'Giridih', 'Purulia', 'Jamtara'],
+  'bokaro': ['Dhanbad', 'Ramgarh', 'Giridih', 'Purulia', 'Ranchi'],
+  'raigarh': ['Sundargarh', 'Jharsuguda', 'Jashpur', 'Janjgir-Champa', 'Mahasamund', 'Korba'],
+  'jashpur': ['Sundargarh', 'Simdega', 'Gumla', 'Raigarh', 'Balrampur'],
+  'raipur': ['Durg', 'Bemetara', 'Balod', 'Dhamtari', 'Gariaband', 'Baloda Bazar'],
+  'bilaspur': ['Korba', 'Mungeli', 'Janjgir-Champa', 'Gaurela-Pendra-Marwahi', 'Baloda Bazar'],
+  'durg': ['Raipur', 'Bhilai', 'Bemetara', 'Balod', 'Rajnandgaon'],
+  'korba': ['Bilaspur', 'Janjgir-Champa', 'Raigarh', 'Surguja'],
+
   // Uttar Pradesh
   'azamgarh': ['Mau', 'Jaunpur', 'Gorakhpur', 'Ghazipur', 'Ballia', 'Ambedkar Nagar', 'Varanasi'],
   'mau': ['Azamgarh', 'Ballia', 'Ghazipur', 'Deoria', 'Gorakhpur'],
@@ -113,6 +150,10 @@ const DISTRICT_NEIGHBORS = {
 };
 
 const STATE_NEARBY_DISTRICTS = {
+  'Odisha': ['Sundargarh', 'Jharsuguda', 'Sambalpur', 'Rourkela', 'Bargarh', 'Deogarh', 'Kendujhar', 'Cuttack', 'Bhubaneswar', 'Balasore', 'Puri'],
+  'Orissa': ['Sundargarh', 'Jharsuguda', 'Sambalpur', 'Rourkela', 'Bargarh', 'Deogarh', 'Kendujhar', 'Cuttack', 'Bhubaneswar', 'Balasore', 'Puri'],
+  'Jharkhand': ['Simdega', 'Ranchi', 'Jamshedpur', 'Dhanbad', 'Bokaro', 'Hazaribagh', 'West Singhbhum', 'East Singhbhum'],
+  'Chhattisgarh': ['Raigarh', 'Jashpur', 'Bilaspur', 'Raipur', 'Durg', 'Korba', 'Rajnandgaon'],
   'Uttar Pradesh': ['Azamgarh', 'Mau', 'Jaunpur', 'Gorakhpur', 'Varanasi', 'Ghazipur', 'Ballia', 'Lucknow'],
   'Bihar': ['Patna', 'Vaishali', 'Muzaffarpur', 'Gaya', 'Samastipur', 'Bhagalpur', 'Darbhanga'],
   'Madhya Pradesh': ['Indore', 'Ujjain', 'Dewas', 'Bhopal', 'Sehore', 'Jabalpur', 'Gwalior'],
@@ -121,12 +162,71 @@ const STATE_NEARBY_DISTRICTS = {
   'Punjab': ['Ludhiana', 'Jalandhar', 'Moga', 'Amritsar', 'Patiala', 'Bathinda'],
   'Haryana': ['Karnal', 'Kurukshetra', 'Panipat', 'Kaithal', 'Hisar', 'Rohtak'],
   'Gujarat': ['Ahmedabad', 'Gandhinagar', 'Kheda', 'Surat', 'Rajkot', 'Vadodara'],
-  'West Bengal': ['Kolkata', 'Hooghly', 'Howrah', 'Burdwan', 'Nadia', 'Murshidabad'],
+  'West Bengal': ['Kolkata', 'Hooghly', 'Howrah', 'Burdwan', 'Nadia', 'Murshidabad', 'Purulia'],
   'Tamil Nadu': ['Coimbatore', 'Tiruppur', 'Erode', 'Salem', 'Madurai', 'Trichy'],
   'Karnataka': ['Bangalore', 'Ramanagara', 'Tumkur', 'Mysore', 'Mandya', 'Hubli'],
   'Andhra Pradesh': ['Vijayawada', 'Guntur', 'Krishna', 'Visakhapatnam', 'Kurnool', 'Tirupati'],
   'Telangana': ['Hyderabad', 'Rangareddy', 'Medchal', 'Sangareddy', 'Warangal', 'Nizamabad'],
 };
+
+// Known major district coordinates for proximity calculation
+const INDIAN_DISTRICT_COORDS = [
+  { name: 'Sundargarh', state: 'Odisha', lat: 22.12, lon: 84.03 },
+  { name: 'Jharsuguda', state: 'Odisha', lat: 21.85, lon: 84.01 },
+  { name: 'Sambalpur', state: 'Odisha', lat: 21.47, lon: 83.97 },
+  { name: 'Rourkela', state: 'Odisha', lat: 22.26, lon: 84.85 },
+  { name: 'Bargarh', state: 'Odisha', lat: 21.33, lon: 83.62 },
+  { name: 'Deogarh', state: 'Odisha', lat: 21.53, lon: 84.73 },
+  { name: 'Kendujhar', state: 'Odisha', lat: 21.63, lon: 85.58 },
+  { name: 'Simdega', state: 'Jharkhand', lat: 22.61, lon: 84.50 },
+  { name: 'Raigarh', state: 'Chhattisgarh', lat: 21.90, lon: 83.40 },
+  { name: 'Jashpur', state: 'Chhattisgarh', lat: 22.88, lon: 84.14 },
+  { name: 'Cuttack', state: 'Odisha', lat: 20.46, lon: 85.88 },
+  { name: 'Bhubaneswar', state: 'Odisha', lat: 20.29, lon: 85.82 },
+  { name: 'Balasore', state: 'Odisha', lat: 21.49, lon: 86.93 },
+  { name: 'Puri', state: 'Odisha', lat: 19.81, lon: 85.83 },
+  { name: 'Ranchi', state: 'Jharkhand', lat: 23.34, lon: 85.31 },
+  { name: 'Jamshedpur', state: 'Jharkhand', lat: 22.80, lon: 86.20 },
+  { name: 'Raipur', state: 'Chhattisgarh', lat: 21.25, lon: 81.63 },
+  { name: 'Bilaspur', state: 'Chhattisgarh', lat: 22.08, lon: 82.14 },
+  { name: 'Azamgarh', state: 'Uttar Pradesh', lat: 26.07, lon: 83.18 },
+  { name: 'Mau', state: 'Uttar Pradesh', lat: 25.94, lon: 83.56 },
+  { name: 'Jaunpur', state: 'Uttar Pradesh', lat: 25.75, lon: 82.68 },
+  { name: 'Gorakhpur', state: 'Uttar Pradesh', lat: 26.76, lon: 83.37 },
+  { name: 'Varanasi', state: 'Uttar Pradesh', lat: 25.31, lon: 82.97 },
+  { name: 'Ghazipur', state: 'Uttar Pradesh', lat: 25.58, lon: 83.58 },
+  { name: 'Ballia', state: 'Uttar Pradesh', lat: 25.76, lon: 84.15 },
+  { name: 'Lucknow', state: 'Uttar Pradesh', lat: 26.84, lon: 80.94 },
+  { name: 'Kanpur', state: 'Uttar Pradesh', lat: 26.44, lon: 80.33 },
+  { name: 'Patna', state: 'Bihar', lat: 25.59, lon: 85.13 },
+  { name: 'Muzaffarpur', state: 'Bihar', lat: 26.12, lon: 85.39 },
+  { name: 'Gaya', state: 'Bihar', lat: 24.79, lon: 85.00 },
+  { name: 'Indore', state: 'Madhya Pradesh', lat: 22.71, lon: 75.85 },
+  { name: 'Bhopal', state: 'Madhya Pradesh', lat: 23.25, lon: 77.41 },
+  { name: 'Pune', state: 'Maharashtra', lat: 18.52, lon: 73.85 },
+  { name: 'Nashik', state: 'Maharashtra', lat: 19.99, lon: 73.78 },
+  { name: 'Nagpur', state: 'Maharashtra', lat: 21.14, lon: 79.08 },
+  { name: 'Jaipur', state: 'Rajasthan', lat: 26.91, lon: 75.78 },
+  { name: 'Ahmedabad', state: 'Gujarat', lat: 23.02, lon: 72.57 },
+  { name: 'Ludhiana', state: 'Punjab', lat: 30.90, lon: 75.85 },
+  { name: 'Karnal', state: 'Haryana', lat: 29.68, lon: 76.99 },
+  { name: 'Bangalore', state: 'Karnataka', lat: 12.97, lon: 77.59 },
+  { name: 'Hyderabad', state: 'Telangana', lat: 17.38, lon: 78.48 },
+  { name: 'Coimbatore', state: 'Tamil Nadu', lat: 11.01, lon: 76.95 },
+  { name: 'Vijayawada', state: 'Andhra Pradesh', lat: 16.50, lon: 80.64 },
+];
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 // ── Scoped styles (never touches index.css) ──────────────────────────────────
 import '../styles/community.css';
@@ -297,23 +397,53 @@ export default function CommunityIntel() {
   const userState = userLocation?.state || 'Uttar Pradesh';
 
   const nearbyLocations = useMemo(() => {
-    const normDist = userDistrict.trim().toLowerCase();
-    
-    // 1. Direct exact match in district adjacency map
+    // Clean district name: strip (Current), district, sadar, division, punctuation
+    const cleanDist = userDistrict
+      .replace(/\(current\)/gi, '')
+      .replace(/\(आपकी लोकेशन\)/gi, '')
+      .replace(/district/gi, '')
+      .replace(/sadar/gi, '')
+      .replace(/[^\w\s\u0900-\u097F]/gi, '')
+      .trim();
+    const normDist = cleanDist.toLowerCase();
+
+    // 1. Direct match in adjacency map
     if (DISTRICT_NEIGHBORS[normDist]) {
       return DISTRICT_NEIGHBORS[normDist].slice(0, 6);
     }
-    
-    // 2. Fuzzy match for composite names (e.g. "Azamgarh Sadar" -> "azamgarh")
-    const matchKey = Object.keys(DISTRICT_NEIGHBORS).find(k => normDist.includes(k) || k.includes(normDist));
+
+    // 2. Fuzzy match in adjacency map
+    const matchKey = Object.keys(DISTRICT_NEIGHBORS).find(k => 
+      (normDist.length >= 3 && (k.includes(normDist) || normDist.includes(k)))
+    );
     if (matchKey && DISTRICT_NEIGHBORS[matchKey]) {
       return DISTRICT_NEIGHBORS[matchKey].slice(0, 6);
     }
 
-    // 3. Fallback to state cluster without current district
-    const stateList = STATE_NEARBY_DISTRICTS[userState] || STATE_NEARBY_DISTRICTS['Uttar Pradesh'];
+    // 3. Proximity via geographic coordinates (lat / lon) if available
+    const userLat = Number(userLocation?.lat);
+    const userLon = Number(userLocation?.lng || userLocation?.lon);
+    if (!isNaN(userLat) && !isNaN(userLon) && userLat !== 0 && userLon !== 0) {
+      const sortedByDistance = INDIAN_DISTRICT_COORDS
+        .filter(d => d.name.toLowerCase() !== normDist && !normDist.includes(d.name.toLowerCase()))
+        .map(d => ({
+          ...d,
+          distance: calculateDistanceKm(userLat, userLon, d.lat, d.lon)
+        }))
+        .sort((a, b) => a.distance - b.distance);
+
+      if (sortedByDistance.length > 0 && sortedByDistance[0].distance < 350) {
+        return sortedByDistance.slice(0, 6).map(d => d.name);
+      }
+    }
+
+    // 4. Fallback to state cluster
+    const normalizedState = (userState || '').trim();
+    const stateList = STATE_NEARBY_DISTRICTS[normalizedState] || 
+      (normalizedState.toLowerCase().includes('odi') || normalizedState.toLowerCase().includes('oris') ? STATE_NEARBY_DISTRICTS['Odisha'] : null) ||
+      STATE_NEARBY_DISTRICTS['Uttar Pradesh'];
     return stateList.filter(d => d.toLowerCase() !== normDist).slice(0, 6);
-  }, [userState, userDistrict]);
+  }, [userState, userDistrict, userLocation]);
 
   const handleRegionChange = async (cityName, lat = null, lon = null) => {
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: regionWeather });
