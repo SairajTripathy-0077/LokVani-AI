@@ -39,9 +39,13 @@ Rules:
 14. damage_impact_hi: Concise explanation in simple Hindi of potential crop/financial/business damage if not addressed.
 15. damage_impact_en: Equivalent English explanation.
 
-IMPORTANT: If a dialect is specified in the query context, respond in that dialect/script wherever possible.
-For market price queries: use the provided community price data if available.
-For weather: use the provided weather context if available.
+IMPORTANT: Location Schema Matching
+1. Identify the user's specific location (District & State) from the provided context (e.g. Azamgarh, Uttar Pradesh or Gorakhpur, UP).
+2. For Government Schemes, Market Prices, Weather, and Agriculture Advisory, evaluate the scheme rules, eligible district offices, local APMC mandi hubs, and state agricultural schemes matching that exact district/state schema.
+3. If a government scheme or market rate differs by state/district (e.g. PM-Kisan, PM Fasal Bima Yojana, CM Krishi Yojana, State Subsidy), state the exact location-specific rules, local APMC mandi, or district Agriculture Officer for the user's location.
+4. If a dialect is specified in the query context, respond in that dialect/script wherever possible.
+5. For market price queries: use the provided community price data matching the user location if available.
+6. For weather: use the provided weather context for that city/district.
 
 Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
 {

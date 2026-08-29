@@ -364,6 +364,10 @@ export default function UserVoiceApp() {
       text: m.text
     }));
 
+    const activeLocStr = userLocation?.district
+      ? `${userLocation.district}, ${userLocation.state || 'Uttar Pradesh'}`
+      : (userProfile?.district ? `${userProfile.district}, ${userProfile.state || 'Uttar Pradesh'}` : 'Azamgarh, Uttar Pradesh');
+
     try {
       let data = null;
       try {
@@ -373,7 +377,7 @@ export default function UserVoiceApp() {
           signal: ctrl.signal,
           body: JSON.stringify({
             transcribed_text: trimmed,
-            user_location: 'Azamgarh, UP',
+            user_location: activeLocStr,
             userId: user?.uid || 'user_demo_1',
             userName: userProfile?.fullName || user?.displayName || 'Citizen',
             dialect: dialectInfo.promptName,
@@ -467,6 +471,25 @@ export default function UserVoiceApp() {
 
       setActiveResult(data);
       setQueryHistory(prev => [data, ...prev.filter(h => h._id !== data._id)]);
+
+      // Append Q&A to current chat session and auto-update title from query text
+      setChatSessions(prev => prev.map(s => {
+        if (s.id !== activeSessionId) return s;
+        const isGenericTitle = !s.title || s.title.includes('New Chat') || s.title.includes('नई बातचीत') || s.title.includes('General Assistance');
+        const formattedTitle = (isGenericTitle && trimmed)
+          ? (trimmed.length > 32 ? trimmed.substring(0, 32) + '...' : trimmed)
+          : s.title;
+
+        const userMsg = { role: 'user', text: trimmed, timestamp: new Date().toISOString() };
+        const assistantMsg = { role: 'assistant', text: data.shortAnswerHi || data.shortAnswerEn || '', data, timestamp: new Date().toISOString() };
+
+        return {
+          ...s,
+          title: formattedTitle,
+          messages: [...(s.messages || []), userMsg, assistantMsg]
+        };
+      }));
+
       setTranscript('');
       setAppState('IDLE');
 
@@ -612,9 +635,20 @@ export default function UserVoiceApp() {
               <p className="font-mono text-[10px] font-bold text-zinc-400 uppercase tracking-[0.16em] flex items-center gap-1.5">
                 <MessageSquare size={12} className="text-zinc-500" /> {language === 'hi' ? 'सहेजी गई बातचीत' : 'Saved Chats'}
               </p>
-              <span className="text-[10px] font-mono font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-md">
-                {chatSessions.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+                  title={language === 'hi' ? 'नई बातचीत शुरू करें' : 'Start a new chat'}
+                >
+                  <Plus size={11} />
+                  <span>{language === 'hi' ? 'नया चैट' : 'New Chat'}</span>
+                </button>
+                <span className="text-[10px] font-mono font-bold text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-md">
+                  {chatSessions.length}
+                </span>
+              </div>
             </div>
             <ScrollArea className="max-h-72 overflow-y-auto">
               <div className="flex flex-col gap-1.5 pr-1">
@@ -768,6 +802,45 @@ export default function UserVoiceApp() {
 
         {/* Skeleton while thinking */}
         {isProcessing && <SkeletonCard />}
+
+        {/* Active Chat Thread History Timeline */}
+        {(() => {
+          const activeSession = chatSessions.find(s => s.id === activeSessionId);
+          if (!activeSession || !activeSession.messages || activeSession.messages.length <= 2) return null;
+          
+          return (
+            <div className="rounded-2xl bg-zinc-100/90 border border-zinc-200/90 p-4 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
+                <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <MessageSquare size={13} className="text-emerald-700" />
+                  <span>{activeSession.title}</span>
+                </h4>
+                <span className="text-[10px] font-mono font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-md border border-zinc-200">
+                  {Math.floor(activeSession.messages.length / 2)} {language === 'hi' ? 'बातचीत इतिहास' : 'Q&A History'}
+                </span>
+              </div>
+              <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                {activeSession.messages.map((msg, idx) => (
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      'p-2.5 rounded-xl text-xs space-y-1 transition-all',
+                      msg.role === 'user'
+                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 font-medium ml-4'
+                        : 'bg-white border border-zinc-200 text-zinc-800 mr-4 shadow-2xs'
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono font-semibold text-zinc-400">
+                      <span>{msg.role === 'user' ? (language === 'hi' ? '👤 आपका सवाल' : '👤 You') : (language === 'hi' ? '🤖 लोकवाणी AI' : '🤖 LokVani AI')}</span>
+                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p className="leading-relaxed font-medium">{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Result Card */}
         {!isProcessing && activeResult && (
@@ -937,46 +1010,7 @@ export default function UserVoiceApp() {
                 </div>
               )}
 
-              {/* Actionable steps */}
-              {activeResult.actionableSteps?.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
-                    {language === 'hi' ? 'अनुशंसित कदम' : 'Recommended Steps'}
-                  </p>
-                  <div className="space-y-2.5">
-                    {activeResult.actionableSteps.map((step, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border/40">
-                        <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
-                          {i + 1}
-                        </span>
-                        <p className="text-sm text-foreground">{step}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {/* Follow-up questions */}
-              {activeResult.followUpQuestions?.length > 0 && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em]">
-                    {language === 'hi' ? 'आगे पूछें' : 'Follow-up Questions'}
-                  </p>
-                  <div className="flex flex-col gap-2.5">
-                    {activeResult.followUpQuestions.map((q, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleProcessQuery(q)}
-                        disabled={isProcessing}
-                        className="text-left flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-sm font-medium text-primary transition-all disabled:opacity-50"
-                      >
-                        <ArrowRight size={13} className="shrink-0" />
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <Separator />
 
