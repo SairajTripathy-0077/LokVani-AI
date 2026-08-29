@@ -170,9 +170,11 @@ export function AppProvider({ children }) {
   // Load Real-Time Data for the user's specific location on mount or location update
   useEffect(() => {
     async function loadRealData() {
-      const activeLocation = userProfile?.district || userLocation?.district || 'Lucknow';
-      const weather = await fetchLiveWeatherData(activeLocation);
-      setLiveWeather(weather);
+      const activeLocation = userProfile?.district || userLocation?.district || userProfile?.state || userLocation?.state || '';
+      if (activeLocation) {
+        const weather = await fetchLiveWeatherData(activeLocation);
+        setLiveWeather(weather);
+      }
 
       const livePrices = await fetchLiveMandiPrices();
       if (livePrices && livePrices.length > 0) {

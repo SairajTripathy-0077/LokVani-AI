@@ -63,7 +63,7 @@ Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
 }
 `;
 
-export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null, conversationHistory = [], targetLocation = 'Azamgarh, UP') {
+export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null, conversationHistory = [], targetLocation = '') {
   // Server-side input sanitization
   const safeQuery = sanitizeInput(queryText);
   if (!safeQuery) {
@@ -71,12 +71,11 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
   }
 
   // Dynamic Location Directive
-  const locationInstruction = `
+  const locationInstruction = targetLocation ? `
 DYNAMIC LOCATION INSTRUCTION:
 - Resolved User/Query Location: "${targetLocation}"
-- CRITICAL: Tailor your response specifically to "${targetLocation}". If the query explicitly names a city, district, or market (e.g. Lucknow, Gorakhpur, Varanasi, Patna, Jaipur, etc.), answer ONLY for that requested location.
-- Do NOT default to Azamgarh if another location was specified or passed in context.
-`;
+- CRITICAL: Tailor your response specifically to "${targetLocation}". If the query explicitly names a city, district, or market, answer ONLY for that requested location.
+` : '';
 
   // Build prior multi-turn conversation context
   const historyContext = Array.isArray(conversationHistory) && conversationHistory.length > 0

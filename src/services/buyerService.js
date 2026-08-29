@@ -18,7 +18,7 @@ export const DEMO_BUYERS = [
 /**
  * Fetch verified buyers from backend (/api/buyers).
  */
-export async function fetchBuyers(state = 'Uttar Pradesh') {
+export async function fetchBuyers(state = '') {
   try {
     const res = await fetch('/api/buyers');
     if (res.ok) {

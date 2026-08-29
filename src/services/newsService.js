@@ -85,7 +85,7 @@ const KNOWN_REPORTERS_HI = {
  * Fetch fresh real-time agriculture news across multiple targeted streams
  * Aggregates state-level, national mandi rates, government schemes, and crop advisories
  */
-export async function fetchLiveNews(state = 'Uttar Pradesh', district = '', lang = 'hi') {
+export async function fetchLiveNews(state = '', district = '', lang = 'hi') {
   try {
     const loc = district || state || 'India';
     const isEn = lang === 'en';

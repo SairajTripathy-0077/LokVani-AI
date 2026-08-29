@@ -365,8 +365,8 @@ export default function UserVoiceApp() {
     }));
 
     const resolvedUserLoc = userProfile?.district 
-      ? `${userProfile.district}, ${userProfile.state || 'India'}` 
-      : (userLocation?.district ? `${userLocation.district}, ${userLocation.state || 'India'}` : (userLocation?.state || 'Local District'));
+      ? `${userProfile.district}${userProfile.state ? `, ${userProfile.state}` : ''}` 
+      : (userLocation?.district ? `${userLocation.district}${userLocation.state ? `, ${userLocation.state}` : ''}` : (userProfile?.state || userLocation?.state || ''));
 
     try {
       let data = null;

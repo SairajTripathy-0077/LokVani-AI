@@ -140,7 +140,7 @@ app.post('/api/query', async (req, res) => {
       'Aligarh', 'Moradabad', 'Saharanpur', 'Jhansi', 'Ayodhya', 'Basti', 'Mau'
     ];
 
-    let detectedCity = 'Azamgarh';
+    let detectedCity = '';
     if (safeText) {
       const lower = safeText.toLowerCase();
       for (const city of CITIES_LIST) {
@@ -150,12 +150,12 @@ app.post('/api/query', async (req, res) => {
         }
       }
     }
-    if (detectedCity === 'Azamgarh' && user_location) {
+    if (!detectedCity && user_location) {
       const firstPart = String(user_location).split(',')[0].trim();
       if (firstPart) detectedCity = firstPart;
     }
 
-    const weatherData = await fetchLiveWeatherData(detectedCity);
+    const weatherData = detectedCity ? await fetchLiveWeatherData(detectedCity) : null;
 
     // Run AI Engine through Rotator (sanitized text, optional dialect, multi-turn history)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
@@ -163,7 +163,7 @@ app.post('/api/query', async (req, res) => {
     let engineSource = 'GEMINI_AI';
 
     try {
-      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history, `${detectedCity}, India`);
+      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history, user_location || detectedCity);
     } catch (geminiErr) {
       console.warn('[API /api/query] AI engine unavailable:', geminiErr.message);
       aiResult = {

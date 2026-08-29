@@ -45,7 +45,7 @@ export const INITIAL_MANDI_RATES = [
  * Fetch live mandi rates from backend endpoint (/api/intel).
  * Uses proxy to eliminate client CORS restrictions.
  */
-export async function fetchLiveMandiRates(state = 'Uttar Pradesh', limit = 50) {
+export async function fetchLiveMandiRates(state = '', limit = 50) {
   // 1. Fetch from backend API route
   try {
     const res = await fetch('/api/intel');
