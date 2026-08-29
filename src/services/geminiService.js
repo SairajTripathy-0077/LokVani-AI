@@ -39,13 +39,9 @@ Rules:
 14. damage_impact_hi: Concise explanation in simple Hindi of potential crop/financial/business damage if not addressed.
 15. damage_impact_en: Equivalent English explanation.
 
-IMPORTANT: Location Schema Matching
-1. Identify the user's specific location (District & State) from the provided context (e.g. Azamgarh, Uttar Pradesh or Gorakhpur, UP).
-2. For Government Schemes, Market Prices, Weather, and Agriculture Advisory, evaluate the scheme rules, eligible district offices, local APMC mandi hubs, and state agricultural schemes matching that exact district/state schema.
-3. If a government scheme or market rate differs by state/district (e.g. PM-Kisan, PM Fasal Bima Yojana, CM Krishi Yojana, State Subsidy), state the exact location-specific rules, local APMC mandi, or district Agriculture Officer for the user's location.
-4. If a dialect is specified in the query context, respond in that dialect/script wherever possible.
-5. For market price queries: use the provided community price data matching the user location if available.
-6. For weather: use the provided weather context for that city/district.
+IMPORTANT: If a dialect is specified in the query context, respond in that dialect/script wherever possible.
+For market price queries: use the provided community price data if available.
+For weather: use the provided weather context if available.
 
 Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
 {
@@ -67,12 +63,20 @@ Return ONLY valid JSON — no markdown fences, no explanations outside the JSON:
 }
 `;
 
-export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null, conversationHistory = []) {
+export async function processVoiceQuery(queryText, communityIntel = [], weatherData = null, dialect = null, conversationHistory = [], targetLocation = 'Azamgarh, UP') {
   // Server-side input sanitization
   const safeQuery = sanitizeInput(queryText);
   if (!safeQuery) {
     throw new Error('Invalid or empty query after sanitization.');
   }
+
+  // Dynamic Location Directive
+  const locationInstruction = `
+DYNAMIC LOCATION INSTRUCTION:
+- Resolved User/Query Location: "${targetLocation}"
+- CRITICAL: Tailor your response specifically to "${targetLocation}". If the query explicitly names a city, district, or market (e.g. Lucknow, Gorakhpur, Varanasi, Patna, Jaipur, etc.), answer ONLY for that requested location.
+- Do NOT default to Azamgarh if another location was specified or passed in context.
+`;
 
   // Build prior multi-turn conversation context
   const historyContext = Array.isArray(conversationHistory) && conversationHistory.length > 0
@@ -85,7 +89,7 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
     : 'No recent community market reports available.';
 
   const weatherContext = weatherData
-    ? `Live Weather for ${weatherData.city || 'Azamgarh'}: Temp ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
+    ? `Live Weather for ${weatherData.city || targetLocation}: Temp ${weatherData.temp}°C, Condition: ${weatherData.condition}, Precipitation: ${weatherData.precipitation}mm. Advisory: ${weatherData.advisory_en || ''}`
     : 'No live weather telemetry available.';
 
   const dialectContext = dialect && dialect !== 'hi' && dialect !== 'en'
@@ -96,7 +100,7 @@ export async function processVoiceQuery(queryText, communityIntel = [], weatherD
   let mlPredictionContext = '';
   if (isAgriculturePredictionQuery(safeQuery)) {
     try {
-      const extractedInputs = extractPredictionInputs(safeQuery, weatherData?.city || 'Azamgarh');
+      const extractedInputs = extractPredictionInputs(safeQuery, weatherData?.city || targetLocation);
       const mlResult = predictAgriculturePrice(extractedInputs);
       if (mlResult && mlResult.is_prediction) {
         mlPredictionContext = `\nAgriculture ML Model Prediction Context (Trained Joblib Model):
@@ -104,14 +108,14 @@ Estimated Price: ₹${mlResult.predicted_price}/${mlResult.unit || 'quintal'}
 Estimated Range: ₹${mlResult.lower_estimate} - ₹${mlResult.upper_estimate} ${mlResult.currency || 'INR'}
 Model Confidence: ${mlResult.model_confidence}
 Warning: ${mlResult.warning}
-CRITICAL INSTRUCTION: Explicitly state that this is an ESTIMATED ML MODEL PREDICTION based on weather/soil parameters and NOT a verified live mandi price.`;
+CRITICAL INSTRUCTION: Explicitly state that this is an ESTIMATED ML MODEL PREDICTION based on weather/soil parameters for ${targetLocation} and NOT a verified live mandi price.`;
       }
     } catch (mlErr) {
       console.warn('[geminiService] Agriculture ML prediction context error:', mlErr.message);
     }
   }
 
-  const systemContext = `${SYSTEM_PROMPT}\n\nContext:\n${historyContext}\n${intelContext}\n${weatherContext}${mlPredictionContext}${dialectContext ? '\n' + dialectContext : ''}`;
+  const systemContext = `${SYSTEM_PROMPT}\n${locationInstruction}\nContext:\n${historyContext}\n${intelContext}\n${weatherContext}${mlPredictionContext}${dialectContext ? '\n' + dialectContext : ''}`;
 
   const rotatedResult = await geminiRotator.executeWithRotation(systemContext, safeQuery);
 
