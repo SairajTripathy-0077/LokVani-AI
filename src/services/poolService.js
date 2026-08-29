@@ -84,7 +84,8 @@ export function subscribeCropPools(onUpdate) {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        onUpdate(parsed.map(normalizePool));
+        const clean = parsed.filter(p => !String(p.id || p.poolId).startsWith('pool_init_')).map(normalizePool);
+        onUpdate(clean);
       }
     }
   } catch (_) {}
@@ -97,7 +98,9 @@ export function subscribeCropPools(onUpdate) {
       firestoreUnsub = onSnapshot(poolsQuery, (snapshot) => {
         if (!isSubscribed) return;
         if (!snapshot.empty) {
-          const pools = snapshot.docs.map(d => normalizePool({ id: d.id, ...d.data() }));
+          const pools = snapshot.docs
+            .map(d => normalizePool({ id: d.id, ...d.data() }))
+            .filter(p => p && !String(p.id || p.poolId).startsWith('pool_init_'));
           pools.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
           try { localStorage.setItem('lokvani_fpo_pools', JSON.stringify(pools)); } catch (_) {}
           onUpdate(pools);
@@ -143,7 +146,9 @@ export async function fetchCropPoolsFromMongo() {
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map(normalizePool);
+        return json.data
+          .map(normalizePool)
+          .filter(p => p && !String(p.id || p.poolId).startsWith('pool_init_'));
       }
     }
   } catch (_) {}
