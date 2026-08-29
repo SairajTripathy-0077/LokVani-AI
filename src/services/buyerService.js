@@ -17,7 +17,6 @@ export async function fetchBuyers(state = 'Uttar Pradesh', district = '') {
   const safeDist = district || '';
 
   // 1. Fetch from backend endpoint with state & district query params
-export async function fetchBuyers(state = '') {
   try {
     const params = new URLSearchParams();
     if (safeState) params.append('state', safeState);

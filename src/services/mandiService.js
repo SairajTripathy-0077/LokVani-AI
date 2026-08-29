@@ -42,8 +42,6 @@ export async function fetchLiveMandiRates(state = 'Uttar Pradesh', district = ''
   const safeDist = district || '';
 
   // 1. Fetch from backend API route with live state/district params
-export async function fetchLiveMandiRates(state = '', limit = 50) {
-  // 1. Fetch from backend API route
   try {
     const params = new URLSearchParams();
     if (safeState) params.append('state', safeState);
