@@ -14,10 +14,10 @@ import {
 import { t } from './communityTranslations.js';
 
 const CATEGORY_CONFIG = {
-  PRICE_ALERT:  { label_hi: 'भाव अलर्ट', label_en: 'Price Alert', icon: <TrendingUp size={12} />, bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' },
-  WARNING:      { label_hi: 'सावधानी / अलर्ट', label_en: 'Advisory / Alert', icon: <AlertTriangle size={12} />, bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
-  ANNOUNCEMENT: { label_hi: 'समाचार व योजनाएं', label_en: 'News & Updates', icon: <Megaphone size={12} />, bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  DEMAND_SPIKE: { label_hi: 'मांग में तेजी', label_en: 'Demand Spike', icon: <Zap size={12} />, bg: '#fdf4ff', color: '#86198f', border: '#f5d0fe' },
+  PRICE_ALERT:  { label_hi: 'भाव अलर्ट', label_en: 'Price Alert', icon: <TrendingUp size={12} />, bg: '#f4f8f2', color: '#2e5735', border: '#dbe7d4' },
+  WARNING:      { label_hi: 'सावधानी / अलर्ट', label_en: 'Advisory / Alert', icon: <AlertTriangle size={12} />, bg: '#f4f4f5', color: '#3f3f46', border: '#e4e4e7' },
+  ANNOUNCEMENT: { label_hi: 'समाचार व योजनाएं', label_en: 'News & Updates', icon: <Megaphone size={12} />, bg: '#f0f5ee', color: '#3d6544', border: '#cfe0cb' },
+  DEMAND_SPIKE: { label_hi: 'मांग में तेजी', label_en: 'Demand Spike', icon: <Zap size={12} />, bg: '#f4f8f2', color: '#1b4d24', border: '#c0dbc0' },
 };
 
 function timeAgo(date, lang) {
