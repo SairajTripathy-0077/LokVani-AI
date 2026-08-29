@@ -1,4 +1,4 @@
-import React, { useState, useId, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useId } from 'react';
 import { 
   Users, 
   Package, 
@@ -7,31 +7,28 @@ import {
   CheckCircle, 
   PlusCircle, 
   X, 
-  Filter, 
-  Award,
-  Layers,
-  Sparkles,
-  Inbox,
-  Radio,
   RefreshCw,
   Edit3,
   Trash2,
-  AlertTriangle,
-  Wifi
+  Inbox,
+  Award
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
-import { fetchCropPools, createCropPool, joinCropPool, updateCropPool, deleteCropPool, getOrCreateUserId, normalizePool, subscribeCropPools } from '../../services/poolService.js';
-
-const STATUS_KEY_MAP = {
-  OPEN:    'poolStatusOpen',
-  FILLING: 'poolStatusFilling',
-  CLOSED:  'poolStatusClosed',
-};
+import { 
+  fetchCropPools, 
+  createCropPool, 
+  joinCropPool, 
+  updateCropPool, 
+  deleteCropPool, 
+  getOrCreateUserId, 
+  normalizePool, 
+  subscribeCropPools 
+} from '../../services/poolService.js';
 
 const STATUS_COLOR = {
-  OPEN:    { color: 'var(--accent-primary, #15803d)', bg: 'rgba(72,115,79,0.09)' },
-  FILLING: { color: 'var(--text-main, #18181b)',      bg: 'var(--bg-hover, #f4f4f2)' },
-  CLOSED:  { color: 'var(--text-dim, #71717a)',       bg: 'var(--bg-hover, #f4f4f2)' },
+  OPEN:    { color: 'var(--accent-primary, #15803d)', bg: 'rgba(72,115,79,0.09)', labelEn: 'Open', labelHi: 'खुला है' },
+  FILLING: { color: '#d97706',                         bg: '#fef3c7',             labelEn: 'Almost Full', labelHi: 'लगभग भर गया' },
+  CLOSED:  { color: 'var(--text-dim, #71717a)',       bg: 'var(--bg-hover, #f4f4f2)', labelEn: 'Full', labelHi: 'भर गया' },
 };
 
 function PoolProgressBar({ filled, target, status, lang }) {
@@ -88,14 +85,14 @@ function CreatePoolModal({ isOpen, onClose, onCreate, lang }) {
 
     const creatorId = getOrCreateUserId();
     const newPool = {
-      id: `pool_custom_${Date.now()}`,
+      poolId: `pool_${Date.now()}_${Math.floor(100 + Math.random() * 900)}`,
       commodity_hi: commodity.trim(),
       commodity_en: commodity.trim(),
       category_hi: category === 'Vegetable' ? 'सब्ज़ी' : (category === 'Grain' ? 'अनाज' : (category === 'Pulse' ? 'दाल' : 'तिलहन')),
       category_en: category,
       targetQtl: Number(targetQtl),
       filledQtl: 0,
-      buyerName: buyerName.trim() || (lang === 'hi' ? 'स्थानीय मंडी समूह' : 'Local APMC Pool'),
+      buyerName: buyerName.trim() || (lang === 'hi' ? 'स्थानीय मंडी समूह' : 'Local APMC Procurement'),
       buyerLocation: buyerLocation.trim(),
       offerPrice: Number(offerPrice),
       deadline,
@@ -116,7 +113,7 @@ function CreatePoolModal({ isOpen, onClose, onCreate, lang }) {
       <div className="community-int__modal" style={{ background: 'var(--bg-surface, #ffffff)', borderRadius: '12px', padding: '24px', maxWidth: '500px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-main)' }}>
-            {lang === 'hi' ? '🌾 नया फसल समूह (FPO Pool) बनाएं' : '🌾 Start a Harvest Selling Pool'}
+            {lang === 'hi' ? '🌾 नया फसल समूह (FPO Pool) बनाएं' : '🌾 Start a Selling Pool'}
           </h3>
           <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
             <X size={20} />
@@ -127,7 +124,7 @@ function CreatePoolModal({ isOpen, onClose, onCreate, lang }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
               <label className="community-int__label">{lang === 'hi' ? 'फसल का नाम *' : 'Crop Name *'}</label>
-              <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. आलू / प्याज' : 'e.g. Potato / Onion'} value={commodity} onChange={e => setCommodity(e.target.value)} required />
+              <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. टमाटर / गेहूं' : 'e.g. Tomato / Wheat'} value={commodity} onChange={e => setCommodity(e.target.value)} required />
             </div>
             <div>
               <label className="community-int__label">{lang === 'hi' ? 'श्रेणी *' : 'Category *'}</label>
@@ -146,25 +143,25 @@ function CreatePoolModal({ isOpen, onClose, onCreate, lang }) {
               <input type="number" min="5" className="community-int__input" placeholder="100" value={targetQtl} onChange={e => setTargetQtl(e.target.value)} required />
             </div>
             <div>
-              <label className="community-int__label">{lang === 'hi' ? 'प्रस्तावित भाव (₹/क्विंटल) *' : 'Offer Price (₹/Qtl) *'}</label>
+              <label className="community-int__label">{lang === 'hi' ? 'भाव (₹/क्विंटल) *' : 'Offer Price (₹/Qtl) *'}</label>
               <input type="number" min="100" className="community-int__input" placeholder="2500" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} required />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
             <div>
-              <label className="community-int__label">{lang === 'hi' ? 'मंडी / मंज़िल *' : 'Destination Market *'}</label>
+              <label className="community-int__label">{lang === 'hi' ? 'मंडी / स्थान *' : 'Destination Market *'}</label>
               <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. लखनऊ APMC' : 'e.g. Lucknow APMC'} value={buyerLocation} onChange={e => setBuyerLocation(e.target.value)} required />
             </div>
             <div>
-              <label className="community-int__label">{lang === 'hi' ? 'अंतिम तिथि (Deadline) *' : 'Deadline Date *'}</label>
+              <label className="community-int__label">{lang === 'hi' ? 'अंतिम तिथि *' : 'Deadline Date *'}</label>
               <input type="date" className="community-int__input" value={deadline} onChange={e => setDeadline(e.target.value)} min={new Date().toISOString().split('T')[0]} required />
             </div>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
-            <label className="community-int__label">{lang === 'hi' ? 'खरीदार / कंपनी का नाम (वैकल्पिक)' : 'Buyer / Aggregator Name (Optional)'}</label>
-            <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. किसान कनेक्ट FPO' : 'e.g. Kisaan Connect FPO'} value={buyerName} onChange={e => setBuyerName(e.target.value)} />
+            <label className="community-int__label">{lang === 'hi' ? 'खरीदार / कंपनी (वैकल्पिक)' : 'Buyer / Aggregator Name'}</label>
+            <input type="text" className="community-int__input" placeholder={lang === 'hi' ? 'उदा. मदर डेयरी / ITC' : 'e.g. Mother Dairy / ITC'} value={buyerName} onChange={e => setBuyerName(e.target.value)} />
           </div>
 
           {error && <p className="community-int__field-error" style={{ marginBottom: '12px' }}>{error}</p>}
@@ -181,146 +178,23 @@ function CreatePoolModal({ isOpen, onClose, onCreate, lang }) {
   );
 }
 
-function EditPoolModal({ isOpen, onClose, pool, onUpdate, lang }) {
-  const [commodity, setCommodity] = useState('');
-  const [category, setCategory] = useState('Vegetable');
-  const [targetQtl, setTargetQtl] = useState('');
-  const [offerPrice, setOfferPrice] = useState('');
-  const [buyerName, setBuyerName] = useState('');
-  const [buyerLocation, setBuyerLocation] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [qualityRequired, setQualityRequired] = useState('Grade A');
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (pool) {
-      setCommodity(pool.commodity_en || pool.commodity_hi || '');
-      setCategory(pool.category_en || 'Vegetable');
-      setTargetQtl(pool.targetQtl || '');
-      setOfferPrice(pool.offerPrice || '');
-      setBuyerName(pool.buyerName || '');
-      setBuyerLocation(pool.buyerLocation || '');
-      setDeadline(pool.deadline ? new Date(pool.deadline).toISOString().split('T')[0] : '');
-      setQualityRequired(pool.qualityRequired || 'Grade A');
-    }
-  }, [pool]);
-
-  if (!isOpen || !pool) return null;
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!commodity.trim()) { setError(lang === 'hi' ? 'कृपया फसल का नाम दर्ज करें।' : 'Please enter crop name.'); return; }
-    if (!targetQtl || Number(targetQtl) <= 0) { setError(lang === 'hi' ? 'कृपया लक्ष्य मात्रा दर्ज करें।' : 'Please enter target quantity.'); return; }
-    if (!offerPrice || Number(offerPrice) <= 0) { setError(lang === 'hi' ? 'कृपया न्यूनतम भाव दर्ज करें।' : 'Please enter offer price.'); return; }
-    if (!buyerLocation.trim()) { setError(lang === 'hi' ? 'कृपया मंडी/स्थान दर्ज करें।' : 'Please enter market location.'); return; }
-    if (!deadline) { setError(lang === 'hi' ? 'कृपया अंतिम तिथि चुनें।' : 'Please select deadline date.'); return; }
-
-    const updatedData = {
-      ...pool,
-      commodity_hi: commodity.trim(),
-      commodity_en: commodity.trim(),
-      category_hi: category === 'Vegetable' ? 'सब्ज़ी' : (category === 'Grain' ? 'अनाज' : (category === 'Pulse' ? 'दाल' : 'तिलहन')),
-      category_en: category,
-      targetQtl: Number(targetQtl),
-      buyerName: buyerName.trim() || pool.buyerName,
-      buyerLocation: buyerLocation.trim(),
-      offerPrice: Number(offerPrice),
-      deadline,
-      qualityRequired
-    };
-
-    onUpdate(updatedData);
-    onClose();
-  }
-
-  return (
-    <div className="community-int__modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div className="community-int__modal" style={{ background: 'var(--bg-surface, #ffffff)', borderRadius: '12px', padding: '24px', maxWidth: '500px', width: '100%', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-main)' }}>
-            {lang === 'hi' ? '✏️ फसल समूह में सुधार करें (Edit Pool)' : '✏️ Edit Selling Pool'}
-          </h3>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'फसल का नाम *' : 'Crop Name *'}</label>
-              <input type="text" className="community-int__input" value={commodity} onChange={e => setCommodity(e.target.value)} required />
-            </div>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'श्रेणी *' : 'Category *'}</label>
-              <select className="community-int__select" value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="Vegetable">{lang === 'hi' ? 'सब्ज़ी (Vegetable)' : 'Vegetable'}</option>
-                <option value="Grain">{lang === 'hi' ? 'अनाज (Grain)' : 'Grain'}</option>
-                <option value="Pulse">{lang === 'hi' ? 'दाल (Pulse)' : 'Pulse'}</option>
-                <option value="Oilseed">{lang === 'hi' ? 'तिलहन (Oilseed)' : 'Oilseed'}</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'कुल लक्ष्य (क्विंटल) *' : 'Target Volume (Qtl) *'}</label>
-              <input type="number" min="5" className="community-int__input" value={targetQtl} onChange={e => setTargetQtl(e.target.value)} required />
-            </div>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'प्रस्तावित भाव (₹/क्विंटल) *' : 'Offer Price (₹/Qtl) *'}</label>
-              <input type="number" min="100" className="community-int__input" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} required />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'मंडी / मंज़िल *' : 'Destination Market *'}</label>
-              <input type="text" className="community-int__input" value={buyerLocation} onChange={e => setBuyerLocation(e.target.value)} required />
-            </div>
-            <div>
-              <label className="community-int__label">{lang === 'hi' ? 'अंतिम तिथि (Deadline) *' : 'Deadline Date *'}</label>
-              <input type="date" className="community-int__input" value={deadline} onChange={e => setDeadline(e.target.value)} required />
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label className="community-int__label">{lang === 'hi' ? 'खरीदार / कंपनी का नाम' : 'Buyer / Aggregator Name'}</label>
-            <input type="text" className="community-int__input" value={buyerName} onChange={e => setBuyerName(e.target.value)} />
-          </div>
-
-          {error && <p className="community-int__field-error" style={{ marginBottom: '12px' }}>{error}</p>}
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-            <button type="button" className="btn-secondary" onClick={onClose}>{lang === 'hi' ? 'रद्द करें' : 'Cancel'}</button>
-            <button type="submit" className="btn-primary">
-              <CheckCircle size={15} /> {lang === 'hi' ? 'बदलाव सुरक्षित करें' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
 function JoinPoolForm({ pool, onJoin, onClose, lang }) {
-  const formId                      = useId();
-  const [volume, setVolume]         = useState('');
+  const formId = useId();
+  const [volume, setVolume] = useState('');
   const [farmerName, setFarmerName] = useState('');
-  const [phone, setPhone]           = useState('');
-  const [error, setError]           = useState('');
-  const [submitted, setSubmitted]   = useState(false);
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const [submitted, setSubmitted] = useState(false);
 
-  const remaining = pool.targetQtl - pool.filledQtl;
-  const coordName = lang === 'hi' ? pool.coordinatorName_hi : pool.coordinatorName_en;
+  const remaining = Math.max(0, pool.targetQtl - pool.filledQtl);
   const commodity = lang === 'hi' ? pool.commodity_hi : pool.commodity_en;
 
   function handleSubmit(e) {
     e.preventDefault();
     const vol = Number(volume);
-    if (!vol || vol <= 0)   { setError(t('errorVolumeInvalid', lang)); return; }
-    if (vol > remaining)     { setError(t('errorVolumeExceed', lang));  return; }
-    if (!farmerName.trim())  { setError(t('errorNameRequired', lang));  return; }
+    if (!vol || vol <= 0) { setError(t('errorVolumeInvalid', lang)); return; }
+    if (vol > remaining && remaining > 0) { setError(t('errorVolumeExceed', lang)); return; }
+    if (!farmerName.trim()) { setError(t('errorNameRequired', lang)); return; }
     setError('');
     onJoin({ poolId: pool.id, volume: vol, farmerName: farmerName.trim(), phone: phone.trim() });
     setSubmitted(true);
@@ -328,15 +202,15 @@ function JoinPoolForm({ pool, onJoin, onClose, lang }) {
 
   if (submitted) {
     return (
-      <div className="community-int__grievance-success" role="status" aria-live="polite" style={{ padding: '16px', background: 'var(--bg-hover)', borderRadius: '8px', textAlign: 'center' }}>
+      <div style={{ padding: '16px', background: 'var(--bg-hover)', borderRadius: '8px', textAlign: 'center' }}>
         <CheckCircle size={28} color="var(--accent-primary, #15803d)" style={{ margin: '0 auto' }} />
         <h5 style={{ margin: '8px 0 4px', fontSize: '1rem', color: 'var(--text-main)' }}>
           {lang === 'hi' ? 'सफलतापूर्वक जुड़ गए!' : 'Joined Pool Successfully!'}
         </h5>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0' }}>
           {lang === 'hi'
-            ? `आपकी ${volume} क्विंटल ${commodity} इस समूह में दर्ज हो गई है। ${coordName} जल्द आपसे संपर्क करेंगे।`
-            : `Your ${volume} qtl of ${commodity} has been recorded in this pool. ${coordName} will contact you.`}
+            ? `आपकी ${volume} क्विंटल ${commodity} दर्ज हो गई है।`
+            : `Your ${volume} qtl of ${commodity} has been registered.`}
         </p>
         <button type="button" className="btn-secondary" onClick={onClose} style={{ marginTop: '10px', fontSize: '0.82rem', padding: '5px 14px' }}>
           {t('closeBtn', lang)}
@@ -346,33 +220,33 @@ function JoinPoolForm({ pool, onJoin, onClose, lang }) {
   }
 
   return (
-    <form className="community-int__grievance-form" onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate>
       <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-        {t('poolDeadline', lang)}: <strong>{new Date(pool.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long' })}</strong>
+        {t('poolDeadline', lang)}: <strong>{new Date(pool.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' })}</strong>
         &nbsp;·&nbsp;{remaining} {t('remaining', lang)}
       </p>
 
-      <div className="community-int__input-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-        <div className="community-int__field" style={{ marginBottom: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+        <div>
           <label className="community-int__label" htmlFor={`${formId}-vol`}>
-            {t('joinVolLabel', lang)} <span style={{ color: 'var(--ci-trend-down)' }}>*</span>
+            {t('joinVolLabel', lang)} *
           </label>
           <input
             id={`${formId}-vol`}
             type="number"
             min="0.5"
-            max={remaining}
+            max={remaining || pool.targetQtl}
             step="0.5"
             className="community-int__input"
-            placeholder={`${lang === 'hi' ? 'अधिकतम' : 'Max'} ${remaining}`}
+            placeholder={`${lang === 'hi' ? 'मात्रा' : 'Volume'} (qtl)`}
             value={volume}
             onChange={e => { setVolume(e.target.value); setError(''); }}
-            aria-required="true"
+            required
           />
         </div>
-        <div className="community-int__field" style={{ marginBottom: 0 }}>
+        <div>
           <label className="community-int__label" htmlFor={`${formId}-name`}>
-            {t('joinNameLabel', lang)} <span style={{ color: 'var(--ci-trend-down)' }}>*</span>
+            {t('joinNameLabel', lang)} *
           </label>
           <input
             id={`${formId}-name`}
@@ -381,14 +255,14 @@ function JoinPoolForm({ pool, onJoin, onClose, lang }) {
             placeholder={t('joinNamePlaceholder', lang)}
             value={farmerName}
             onChange={e => { setFarmerName(e.target.value); setError(''); }}
-            aria-required="true"
+            required
           />
         </div>
       </div>
 
-      <div className="community-int__field" style={{ marginBottom: '12px' }}>
+      <div style={{ marginBottom: '12px' }}>
         <label className="community-int__label" htmlFor={`${formId}-phone`}>
-          {lang === 'hi' ? 'मोबाइल नंबर (संपर्क के लिए)' : 'Mobile Number (for pickup)'}
+          {lang === 'hi' ? 'मोबाइल नंबर' : 'Mobile Number'}
         </label>
         <input
           id={`${formId}-phone`}
@@ -400,26 +274,25 @@ function JoinPoolForm({ pool, onJoin, onClose, lang }) {
         />
       </div>
 
-      {error && <p className="community-int__field-error" role="alert" style={{ marginBottom: '10px' }}>{error}</p>}
+      {error && <p className="community-int__field-error" style={{ marginBottom: '10px' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
         <button type="button" className="btn-secondary" onClick={onClose} style={{ fontSize: '0.85rem' }}>{t('cancelBtn', lang)}</button>
         <button type="submit" className="btn-primary" style={{ fontSize: '0.85rem' }}>
-          <CheckCircle size={13} aria-hidden="true" /> {t('joinConfirmBtn', lang)}
+          <CheckCircle size={13} /> {t('joinConfirmBtn', lang)}
         </button>
       </div>
     </form>
   );
 }
 
-function PoolCard({ pool, onJoin, onEdit, onDelete, isJoined, userQuantity, currentUserId, lang }) {
+function PoolCard({ pool, onJoin, onDelete, isJoined, userQuantity, currentUserId, lang }) {
   const [showForm, setShowForm] = useState(false);
-  const stCfg    = STATUS_COLOR[pool.status]   || STATUS_COLOR.OPEN;
-  const statusLbl = t(STATUS_KEY_MAP[pool.status] || 'poolStatusOpen', lang);
+  const stCfg = STATUS_COLOR[pool.status] || STATUS_COLOR.OPEN;
+  const statusLbl = lang === 'hi' ? stCfg.labelHi : stCfg.labelEn;
   const commodity = lang === 'hi' ? pool.commodity_hi : pool.commodity_en;
-  const category  = lang === 'hi' ? pool.category_hi  : pool.category_en;
+  const category = lang === 'hi' ? pool.category_hi : pool.category_en;
 
-  // Check if current user is creator of this pool
   const isCreator = Boolean(
     (pool.createdByUserId && pool.createdByUserId === currentUserId) ||
     (pool.id && String(pool.id).includes('pool_custom_'))
@@ -427,96 +300,69 @@ function PoolCard({ pool, onJoin, onEdit, onDelete, isJoined, userQuantity, curr
 
   return (
     <article className="community-int__pool-card" style={{ background: 'var(--bg-surface, #ffffff)', border: isJoined ? '2px solid var(--accent-primary, #15803d)' : '1px solid var(--border-subtle, #e5e7eb)', borderRadius: '12px', padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative' }}>
-      <header className="community-int__pool-card__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-            <h4 className="community-int__pool-card__name" style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{commodity}</h4>
-            <span className="community-int__tag" style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', background: 'var(--bg-hover, #f3f4f6)' }}>{category}</span>
-            <span className="community-int__feed-badge" style={{ color: stCfg.color, background: stCfg.bg, fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>{statusLbl}</span>
+            <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>{commodity}</h4>
+            <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', background: 'var(--bg-hover, #f3f4f6)', fontWeight: 600 }}>{category}</span>
+            <span style={{ color: stCfg.color, background: stCfg.bg, fontSize: '0.72rem', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>{statusLbl}</span>
             {isJoined && (
               <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Award size={12} /> {lang === 'hi' ? `आप जुड़े हैं (${userQuantity} Qtl)` : `Joined (${userQuantity} Qtl)`}
+                <Award size={12} /> {lang === 'hi' ? `जुड़े हैं (${userQuantity} Qtl)` : `Joined (${userQuantity} Qtl)`}
               </span>
             )}
           </div>
-          <p className="community-int__pool-card__buyer" style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-            <Package size={13} aria-hidden="true" style={{ color: 'var(--accent-primary, #15803d)', display: 'inline', verticalAlign: 'middle' }} />
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+            <Package size={13} style={{ color: 'var(--accent-primary, #15803d)', display: 'inline', verticalAlign: 'middle' }} />
             &nbsp;{pool.buyerName}
             <span style={{ marginLeft: '8px', color: 'var(--text-dim)' }}>
-              <MapPin size={12} aria-hidden="true" style={{ display: 'inline', verticalAlign: 'middle' }} /> {pool.buyerLocation}
+              <MapPin size={12} style={{ display: 'inline', verticalAlign: 'middle' }} /> {pool.buyerLocation}
             </span>
           </p>
         </div>
         
-        <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+        <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
           <p style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent-primary, #15803d)', margin: 0, lineHeight: 1 }}>
-            ₹{pool.offerPrice.toLocaleString('en-IN')}
+            ₹{pool.offerPrice?.toLocaleString('en-IN')}
           </p>
           <p style={{ fontSize: '0.72rem', color: 'var(--text-dim)', margin: 0 }}>{t('perQtl', lang)}</p>
 
-          {/* Creator Action Buttons (Edit & Delete) */}
           {isCreator && (
-            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-              <button
-                type="button"
-                onClick={() => onEdit?.(pool)}
-                title={lang === 'hi' ? 'संपादित करें' : 'Edit Pool'}
-                aria-label="Edit Pool"
-                style={{
-                  background: 'var(--bg-hover, #f4f4f5)',
-                  border: '1px solid var(--border-subtle, #e4e4e7)',
-                  borderRadius: '6px',
-                  padding: '4px 7px',
-                  cursor: 'pointer',
-                  color: 'var(--text-muted)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  fontSize: '0.72rem',
-                  fontWeight: 600
-                }}
-              >
-                <Edit3 size={12} />
-                <span>{lang === 'hi' ? 'एडिट' : 'Edit'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm(lang === 'hi' ? 'क्या आप इस फसल समूह को हटाना चाहते हैं?' : 'Are you sure you want to delete this selling pool?')) {
-                    onDelete?.(pool.id);
-                  }
-                }}
-                title={lang === 'hi' ? 'हटाएं' : 'Delete Pool'}
-                aria-label="Delete Pool"
-                style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '6px',
-                  padding: '4px 7px',
-                  cursor: 'pointer',
-                  color: '#dc2626',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  fontSize: '0.72rem',
-                  fontWeight: 600
-                }}
-              >
-                <Trash2 size={12} />
-                <span>{lang === 'hi' ? 'हटाएं' : 'Delete'}</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm(lang === 'hi' ? 'क्या आप इस समूह को हटाना चाहते हैं?' : 'Delete this pool?')) {
+                  onDelete?.(pool.id);
+                }
+              }}
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '6px',
+                padding: '3px 6px',
+                cursor: 'pointer',
+                color: '#dc2626',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px',
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                marginTop: '4px'
+              }}
+            >
+              <Trash2 size={11} />
+              <span>{lang === 'hi' ? 'हटाएं' : 'Delete'}</span>
+            </button>
           )}
         </div>
       </header>
 
       <PoolProgressBar filled={pool.filledQtl} target={pool.targetQtl} status={pool.status} lang={lang} />
 
-      <div className="community-int__pool-card__meta" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '0.76rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '10px' }}>
-        <span><Users size={12} aria-hidden="true" style={{ verticalAlign: 'middle' }} /> {pool.participants} {t('poolFarmers', lang)}</span>
+      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '0.76rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '10px' }}>
+        <span><Users size={12} style={{ verticalAlign: 'middle' }} /> {pool.participants} {t('poolFarmers', lang)}</span>
         <span>
-          <Calendar size={12} aria-hidden="true" style={{ verticalAlign: 'middle' }} />
+          <Calendar size={12} style={{ verticalAlign: 'middle' }} />
           &nbsp;{t('poolDeadline', lang)}: {new Date(pool.deadline).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' })}
         </span>
         <span>{t('poolQuality', lang)}: {pool.qualityRequired}</span>
@@ -530,14 +376,14 @@ function PoolCard({ pool, onJoin, onEdit, onDelete, isJoined, userQuantity, curr
           onClick={() => setShowForm(true)}
           disabled={pool.status === 'CLOSED'}
         >
-          <PlusCircle size={14} aria-hidden="true" />
-          {pool.status === 'CLOSED' ? t('poolFull', lang) : (isJoined ? (lang === 'hi' ? 'और मात्रा जोड़ें' : 'Add More Harvest') : t('addVolumeBtn', lang))}
+          <PlusCircle size={14} />
+          {pool.status === 'CLOSED' ? t('poolFull', lang) : (isJoined ? (lang === 'hi' ? 'और मात्रा जोड़ें' : 'Add More Volume') : t('addVolumeBtn', lang))}
         </button>
       ) : (
-        <div className="community-int__pool-form-wrap" style={{ marginTop: '8px', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '12px' }}>
+        <div style={{ marginTop: '8px', borderTop: '1px solid var(--border-subtle, #f3f4f6)', paddingTop: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <p style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>{t('joinFormTitle', lang)}</p>
-            <button type="button" onClick={() => setShowForm(false)} aria-label={t('closeBtn', lang)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
+            <button type="button" onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}>
               <X size={16} />
             </button>
           </div>
@@ -550,15 +396,10 @@ function PoolCard({ pool, onJoin, onEdit, onDelete, isJoined, userQuantity, curr
 
 export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   const currentUserId = useMemo(() => getOrCreateUserId(), []);
-
-  const [poolList, setPoolList] = useState(() => {
-    try {
-      const saved = localStorage.getItem('lokvani_fpo_pools');
-      return saved ? JSON.parse(saved) : initialPools;
-    } catch (_) {
-      return initialPools;
-    }
-  });
+  const [poolList, setPoolList] = useState([]);
+  const [filterCategory, setFilterCategory] = useState('ALL');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(true);
 
   const [joinedPools, setJoinedPools] = useState(() => {
     try {
@@ -569,34 +410,26 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
     }
   });
 
-  const [filterCategory, setFilterCategory] = useState('ALL');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPool, setEditingPool] = useState(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  // REST fallback load
-  const loadLivePools = useCallback(async () => {
+  const loadPools = useCallback(async () => {
+    setIsSyncing(true);
     try {
-      setIsSyncing(true);
-      const remotePools = await fetchCropPools();
-      if (remotePools && remotePools.length > 0) {
-        setPoolList(remotePools);
-        localStorage.setItem('lokvani_fpo_pools', JSON.stringify(remotePools));
+      const data = await fetchCropPools();
+      if (Array.isArray(data) && data.length > 0) {
+        setPoolList(data);
       }
     } catch (err) {
-      console.warn('[FPOPooling] REST fetch warning:', err.message);
+      console.warn('[FPOPooling] Fetch error:', err.message);
     } finally {
       setIsSyncing(false);
     }
   }, []);
 
-  // Universal Real-time live synchronization (Firestore stream + REST fallback)
+  // MongoDB Real-time live synchronization (polls API & listens to Firestore)
   useEffect(() => {
     setIsSyncing(true);
     const unsubscribe = subscribeCropPools((livePools) => {
-      if (livePools && livePools.length > 0) {
+      if (Array.isArray(livePools) && livePools.length > 0) {
         setPoolList(livePools);
-        localStorage.setItem('lokvani_fpo_pools', JSON.stringify(livePools));
       }
       setIsSyncing(false);
     });
@@ -611,15 +444,15 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
   }, [joinedPools]);
 
   async function handleJoin({ poolId, volume, farmerName, phone }) {
-    // 1. Optimistic local update
+    // 1. Optimistic update
     setPoolList(prev => prev.map(p => {
       if (p.id !== poolId && p.poolId !== poolId) return p;
       const newFilled = Math.min(p.targetQtl, p.filledQtl + volume);
       return {
         ...p,
-        filledQtl:    newFilled,
+        filledQtl: newFilled,
         participants: p.participants + 1,
-        status:       newFilled >= p.targetQtl ? 'CLOSED' : newFilled >= p.targetQtl * 0.8 ? 'FILLING' : 'OPEN',
+        status: newFilled >= p.targetQtl ? 'CLOSED' : 'FILLING',
       };
     }));
 
@@ -628,45 +461,33 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
       [poolId]: (prev[poolId] || 0) + volume,
     }));
 
-    // 2. Persist to shared backend (broadcasts live via WebSocket)
+    // 2. Persist to MongoDB backend
     try {
       setIsSyncing(true);
       await joinCropPool(poolId, { farmerName, phone, qtl: volume });
+      await loadPools();
     } catch (err) {
-      console.error('[FPOPooling] Failed to join pool on server:', err);
+      console.error('[FPOPooling] Failed to join pool:', err);
     } finally {
       setIsSyncing(false);
     }
   }
 
   async function handleCreatePool(newPool) {
-    // 1. Optimistic local update
+    // 1. Optimistic update
     const normalized = normalizePool(newPool);
     setPoolList(prev => [normalized, ...prev]);
 
-    // 2. Persist to shared backend (broadcasts live via WebSocket to all clients)
+    // 2. Persist to MongoDB backend
     try {
       setIsSyncing(true);
       const saved = await createCropPool(newPool);
       if (saved) {
         setPoolList(prev => [saved, ...prev.filter(p => p.id !== normalized.id && p.poolId !== normalized.id)]);
       }
+      await loadPools();
     } catch (err) {
-      console.error('[FPOPooling] Failed to create pool on server:', err);
-    } finally {
-      setIsSyncing(false);
-    }
-  }
-
-  async function handleUpdatePool(updatedFields) {
-    const normalized = normalizePool(updatedFields);
-    setPoolList(prev => prev.map(p => (p.id === normalized.id || p.poolId === normalized.id ? normalized : p)));
-
-    try {
-      setIsSyncing(true);
-      await updateCropPool(normalized.id, normalized);
-    } catch (err) {
-      console.error('[FPOPooling] Failed to update pool:', err);
+      console.error('[FPOPooling] Failed to create pool:', err);
     } finally {
       setIsSyncing(false);
     }
@@ -674,10 +495,10 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
   async function handleDeletePool(poolId) {
     setPoolList(prev => prev.filter(p => p.id !== poolId && p.poolId !== poolId));
-
     try {
       setIsSyncing(true);
       await deleteCropPool(poolId);
+      await loadPools();
     } catch (err) {
       console.error('[FPOPooling] Failed to delete pool:', err);
     } finally {
@@ -692,15 +513,15 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
   return (
     <section className="community-int__section" aria-labelledby="ci-fpo-heading">
+      {/* Header */}
       <div className="community-int__section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h3 className="community-int__section-title" id="ci-fpo-heading" style={{ margin: 0 }}>
-              <Users size={20} color="var(--accent-primary, #15803d)" aria-hidden="true" />
+              <Users size={20} color="var(--accent-primary, #15803d)" />
               {t('fpoSectionTitle', lang)}
             </h3>
             
-            {/* Live Real-time Status Indicator */}
             <span style={{ 
               display: 'inline-flex', 
               alignItems: 'center', 
@@ -718,18 +539,9 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
 
             <button
               type="button"
-              onClick={loadLivePools}
+              onClick={loadPools}
               title={lang === 'hi' ? 'ताज़ा करें' : 'Refresh Pools'}
-              aria-label={lang === 'hi' ? 'ताज़ा करें' : 'Refresh Pools'}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--text-dim)',
-                padding: '4px',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', padding: '4px' }}
             >
               <RefreshCw size={13} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
             </button>
@@ -771,6 +583,7 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
         ))}
       </div>
 
+      {/* Pools Grid or Empty State */}
       {filteredPools.length === 0 ? (
         <div style={{ background: 'var(--bg-surface, #ffffff)', border: '1px dashed var(--border-muted, #d1d5db)', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
           <Inbox size={40} color="var(--text-dim)" style={{ margin: '0 auto 12px' }} />
@@ -780,7 +593,7 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: '6px auto 16px', maxWidth: '420px' }}>
             {lang === 'hi'
               ? 'फसलों का सामूहिक एकत्रीकरण करके मंडी व्यापारियों से बेहतर थोक भाव प्राप्त करने के लिए पहला समूह बनाएं।'
-              : 'Start the first crop aggregation pool in your district to negotiate higher bulk prices directly with mandi buyers.'}
+              : 'Start the first selling pool in your district to negotiate higher bulk prices with buyers.'}
           </p>
           <button
             type="button"
@@ -796,13 +609,12 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
         <div className="community-int__pool-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
           {filteredPools.map(pool => (
             <PoolCard 
-              key={pool.id} 
+              key={pool.id || pool.poolId} 
               pool={pool} 
               onJoin={handleJoin} 
-              onEdit={setEditingPool}
               onDelete={handleDeletePool}
-              isJoined={Boolean(joinedPools[pool.id])}
-              userQuantity={joinedPools[pool.id] || 0}
+              isJoined={Boolean(joinedPools[pool.id] || joinedPools[pool.poolId])} 
+              userQuantity={joinedPools[pool.id] || joinedPools[pool.poolId] || 0}
               currentUserId={currentUserId}
               lang={lang} 
             />
@@ -810,19 +622,12 @@ export default function FPOPooling({ pools: initialPools = [], lang = 'en' }) {
         </div>
       )}
 
+      {/* Start Pool Modal */}
       <CreatePoolModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onCreate={handleCreatePool} 
         lang={lang} 
-      />
-
-      <EditPoolModal
-        isOpen={Boolean(editingPool)}
-        onClose={() => setEditingPool(null)}
-        pool={editingPool}
-        onUpdate={handleUpdatePool}
-        lang={lang}
       />
     </section>
   );

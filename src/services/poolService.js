@@ -1,11 +1,11 @@
 /**
  * poolService.js
  * ──────────────────────────────────────────────────────────────────────────
- * High-performance Multi-User Synchronization Engine for FPO Crop Pools.
+ * MongoDB-first Multi-User Synchronization Engine for FPO Crop Pools.
  * 
  * Features:
- *  1. Firebase Firestore Real-Time Stream (Instant cross-device sync on Vercel & local)
- *  2. REST API / MongoDB Atlas Persistence (/api/pools)
+ *  1. Primary MongoDB Atlas REST API (/api/pools) for Vercel serverless persistence
+ *  2. Automatic live polling & Firestore dual-sync for instant updates
  *  3. Resilient Local Offline Fallback Cache
  */
 
@@ -18,9 +18,7 @@ import {
   onSnapshot, 
   deleteDoc, 
   updateDoc, 
-  query, 
-  orderBy,
-  serverTimestamp 
+  query 
 } from 'firebase/firestore';
 
 const API_BASE = '/api/pools';
@@ -43,71 +41,63 @@ export function getOrCreateUserId() {
 }
 
 /**
- * Subscribe to real-time crop pools stream.
- * Automatically synchronizes across all logged-in users on Vercel, mobile, & desktop.
- * @param {Function} onUpdate Callback invoked whenever pools update in real-time
- * @returns {Function} Unsubscribe function
+ * Normalize pool object structure to guarantee consistent property names across MongoDB, Firestore, & UI.
  */
-export function subscribeCropPools(onUpdate) {
-  let isSubscribed = true;
-
-  // 1. Try Firebase Firestore Real-Time Snapshot Listener
-  try {
-    if (db) {
-      const poolsQuery = query(collection(db, FIRESTORE_COLLECTION));
-      const unsubscribe = onSnapshot(poolsQuery, (snapshot) => {
-        if (!isSubscribed) return;
-        if (!snapshot.empty) {
-          const pools = snapshot.docs.map(d => normalizePool({ id: d.id, ...d.data() }));
-          // Sort newest first
-          pools.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-          onUpdate(pools);
-        } else {
-          // If Firestore collection is empty, trigger fetch from MongoDB / REST API
-          fetchCropPools().then(pools => {
-            if (isSubscribed && pools.length > 0) onUpdate(pools);
-          });
-        }
-      }, (err) => {
-        console.warn('[poolService] Firestore onSnapshot warning:', err.message);
-        // Fall back to polling /api/pools
-        fetchCropPools().then(pools => {
-          if (isSubscribed && pools.length > 0) onUpdate(pools);
-        });
-      });
-
-      return () => {
-        isSubscribed = false;
-        try { unsubscribe(); } catch (_) {}
-      };
-    }
-  } catch (err) {
-    console.warn('[poolService] Firestore subscription init failed:', err.message);
-  }
-
-  // 2. Fallback polling for MongoDB / Express API
-  const interval = setInterval(async () => {
-    if (!isSubscribed) return;
-    const pools = await fetchCropPools();
-    if (pools && pools.length > 0) onUpdate(pools);
-  }, 4000);
-
-  fetchCropPools().then(pools => {
-    if (isSubscribed && pools.length > 0) onUpdate(pools);
-  });
-
-  return () => {
-    isSubscribed = false;
-    clearInterval(interval);
+export function normalizePool(p) {
+  if (!p) return null;
+  const poolId = p.poolId || p._id || p.id;
+  return {
+    id: poolId,
+    poolId: poolId,
+    commodity_hi: p.commodity_hi || p.commodity || 'फसल',
+    commodity_en: p.commodity_en || p.commodity || 'Crop',
+    category_hi: p.category_hi || 'सब्ज़ी',
+    category_en: p.category_en || 'Vegetable',
+    targetQtl: Number(p.targetQtl) || 100,
+    filledQtl: Number(p.filledQtl) || 0,
+    buyerName: p.buyerName || 'Verified Procurement Partner',
+    buyerLocation: p.buyerLocation || 'APMC Mandi Hub',
+    offerPrice: Number(p.offerPrice) || 2500,
+    deadline: p.deadline ? String(p.deadline).split('T')[0] : new Date().toISOString().split('T')[0],
+    qualityRequired: p.qualityRequired || 'Grade A',
+    status: p.status || (Number(p.filledQtl) >= Number(p.targetQtl) ? 'CLOSED' : 'OPEN'),
+    coordinatorName_hi: p.coordinatorName_hi || 'किराना ट्रस्ट नोड (सत्यापित)',
+    coordinatorName_en: p.coordinatorName_en || 'Kirana Trust Node (Verified)',
+    participants: Number(p.participants) || 1,
+    members: Array.isArray(p.members) ? p.members : [],
+    createdBy: p.createdBy || 'Community Farmer',
+    createdByUserId: p.createdByUserId || '',
+    createdAt: p.createdAt || new Date().toISOString()
   };
 }
 
 /**
- * Fetch all active crop selling pools.
- * Queries Firestore first, then falls back to /api/pools and localStorage.
+ * Fetch crop pools from MongoDB REST API (/api/pools).
+ * Falls back to Firestore and local storage if offline.
  */
 export async function fetchCropPools(state = '', district = '', category = 'All') {
-  // 1. Try Firestore
+  // 1. Try Primary MongoDB REST API (/api/pools)
+  try {
+    const params = new URLSearchParams();
+    if (state) params.append('state', state);
+    if (district) params.append('district', district);
+    if (category && category !== 'All') params.append('category', category);
+
+    const url = params.toString() ? `${API_BASE}?${params.toString()}` : API_BASE;
+    const res = await fetch(url);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        const pools = json.data.map(normalizePool);
+        try { localStorage.setItem('lokvani_fpo_pools', JSON.stringify(pools)); } catch (_) {}
+        return pools;
+      }
+    }
+  } catch (err) {
+    console.warn('[poolService] REST API fetch warning:', err.message);
+  }
+
+  // 2. Fallback to Firestore if REST API is unavailable
   try {
     if (db) {
       const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
@@ -123,28 +113,7 @@ export async function fetchCropPools(state = '', district = '', category = 'All'
         return pools;
       }
     }
-  } catch (err) {
-    // Firestore error, fallback to REST API
-  }
-
-  // 2. Try REST API (/api/pools)
-  try {
-    const params = new URLSearchParams();
-    if (state) params.append('state', state);
-    if (district) params.append('district', district);
-    if (category && category !== 'All') params.append('category', category);
-
-    const url = params.toString() ? `${API_BASE}?${params.toString()}` : API_BASE;
-    const res = await fetch(url);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data.map(normalizePool);
-      }
-    }
-  } catch (err) {
-    // REST API failed, fallback to local storage
-  }
+  } catch (_) {}
 
   // 3. Fallback Local Storage
   try {
@@ -159,8 +128,8 @@ export async function fetchCropPools(state = '', district = '', category = 'All'
 }
 
 /**
- * Create a new FPO Crop Selling Pool.
- * Persists to Firestore AND MongoDB API.
+ * Create a new FPO Crop Selling Pool in MongoDB.
+ * Dual-syncs to Firestore and local storage.
  */
 export async function createCropPool(poolData) {
   const userId = getOrCreateUserId();
@@ -176,92 +145,58 @@ export async function createCropPool(poolData) {
 
   const normalized = normalizePool(payload);
 
-  // 1. Save to Firestore
+  // 1. Save to MongoDB via REST API
   try {
-    if (db) {
-      await setDoc(doc(db, FIRESTORE_COLLECTION, poolId), normalized);
-    }
-  } catch (err) {
-    console.warn('[poolService] Firestore create warning:', err.message);
-  }
-
-  // 2. Save to REST API / MongoDB in background
-  try {
-    fetch(API_BASE, {
+    const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(normalized)
-    }).catch(() => {});
-  } catch (_) {}
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        const saved = normalizePool(json.data);
+        // Dual-sync to Firestore
+        syncToFirestore(saved.id, saved);
+        return saved;
+      }
+    }
+  } catch (err) {
+    console.warn('[poolService] MongoDB create warning:', err.message);
+  }
 
+  // 2. Fallback sync to Firestore directly
+  syncToFirestore(poolId, normalized);
   return normalized;
 }
 
 /**
- * Update an existing Crop Pool.
- */
-export async function updateCropPool(poolId, updatedData) {
-  const userId = getOrCreateUserId();
-  const payload = {
-    ...updatedData,
-    createdByUserId: updatedData.createdByUserId || userId
-  };
-  const normalized = normalizePool(payload);
-
-  // 1. Update in Firestore
-  try {
-    if (db) {
-      await setDoc(doc(db, FIRESTORE_COLLECTION, poolId), normalized, { merge: true });
-    }
-  } catch (err) {
-    console.warn('[poolService] Firestore update warning:', err.message);
-  }
-
-  // 2. Update in REST API / MongoDB
-  try {
-    fetch(`${API_BASE}/${encodeURIComponent(poolId)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(normalized)
-    }).catch(() => {});
-  } catch (_) {}
-
-  return normalized;
-}
-
-/**
- * Delete a Crop Pool.
- */
-export async function deleteCropPool(poolId) {
-  const userId = getOrCreateUserId();
-
-  // 1. Delete from Firestore
-  try {
-    if (db) {
-      await deleteDoc(doc(db, FIRESTORE_COLLECTION, poolId));
-    }
-  } catch (err) {
-    console.warn('[poolService] Firestore delete warning:', err.message);
-  }
-
-  // 2. Delete from REST API / MongoDB
-  try {
-    fetch(`${API_BASE}/${encodeURIComponent(poolId)}?creatorId=${encodeURIComponent(userId)}`, {
-      method: 'DELETE'
-    }).catch(() => {});
-  } catch (_) {}
-
-  return true;
-}
-
-/**
- * Join an existing crop pool by committing quantity.
+ * Join an existing crop pool by contributing quantity in MongoDB.
  */
 export async function joinCropPool(poolId, commitData) {
   const { farmerName, phone, village, qtl } = commitData;
   const commitQtl = Number(qtl) || 0;
 
-  // 1. Join in Firestore
+  // 1. Save contribution in MongoDB
+  try {
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(poolId)}/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ farmerName, phone, village: village || '', qtl: commitQtl })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        const updated = normalizePool(json.data);
+        syncToFirestore(updated.id, updated);
+        return updated;
+      }
+    }
+  } catch (err) {
+    console.warn('[poolService] MongoDB join warning:', err.message);
+  }
+
+  // 2. Firestore fallback join
   try {
     if (db) {
       const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
@@ -271,13 +206,7 @@ export async function joinCropPool(poolId, commitData) {
         const newFilled = (data.filledQtl || 0) + commitQtl;
         const newStatus = newFilled >= data.targetQtl ? 'CLOSED' : 'FILLING';
         const members = data.members || [];
-        members.push({
-          farmerName,
-          phone,
-          village: village || '',
-          qtl: commitQtl,
-          joinedAt: new Date().toISOString()
-        });
+        members.push({ farmerName, phone, village: village || '', qtl: commitQtl, joinedAt: new Date().toISOString() });
 
         const updatePayload = {
           filledQtl: newFilled,
@@ -290,49 +219,118 @@ export async function joinCropPool(poolId, commitData) {
         return normalizePool({ ...data, ...updatePayload, id: targetDoc.id });
       }
     }
-  } catch (err) {
-    console.warn('[poolService] Firestore join warning:', err.message);
-  }
-
-  // 2. Join via REST API / MongoDB
-  try {
-    const res = await fetch(`${API_BASE}/${encodeURIComponent(poolId)}/join`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(commitData)
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success) return normalizePool(json.data);
-    }
   } catch (_) {}
 
   return null;
 }
 
-export function normalizePool(p) {
-  if (!p) return null;
-  return {
-    id: p.poolId || p._id || p.id,
-    poolId: p.poolId || p._id || p.id,
-    commodity_hi: p.commodity_hi || p.commodity || 'फसल',
-    commodity_en: p.commodity_en || p.commodity || 'Crop',
-    category_hi: p.category_hi || 'सब्ज़ी',
-    category_en: p.category_en || 'Vegetable',
-    targetQtl: Number(p.targetQtl) || 100,
-    filledQtl: Number(p.filledQtl) || 0,
-    buyerName: p.buyerName || 'Verified Procurement Partner',
-    buyerLocation: p.buyerLocation || 'APMC Mandi Hub',
-    offerPrice: Number(p.offerPrice) || 2500,
-    deadline: p.deadline || new Date().toISOString().split('T')[0],
-    qualityRequired: p.qualityRequired || 'Grade A',
-    status: p.status || 'OPEN',
-    coordinatorName_hi: p.coordinatorName_hi || 'किराना ट्रस्ट नोड (सत्यापित)',
-    coordinatorName_en: p.coordinatorName_en || 'Kirana Trust Node (Verified)',
-    participants: Number(p.participants) || 1,
-    members: Array.isArray(p.members) ? p.members : [],
-    createdBy: p.createdBy || 'Community Farmer',
-    createdByUserId: p.createdByUserId || '',
-    createdAt: p.createdAt || new Date().toISOString()
+/**
+ * Update an existing Crop Pool in MongoDB.
+ */
+export async function updateCropPool(poolId, updatedData) {
+  const userId = getOrCreateUserId();
+  const payload = {
+    ...updatedData,
+    createdByUserId: updatedData.createdByUserId || userId
   };
+  const normalized = normalizePool(payload);
+
+  try {
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(poolId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(normalized)
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        const saved = normalizePool(json.data);
+        syncToFirestore(saved.id, saved);
+        return saved;
+      }
+    }
+  } catch (err) {
+    console.warn('[poolService] MongoDB update warning:', err.message);
+  }
+
+  syncToFirestore(poolId, normalized);
+  return normalized;
+}
+
+/**
+ * Delete a Crop Pool from MongoDB.
+ */
+export async function deleteCropPool(poolId) {
+  const userId = getOrCreateUserId();
+
+  try {
+    fetch(`${API_BASE}/${encodeURIComponent(poolId)}?creatorId=${encodeURIComponent(userId)}`, {
+      method: 'DELETE'
+    }).catch(() => {});
+  } catch (_) {}
+
+  try {
+    if (db) {
+      deleteDoc(doc(db, FIRESTORE_COLLECTION, poolId)).catch(() => {});
+    }
+  } catch (_) {}
+
+  return true;
+}
+
+/**
+ * Subscribe to real-time crop pools stream.
+ * Polls MongoDB API every 3s and listens to Firestore snapshot stream.
+ */
+export function subscribeCropPools(onUpdate) {
+  let isSubscribed = true;
+
+  // Poll MongoDB REST API
+  const pollInterval = setInterval(async () => {
+    if (!isSubscribed) return;
+    const pools = await fetchCropPools();
+    if (isSubscribed && Array.isArray(pools) && pools.length > 0) {
+      onUpdate(pools);
+    }
+  }, 3000);
+
+  // Initial fetch immediately
+  fetchCropPools().then(pools => {
+    if (isSubscribed && Array.isArray(pools) && pools.length > 0) {
+      onUpdate(pools);
+    }
+  });
+
+  // Dual-subscribe to Firestore if enabled
+  let firestoreUnsub = null;
+  try {
+    if (db) {
+      const poolsQuery = query(collection(db, FIRESTORE_COLLECTION));
+      firestoreUnsub = onSnapshot(poolsQuery, (snapshot) => {
+        if (!isSubscribed) return;
+        if (!snapshot.empty) {
+          const pools = snapshot.docs.map(d => normalizePool({ id: d.id, ...d.data() }));
+          pools.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+          onUpdate(pools);
+        }
+      }, () => {});
+    }
+  } catch (_) {}
+
+  return () => {
+    isSubscribed = false;
+    clearInterval(pollInterval);
+    if (firestoreUnsub) {
+      try { firestoreUnsub(); } catch (_) {}
+    }
+  };
+}
+
+// Helper to save Firestore record safely
+async function syncToFirestore(docId, data) {
+  try {
+    if (db && docId) {
+      await setDoc(doc(db, FIRESTORE_COLLECTION, docId), data, { merge: true });
+    }
+  } catch (_) {}
 }
