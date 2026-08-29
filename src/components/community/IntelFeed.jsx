@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  TrendingUp, 
-  AlertTriangle, 
-  Zap, 
-  Megaphone, 
-  Clock, 
-  Wifi, 
-  ExternalLink, 
+import {
+  TrendingUp,
+  AlertTriangle,
+  Zap,
+  Megaphone,
+  Clock,
+  Wifi,
+  ExternalLink,
   Newspaper,
   ThumbsUp
 } from 'lucide-react';
@@ -14,8 +14,8 @@ import { t } from './communityTranslations.js';
 import { translateText } from '../../services/newsService.js';
 
 const CATEGORY_CONFIG = {
-  PRICE_ALERT:  { label_hi: 'भाव अलर्ट', label_en: 'Price Alert', icon: <TrendingUp size={12} />, bg: '#f4f8f2', color: '#2e5735', border: '#dbe7d4' },
-  WARNING:      { label_hi: 'सावधानी / अलर्ट', label_en: 'Advisory / Alert', icon: <AlertTriangle size={12} />, bg: '#f4f4f5', color: '#3f3f46', border: '#e4e4e7' },
+  PRICE_ALERT: { label_hi: 'भाव अलर्ट', label_en: 'Price Alert', icon: <TrendingUp size={12} />, bg: '#f4f8f2', color: '#2e5735', border: '#dbe7d4' },
+  WARNING: { label_hi: 'सावधानी / अलर्ट', label_en: 'Advisory / Alert', icon: <AlertTriangle size={12} />, bg: '#f4f4f5', color: '#3f3f46', border: '#e4e4e7' },
   ANNOUNCEMENT: { label_hi: 'समाचार व योजनाएं', label_en: 'News & Updates', icon: <Megaphone size={12} />, bg: '#f0f5ee', color: '#3d6544', border: '#cfe0cb' },
   DEMAND_SPIKE: { label_hi: 'मांग में तेजी', label_en: 'Demand Spike', icon: <Zap size={12} />, bg: '#f4f8f2', color: '#1b4d24', border: '#c0dbc0' },
 };
@@ -25,11 +25,11 @@ function timeAgo(date, lang) {
   const seconds = Math.floor((Date.now() - new Date(date)) / 1000);
   if (isNaN(seconds) || seconds < 60) return t('justNow', lang);
   if (lang === 'hi') {
-    if (seconds < 3600)  return `${Math.floor(seconds / 60)} मिनट पहले`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} मिनट पहले`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)} घंटे पहले`;
     return `${Math.floor(seconds / 86400)} दिन पहले`;
   }
-  if (seconds < 3600)  return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   return `${Math.floor(seconds / 86400)}d ago`;
 }
@@ -37,11 +37,11 @@ function timeAgo(date, lang) {
 function NewsCard({ item, lang }) {
   const [likes, setLikes] = useState(item.confirms || 12);
   const [liked, setLiked] = useState(false);
-  
+
   const [displayedHeadline, setDisplayedHeadline] = useState(() => {
     return lang === 'hi' ? (item.headline_hi || item.headline_en || item.headline) : (item.headline_en || item.headline_hi || item.headline);
   });
-  
+
   const [displayedDetail, setDisplayedDetail] = useState(() => {
     return lang === 'hi' ? (item.detail_hi || item.detail_en || item.detail) : (item.detail_en || item.detail_hi || item.detail);
   });
@@ -91,7 +91,7 @@ function NewsCard({ item, lang }) {
   }, [lang, item]);
 
   return (
-    <article 
+    <article
       style={{
         background: 'var(--bg-surface, #ffffff)',
         border: '1px solid var(--border-subtle, #e5e7eb)',
@@ -241,7 +241,7 @@ export default function IntelFeed({ feedItems = [], lang = 'en' }) {
             {lang === 'hi' ? 'ताज़ा कृषि समाचार व सरकारी अपडेट' : 'Latest Agriculture News & Real Updates'}
           </h3>
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '4px', lineHeight: 1.5 }}>
-            {lang === 'hi' 
+            {lang === 'hi'
               ? 'आपके राज्य और ज़िले के लिए सत्यापित कृषि समाचार, मंडी अपडेट एवं योजनाएं (100% लाइव डेटा)'
               : 'Verified agricultural news, government policies, and mandi alerts for your region (100% Live Feed)'}
           </p>
