@@ -315,6 +315,25 @@ export default function UserVoiceApp() {
   const targetDialectInfo = DIALECT_MAP[targetLangCode] || DIALECT_MAP.hi;
   const activeTtsLocale = targetLangCode === 'en' ? 'en-IN' : targetDialectInfo.locale;
 
+  const handlePlayTTS = useCallback((textToSpeak) => {
+    if (!textToSpeak) return;
+    if (appState === 'SPEAKING') {
+      speechService.stopSpeaking();
+      setAppState('IDLE');
+      return;
+    }
+
+    setAppState('SPEAKING');
+    speechService.speakText(
+      textToSpeak,
+      activeTtsLocale,
+      () => {
+        setAppState('IDLE');
+      },
+      ttsRate
+    );
+  }, [appState, activeTtsLocale, ttsRate]);
+
   const primaryAnswer = (r) => {
     if (!r) return '';
     if (targetLangCode === 'en') return r.shortAnswerEn || r.shortAnswerHi || '';
@@ -560,12 +579,7 @@ Provide responses in valid JSON:
     else setAppState('IDLE');
   }, [transcript, handleProcessQuery]);
 
-  const handlePlayTTS = useCallback((text) => {
-    if (appState === 'SPEAKING') { speechService.stopSpeaking(); setAppState('IDLE'); return; }
-    if (!text) return;
-    setAppState('SPEAKING');
-    speechService.speakText(text, activeTtsLocale, () => setAppState('IDLE'), ttsRate);
-  }, [appState, activeTtsLocale, ttsRate]);
+
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;
