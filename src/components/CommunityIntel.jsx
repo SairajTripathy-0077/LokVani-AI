@@ -242,6 +242,7 @@ import IntelFeed           from './community/IntelFeed.jsx';
 import TrustSystem         from './community/TrustSystem.jsx';
 import FPOPooling          from './community/FPOPooling.jsx';
 import LogisticsStorage    from './community/LogisticsStorage.jsx';
+import WeatherPictorialArt, { getLocalizedCondition, getWeatherForecastIcon } from './community/WeatherVisual.jsx';
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import {
@@ -936,61 +937,91 @@ export default function CommunityIntel() {
                 </div>
 
                 {/* Current Selected Weather Summary Box */}
-                <div style={{
-                  background: 'linear-gradient(135deg, rgba(240,253,244,0.7) 0%, rgba(254,249,195,0.4) 100%)',
-                  border: '1px solid var(--border-muted, #dbe7d4)',
-                  borderRadius: '12px',
-                  padding: '20px 24px',
-                  marginBottom: '20px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.85rem' }}>
-                        <MapPin size={15} />
-                        <span>{regionWeather?.city || selectedRegion || userDistrict}</span>
+                {(() => {
+                  const currentCondition = regionWeather?.condition || liveWeather?.condition || 'Light Rain & Drizzle';
+                  const currentTemp = regionWeather ? Math.round(regionWeather.temp) : (liveWeather ? Math.round(liveWeather.temp) : 25);
+                  const currentRain = regionWeather?.precipitation ?? (liveWeather?.precipitation ?? 0);
+                  const currentWind = regionWeather?.windSpeed ?? (liveWeather?.windSpeed ?? 12);
+                  const currentLoc = regionWeather?.city || selectedRegion || userDistrict;
+
+                  return (
+                    <div style={{
+                      background: 'linear-gradient(135deg, rgba(244, 248, 242, 0.95) 0%, rgba(251, 251, 250, 0.9) 100%)',
+                      border: '1px solid var(--border-muted, #dbe7d4)',
+                      borderRadius: '16px',
+                      padding: '22px 26px',
+                      marginBottom: '22px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                        {/* Left: Pictorial Illustration + Temp & Condition */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                          <WeatherPictorialArt condition={currentCondition} size={84} />
+                          <div>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent-primary)', fontWeight: 700, fontSize: '0.88rem', marginBottom: '2px' }}>
+                              <MapPin size={15} />
+                              <span>{currentLoc}</span>
+                            </div>
+                            <h2 style={{ fontSize: '2.6rem', fontWeight: 800, margin: '2px 0 4px 0', color: 'var(--text-main)', lineHeight: 1 }}>
+                              {currentTemp}°C
+                            </h2>
+                            <div style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: 'var(--bg-hover, #f4f8f2)',
+                              border: '1px solid var(--border-subtle, #e4ede2)',
+                              padding: '3px 10px',
+                              borderRadius: '20px',
+                              fontSize: '0.84rem',
+                              fontWeight: 700,
+                              color: 'var(--accent-primary, #3d6544)',
+                              marginTop: '4px'
+                            }}>
+                              {getWeatherForecastIcon(currentCondition, 15)}
+                              <span>{getLocalizedCondition(currentCondition, lang)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Right: Key Metrics with theme badges */}
+                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                          <div style={{ background: 'var(--bg-surface, #ffffff)', padding: '12px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle, #e5e7eb)', minWidth: '120px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                              <Droplets size={13} color="var(--accent-primary)" />
+                              {lang === 'hi' ? '24 घंटे में बारिश' : '24h Rain'}
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                              {currentRain} mm
+                            </div>
+                          </div>
+
+                          <div style={{ background: 'var(--bg-surface, #ffffff)', padding: '12px 18px', borderRadius: '10px', border: '1px solid var(--border-subtle, #e5e7eb)', minWidth: '120px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                              <Wind size={13} color="var(--accent-primary)" />
+                              {lang === 'hi' ? 'हवा की गति' : 'Wind Speed'}
+                            </div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
+                              {currentWind} km/h
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <h2 style={{ fontSize: '2.4rem', fontWeight: 800, margin: '8px 0 4px 0', color: 'var(--text-main)' }}>
-                        {regionWeather ? `${Math.round(regionWeather.temp)}°C` : (liveWeather ? `${Math.round(liveWeather.temp)}°C` : '31°C')}
-                      </h2>
-                      <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-muted)', margin: 0 }}>
-                        {regionWeather?.condition || liveWeather?.condition || 'Clear Sky'}
-                      </p>
+
+                      {/* Agricultural Advisory Text */}
+                      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
+                          <strong>🌾 {lang === 'hi' ? 'किसान सलाह:' : 'Farming Advisory:'}</strong>{' '}
+                          {lang === 'hi' 
+                            ? (regionWeather?.advisory_hi || liveWeather?.advisory_hi || 'मौसम सामान्य है। फसल सिंचाई और कटाई के लिए उत्तम मौसम है।')
+                            : (regionWeather?.advisory_en || liveWeather?.advisory_en || 'Weather is normal. Suitable for crop irrigation and harvesting.')}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Key Metrics */}
-                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                      <div style={{ background: 'rgba(255,255,255,0.7)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                          <Droplets size={12} color="var(--accent-cyan)" />
-                          {lang === 'hi' ? '24 घंटे में बारिश' : '24h Rain'}
-                        </div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
-                          {regionWeather?.precipitation ?? (liveWeather?.precipitation ?? 0)} mm
-                        </div>
-                      </div>
-
-                      <div style={{ background: 'rgba(255,255,255,0.7)', padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase' }}>
-                          <Wind size={12} color="var(--accent-primary)" />
-                          {lang === 'hi' ? 'हवा की गति' : 'Wind Speed'}
-                        </div>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '2px' }}>
-                          {regionWeather?.windSpeed ?? (liveWeather?.windSpeed ?? 12)} km/h
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Agricultural Advisory Text */}
-                  <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-main)', lineHeight: 1.6, margin: 0 }}>
-                      <strong>🌾 {lang === 'hi' ? 'किसान सलाह:' : 'Farming Advisory:'}</strong>{' '}
-                      {lang === 'hi' 
-                        ? (regionWeather?.advisory_hi || liveWeather?.advisory_hi || 'मौसम सामान्य है। फसल सिंचाई और कटाई के लिए उत्तम मौसम है।')
-                        : (regionWeather?.advisory_en || liveWeather?.advisory_en || 'Weather is normal. Suitable for crop irrigation and harvesting.')}
-                    </p>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* 7-Day Forecast Horizon */}
                 <WeatherForecast weather={regionWeather || liveWeather} lang={lang} />
@@ -1132,47 +1163,50 @@ function WeatherForecast({ weather, lang = 'en' }) {
 
   return (
     <div style={{ marginTop: '24px' }}>
-      <h4 style={{ fontSize: '1rem', marginBottom: '12px', color: 'var(--text-main)' }}>
-        {lang === 'hi' ? 'अगले 7 दिनों का अनुमान' : '7-Day Forecast'}
+      <h4 style={{ fontSize: '1.05rem', marginBottom: '14px', color: 'var(--text-main)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <CloudSun size={18} color="var(--accent-primary)" />
+        {lang === 'hi' ? 'अगले 7 दिनों का मौसम पूर्वानुमान' : '7-Day Weather Horizon Forecast'}
       </h4>
-      <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '12px' }}>
         {weather.dailyForecast.map((day, i) => {
           const date = new Date(day.date);
           const dayName = date.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'short' });
           const isToday = i === 0;
+          const dayCondition = day.rain > 2 ? 'Light Rain & Drizzle' : (day.rain > 0.2 ? 'Light Rain' : 'Clear Sky');
 
           return (
             <div key={day.date} style={{ 
-              minWidth: '80px', 
-              padding: '12px 8px', 
-              borderRadius: '8px', 
-              backgroundColor: isToday ? 'var(--bg-secondary)' : 'var(--bg-panel)', 
-              border: isToday ? '1px solid var(--accent-gold)' : '1px solid var(--border-subtle)',
+              padding: '14px 10px', 
+              borderRadius: '10px', 
+              backgroundColor: isToday ? 'var(--bg-hover, #f4f8f2)' : 'var(--bg-surface, #ffffff)', 
+              border: isToday ? '1.5px solid var(--accent-primary, #3d6544)' : '1px solid var(--border-subtle, #e5e7eb)',
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px'
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: isToday ? '0 2px 6px rgba(61,101,68,0.08)' : 'none'
             }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isToday ? 'var(--accent-gold)' : 'var(--text-main)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: isToday ? 'var(--accent-primary)' : 'var(--text-main)' }}>
                 {isToday ? (lang === 'hi' ? 'आज' : 'Today') : dayName}
               </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                 {date.getDate()}/{date.getMonth() + 1}
               </span>
-              <div style={{ margin: '8px 0', fontSize: '0.8rem', fontWeight: 700 }}>
-                <span style={{ color: 'var(--ci-trend-up)' }}>{Math.round(day.maxTemp)}°</span>
-                {' / '}
-                <span style={{ color: 'var(--ci-trend-down)' }}>{Math.round(day.minTemp)}°</span>
+              
+              <div style={{ margin: '4px 0' }}>
+                {getWeatherForecastIcon(dayCondition, 24)}
               </div>
-              {day.rain > 0 ? (
-                <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)' }}>
-                  {day.rain}mm
-                </span>
-              ) : (
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>
-                  0mm
-                </span>
-              )}
+
+              <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>
+                <span style={{ color: 'var(--ci-trend-up, #3d6544)' }}>{Math.round(day.maxTemp)}°</span>
+                {' / '}
+                <span style={{ color: 'var(--ci-trend-down, #52525b)' }}>{Math.round(day.minTemp)}°</span>
+              </div>
+              
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: day.rain > 0 ? 'var(--accent-primary, #3d6544)' : 'var(--text-dim)' }}>
+                {day.rain > 0 ? `${day.rain} mm` : '0 mm'}
+              </span>
             </div>
           );
         })}
