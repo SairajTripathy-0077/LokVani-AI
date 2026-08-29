@@ -451,9 +451,10 @@ export default function CommunityIntel() {
     const w = await fetchLiveWeatherData(cityName, lat, lon);
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: w });
 
-    // Dynamically re-optimize mandi rates, transport & storage for selected location
+    // Dynamically re-optimize mandi rates, buyers, transport & storage for selected location
     try {
       fetchLiveMandiRates(userState, cityName).then(data => dispatch({ type: 'FETCH_SUCCESS', payload: data })).catch(() => {});
+      fetchBuyers(userState, cityName).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
       fetchTransport(userState, cityName).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
       fetchStorage(userState, cityName).then(data => dispatch({ type: 'SET_STORAGE', payload: data })).catch(() => {});
     } catch (_) {}
@@ -487,8 +488,8 @@ export default function CommunityIntel() {
       
       const currentDist = userLocation.district || userLocation.city || 'Azamgarh';
 
-      // Fetch buyers
-      fetchBuyers(userLocation.state).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
+      // Fetch location-optimized buyers
+      fetchBuyers(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
 
       // Fetch location-optimized transport & storage
       fetchTransport(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
