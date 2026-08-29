@@ -160,10 +160,18 @@ export function AppProvider({ children }) {
     localStorage.removeItem('lokvani_api_key');
   }, []);
 
-  // Load Real-Time Data from Public APIs on mount
+  // Automatically request browser location if not set yet
+  useEffect(() => {
+    if (!userLocation && navigator.geolocation) {
+      requestLocation().catch(() => {});
+    }
+  }, []);
+
+  // Load Real-Time Data for the user's specific location on mount or location update
   useEffect(() => {
     async function loadRealData() {
-      const weather = await fetchLiveWeatherData('Azamgarh');
+      const activeLocation = userProfile?.district || userLocation?.district || 'Lucknow';
+      const weather = await fetchLiveWeatherData(activeLocation);
       setLiveWeather(weather);
 
       const livePrices = await fetchLiveMandiPrices();
@@ -176,7 +184,7 @@ export function AppProvider({ children }) {
       }
     }
     loadRealData();
-  }, []);
+  }, [userLocation?.district, userProfile?.district]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_real_queries', JSON.stringify(queries));

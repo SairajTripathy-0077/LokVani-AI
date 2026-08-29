@@ -212,7 +212,7 @@ export default function UserVoiceApp() {
   const [showModal, setShowModal]           = useState(false);
   const [reportItem,     setReportItem]     = useState('Tamatar (Tomato)');
   const [reportPrice,    setReportPrice]    = useState('30');
-  const [reportLocation, setReportLocation] = useState('Azamgarh Mandi');
+  const [reportLocation, setReportLocation] = useState(() => (userProfile?.district || userLocation?.district ? `${userProfile?.district || userLocation?.district} Mandi` : 'Local Mandi'));
 
   // Multi-Turn Chat Sessions with localStorage Persistence
   const [chatSessions, setChatSessions]     = useState(() => {
@@ -366,7 +366,7 @@ export default function UserVoiceApp() {
 
     const resolvedUserLoc = userProfile?.district 
       ? `${userProfile.district}, ${userProfile.state || 'India'}` 
-      : 'Azamgarh, UP';
+      : (userLocation?.district ? `${userLocation.district}, ${userLocation.state || 'India'}` : (userLocation?.state || 'Local District'));
 
     try {
       let data = null;
