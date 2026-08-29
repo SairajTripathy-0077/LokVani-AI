@@ -2,17 +2,53 @@
  * PriceCompareGraph.jsx
  * Farmer-Friendly Market Price Comparison & Mandi Ranking Visualizer
  *
- * Designed for maximum clarity and instant understanding:
+ * Built with Lucide React icons (no emojis):
  * - Direct Mandi-by-Mandi Price Bars for the selected crop
- * - Clear "Best Selling Market" (सबसे ज़्यादा भाव वाली मंडी) callout
+ * - Clear "Best Selling Market" (सर्वोत्तम भाव) callout
  * - Profit difference calculation (₹/kg or ₹/quintal extra profit)
- * - Clean crop tabs for 1-tap switching
+ * - Clean crop tabs with Lucide vector icons
  * - Theme-aligned (Sage green #3d6544, Wheat gold #a07a1e, Zinc #18181b)
  * - Full Hindi & English localization
  */
 
 import React, { useState, useMemo } from 'react';
-import { BarChart2, Award, TrendingUp, Check, ArrowRight } from 'lucide-react';
+import { 
+  BarChart2, 
+  Award, 
+  TrendingUp, 
+  MapPin, 
+  Wheat, 
+  Sprout, 
+  Carrot, 
+  Leaf, 
+  Flower2, 
+  Scale 
+} from 'lucide-react';
+
+function getCropLucideIcon(key, size = 15) {
+  switch (key) {
+    case 'Wheat':
+    case 'Paddy':
+    case 'Maize':
+      return <Wheat size={size} aria-hidden="true" />;
+    case 'Tomato':
+    case 'Potato':
+    case 'Onion':
+      return <Carrot size={size} aria-hidden="true" />;
+    case 'Mustard':
+      return <Flower2 size={size} aria-hidden="true" />;
+    case 'Gram':
+    case 'Urad Dal':
+    case 'Moong Dal':
+    case 'Soybean':
+      return <Sprout size={size} aria-hidden="true" />;
+    case 'Ginger':
+    case 'Turmeric':
+    case 'Cotton':
+    default:
+      return <Leaf size={size} aria-hidden="true" />;
+  }
+}
 
 export default function PriceCompareGraph({ intelList, lang = 'en' }) {
   // Group commodities by crop family with specific market entries
@@ -31,33 +67,32 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
       let familyKey = 'Other';
       let familyNameHi = rawName;
       let familyNameEn = rawName;
-      let icon = '🌾';
 
       const lower = rawName.toLowerCase();
       if (lower.includes('tomato') || lower.includes('tamatar')) {
-        familyKey = 'Tomato'; familyNameHi = 'टमाटर'; familyNameEn = 'Tomato'; icon = '🍅';
+        familyKey = 'Tomato'; familyNameHi = 'टमाटर'; familyNameEn = 'Tomato';
       } else if (lower.includes('onion') || lower.includes('pyaaz')) {
-        familyKey = 'Onion'; familyNameHi = 'प्याज'; familyNameEn = 'Onion'; icon = '🧅';
+        familyKey = 'Onion'; familyNameHi = 'प्याज'; familyNameEn = 'Onion';
       } else if (lower.includes('potato') || lower.includes('aloo')) {
-        familyKey = 'Potato'; familyNameHi = 'आलू'; familyNameEn = 'Potato'; icon = '🥔';
+        familyKey = 'Potato'; familyNameHi = 'आलू'; familyNameEn = 'Potato';
       } else if (lower.includes('wheat') || lower.includes('gehun')) {
-        familyKey = 'Wheat'; familyNameHi = 'गेहूं'; familyNameEn = 'Wheat'; icon = '🌾';
+        familyKey = 'Wheat'; familyNameHi = 'गेहूं'; familyNameEn = 'Wheat';
       } else if (lower.includes('paddy') || lower.includes('dhan')) {
-        familyKey = 'Paddy'; familyNameHi = 'धान / चावल'; familyNameEn = 'Paddy / Rice'; icon = '🌾';
+        familyKey = 'Paddy'; familyNameHi = 'धान / चावल'; familyNameEn = 'Paddy / Rice';
       } else if (lower.includes('mustard') || lower.includes('sarson')) {
-        familyKey = 'Mustard'; familyNameHi = 'सरसों'; familyNameEn = 'Mustard'; icon = '🌻';
+        familyKey = 'Mustard'; familyNameHi = 'सरसों'; familyNameEn = 'Mustard';
       } else if (lower.includes('chana') || lower.includes('gram')) {
-        familyKey = 'Gram'; familyNameHi = 'चना'; familyNameEn = 'Gram / Chana'; icon = '🌱';
+        familyKey = 'Gram'; familyNameHi = 'चना'; familyNameEn = 'Gram / Chana';
       } else if (lower.includes('maize') || lower.includes('makka')) {
-        familyKey = 'Maize'; familyNameHi = 'मक्का'; familyNameEn = 'Maize'; icon = '🌽';
+        familyKey = 'Maize'; familyNameHi = 'मक्का'; familyNameEn = 'Maize';
       } else if (lower.includes('urad') || lower.includes('biri')) {
-        familyKey = 'Urad Dal'; familyNameHi = 'उड़द दाल'; familyNameEn = 'Urad Dal'; icon = '🥣';
+        familyKey = 'Urad Dal'; familyNameHi = 'उड़द दाल'; familyNameEn = 'Urad Dal';
       } else if (lower.includes('moong') || lower.includes('mung')) {
-        familyKey = 'Moong Dal'; familyNameHi = 'मूंग दाल'; familyNameEn = 'Moong Dal'; icon = '🥣';
+        familyKey = 'Moong Dal'; familyNameHi = 'मूंग दाल'; familyNameEn = 'Moong Dal';
       } else if (lower.includes('ginger') || lower.includes('adrak')) {
-        familyKey = 'Ginger'; familyNameHi = 'अदरक'; familyNameEn = 'Ginger'; icon = '🫚';
+        familyKey = 'Ginger'; familyNameHi = 'अदरक'; familyNameEn = 'Ginger';
       } else if (lower.includes('turmeric') || lower.includes('haldi')) {
-        familyKey = 'Turmeric'; familyNameHi = 'हल्दी'; familyNameEn = 'Turmeric'; icon = '🌿';
+        familyKey = 'Turmeric'; familyNameHi = 'हल्दी'; familyNameEn = 'Turmeric';
       }
 
       if (!map[familyKey]) {
@@ -65,7 +100,6 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
           key: familyKey,
           nameHi: familyNameHi,
           nameEn: familyNameEn,
-          icon,
           unit,
           entries: []
         };
@@ -82,7 +116,6 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
 
     return Object.values(map)
       .map((family) => {
-        // If only 1 market entry in dataset, generate realistic benchmark spreads for neighboring mandis
         let mandiList = [...family.entries];
         if (mandiList.length === 1) {
           const base = mandiList[0].price;
@@ -94,7 +127,6 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
           ];
         }
 
-        // Sort markets descending by price
         mandiList.sort((a, b) => b.price - a.price);
 
         const highest = mandiList[0];
@@ -118,7 +150,6 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
 
   if (cropFamilies.length === 0) return null;
 
-  // Active selected crop family
   const currentCrop = cropFamilies.find(c => c.key === selectedCropKey) || cropFamilies[0];
   const maxPriceForBar = Math.max(...currentCrop.mandiList.map(m => m.price), 1);
   const unitLabel = currentCrop.unit === 'quintal' ? (lang === 'hi' ? 'क्विंटल' : 'quintal') : (lang === 'hi' ? 'किलो' : 'kg');
@@ -154,7 +185,7 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
             justifyContent: 'center',
             color: 'var(--accent-primary, #3d6544)'
           }}>
-            <BarChart2 size={18} />
+            <Scale size={18} />
           </div>
           <div>
             <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main, #18181b)' }}>
@@ -167,7 +198,7 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
         </div>
       </div>
 
-      {/* ── 1-Tap Crop Selection Tabs ── */}
+      {/* ── 1-Tap Crop Selection Tabs with Lucide Icons ── */}
       <div style={{
         display: 'flex',
         gap: '8px',
@@ -198,7 +229,9 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
                 whiteSpace: 'nowrap'
               }}
             >
-              <span>{crop.icon}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                {getCropLucideIcon(crop.key, 14)}
+              </span>
               <span>{crop.name}</span>
             </button>
           );
@@ -225,9 +258,10 @@ export default function PriceCompareGraph({ intelList, lang = 'en' }) {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={14} color="var(--accent-primary, #3d6544)" aria-hidden="true" />
                   <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-main, #18181b)' }}>
-                    📍 {m.market}
+                    {m.market}
                   </span>
                   {isHighest && (
                     <span style={{
