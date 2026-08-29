@@ -107,31 +107,31 @@ function DistressDamageBar({ result, dialect }) {
     }
   }
 
-  const levelColor =
-    score >= 80 ? 'bg-rose-600 border-rose-200 text-white' :
-    score >= 60 ? 'bg-amber-500 border-amber-200 text-white' :
-    score >= 30 ? 'bg-orange-500 border-orange-200 text-white' :
-                  'bg-emerald-500 border-emerald-200 text-white';
+  const levelBadge =
+    score >= 80 ? 'bg-rose-50 border-rose-200 text-rose-800' :
+    score >= 60 ? 'bg-amber-50 border-amber-200 text-amber-800' :
+    score >= 30 ? 'bg-amber-50/80 border-[#a07a1e]/30 text-[#a07a1e]' :
+                  'bg-[#48734f]/10 border-[#48734f]/30 text-[#48734f]';
 
   const barGradient =
     score >= 80 ? 'from-rose-500 to-red-600' :
     score >= 60 ? 'from-amber-500 to-orange-500' :
-    score >= 30 ? 'from-amber-400 to-amber-600' :
-                  'from-emerald-400 to-emerald-600';
+    score >= 30 ? 'from-[#a07a1e]/80 to-[#a07a1e]' :
+                  'from-[#48734f]/80 to-[#48734f]';
 
   const impactText = (dialect === 'en') ? (impactEn || impactHi) : (impactHi || impactEn);
 
   return (
-    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 text-white space-y-3.5 shadow-lg border border-zinc-800 my-4">
+    <div className="p-4 sm:p-5 rounded-2xl bg-zinc-50 border border-zinc-200/90 space-y-3.5 shadow-2xs my-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <AlertTriangle size={16} className={score >= 60 ? 'text-rose-400 animate-pulse' : 'text-amber-400'} />
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-300">
+          <AlertTriangle size={15} className={score >= 60 ? 'text-rose-600 animate-pulse' : 'text-[#a07a1e]'} />
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-700">
             {dialect === 'en' ? 'Farming & Business Distress Index' : 'फसल व व्यवसाय क्षति जोखिम सूचकांक'}
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest', levelColor)}>
+          <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest border', levelBadge)}>
             {level} ({score}%)
           </span>
         </div>
@@ -139,13 +139,13 @@ function DistressDamageBar({ result, dialect }) {
 
       {/* Animated Meter Bar */}
       <div className="space-y-1.5">
-        <div className="h-3 w-full bg-zinc-800 rounded-full overflow-hidden p-0.5 border border-white/10">
+        <div className="h-2.5 w-full bg-zinc-200/80 rounded-full overflow-hidden p-0.5 border border-zinc-300/60">
           <div
             className={cn('h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r', barGradient)}
             style={{ width: `${Math.min(100, Math.max(5, score))}%` }}
           />
         </div>
-        <div className="flex justify-between text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+        <div className="flex justify-between text-[9px] font-mono text-zinc-500 uppercase tracking-widest">
           <span>0% Low Impact</span>
           <span>50% Moderate</span>
           <span>100% Critical Damage</span>
@@ -154,13 +154,13 @@ function DistressDamageBar({ result, dialect }) {
 
       {/* Impact Explanation */}
       {impactText && (
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-xs leading-relaxed text-zinc-200 flex items-start gap-2.5">
-          <ShieldAlert size={15} className="shrink-0 text-amber-400 mt-0.5" />
+        <div className="p-3 rounded-xl bg-white border border-zinc-200 text-xs leading-relaxed text-zinc-800 flex items-start gap-2.5 shadow-2xs">
+          <ShieldAlert size={15} className="shrink-0 text-[#a07a1e] mt-0.5" />
           <div>
-            <p className="font-semibold text-white mb-0.5">
+            <p className="font-bold text-zinc-900 mb-0.5">
               {dialect === 'en' ? 'Estimated Damage & Business Impact:' : 'अनुमानित क्षति व व्यावसायिक प्रभाव:'}
             </p>
-            <p className="text-zinc-300">{impactText}</p>
+            <p className="text-zinc-600 font-medium">{impactText}</p>
           </div>
         </div>
       )}
