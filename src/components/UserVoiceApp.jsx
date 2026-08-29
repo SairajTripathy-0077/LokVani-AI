@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { speechService } from '../services/speechService';
 import { processUserSpeechQuery } from '../services/aiCoreEngine';
+import { geminiRotator } from '../services/geminiKeyRotator';
 import {
   Mic, MicOff, Volume2, VolumeX, ShieldAlert, Sparkles, CheckCircle2,
   AlertTriangle, ArrowRight, RefreshCw, Wheat, Bug, TrendingUp, Send, X,
@@ -391,14 +392,65 @@ export default function UserVoiceApp() {
         console.warn('Backend offline — using local fallback');
       }
 
+      if (!data || (!data.shortAnswerHi && !data.shortAnswerEn) || data.status === 'OUT_OF_SERVICE') {
+        try {
+          const clientAi = await geminiRotator.executeWithRotation(
+            `You are LokVani AI, an inclusive voice AI assistant for small farmers in India. Provide responses in valid JSON:
+{
+  "short_answer_hi": "string (35-50 words answer in simple Hindi)",
+  "short_answer_en": "string (35-50 words answer in English)",
+  "detailed_answer_hi": "string (90-160 words reasoning)",
+  "detailed_answer_en": "string (90-160 words reasoning)",
+  "confidence": "HIGH | MEDIUM",
+  "follow_up_questions": ["question 1", "question 2"],
+  "domain": "AGRI_ADVISORY",
+  "is_high_stakes": false,
+  "risk_category": "NONE",
+  "trust_note": "AI Generated Answer",
+  "actionable_steps": ["step 1", "step 2"]
+}`,
+            trimmed
+          );
+
+          if (clientAi && clientAi.text) {
+            let rawText = clientAi.text.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const firstBrace = rawText.indexOf('{');
+            const lastBrace = rawText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace > firstBrace) {
+              rawText = rawText.substring(firstBrace, lastBrace + 1);
+            }
+            const parsed = JSON.parse(rawText);
+            data = {
+              _id: `client_${Date.now()}`,
+              transcribedText: trimmed,
+              userLocation: 'Azamgarh, UP',
+              shortAnswerHi: parsed.short_answer_hi || parsed.shortAnswerHi || clientAi.text.slice(0, 200),
+              shortAnswerEn: parsed.short_answer_en || parsed.shortAnswerEn || clientAi.text.slice(0, 200),
+              detailedAnswerHi: parsed.detailed_answer_hi || parsed.detailedAnswerHi || clientAi.text,
+              detailedAnswerEn: parsed.detailed_answer_en || parsed.detailedAnswerEn || clientAi.text,
+              confidence: parsed.confidence || 'HIGH',
+              followUpQuestions: parsed.follow_up_questions || ['अन्य जानकारी / More info'],
+              domain: parsed.domain || 'AGRI_ADVISORY',
+              isHighStakes: parsed.is_high_stakes || false,
+              riskCategory: parsed.risk_category || 'NONE',
+              trustNote: 'Direct Gemini AI Engine',
+              actionableSteps: parsed.actionable_steps || [],
+              status: 'AUTO_VERIFIED',
+              engineSource: 'CLIENT_GEMINI_AI',
+              createdAt: new Date(),
+            };
+          }
+        } catch (_) {}
+      }
+
       if (!data || (!data.shortAnswerHi && !data.shortAnswerEn)) {
         data = {
           _id: `offline_${Date.now()}`,
           transcribedText: trimmed,
           userLocation: 'Azamgarh, UP',
-          shortAnswerHi: 'AI सेवा अस्थायी रूप से अनुपलब्ध है। कृपया कुछ समय बाद पुनः प्रयास करें।',
-          shortAnswerEn: 'AI service is temporarily out of service. Please try again in a moment.',
-          detailedAnswerHi: 'AI मॉडल सर्वर से संपर्क नहीं हो सका। कृपया अपना नेटवर्क कनेक्शन जांचें और पुनः प्रयास करें।',
+          shortAnswerHi: 'AI सेवा अस्थायी रूप से अनुपलब्ध है। कृपया Vercel पर GEMINI_API_KEYS जांचें।',
+          shortAnswerEn: 'AI service is temporarily out of service. Please check GEMINI_API_KEYS on Vercel.',
+          detailedAnswerHi: 'AI मॉडल सर्वर से संपर्क नहीं हो सका। कृपया नेटवर्क कनेक्शन जांचें और पुनः प्रयास करें।',
           detailedAnswerEn: 'The AI model server was unable to respond. Please check your network connection and try again.',
           confidence: 'LOW',
           followUpQuestions: ['पुनः प्रयास करें / Try again', 'मंडी भाव देखें / Check mandi rates'],

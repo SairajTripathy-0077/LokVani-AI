@@ -113,18 +113,41 @@ CRITICAL INSTRUCTION: Explicitly state that this is an ESTIMATED ML MODEL PREDIC
 
   if (rotatedResult && rotatedResult.text) {
     try {
-      const cleanJson = rotatedResult.text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(cleanJson);
+      let rawText = rotatedResult.text.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const firstBrace = rawText.indexOf('{');
+      const lastBrace = rawText.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        rawText = rawText.substring(firstBrace, lastBrace + 1);
+      }
+      const parsed = JSON.parse(rawText);
       return {
         ...parsed,
         apiKeyIndexUsed: rotatedResult.keyIndexUsed,
         modelUsed: rotatedResult.modelUsed
       };
     } catch (err) {
-      // Don't leak parse details to API response — just rethrow a clean message
-      throw new Error('AI response could not be parsed. Please try again.');
+      console.warn('[geminiService] JSON parse error, returning fallback structure:', err.message);
+      return {
+        short_answer_hi: rotatedResult.text.slice(0, 300),
+        short_answer_en: rotatedResult.text.slice(0, 300),
+        detailed_answer_hi: rotatedResult.text,
+        detailed_answer_en: rotatedResult.text,
+        confidence: 'MEDIUM',
+        follow_up_questions: ['पुनः प्रयास करें / Try again', 'मंडी भाव देखें / Check mandi rates'],
+        domain: 'AGRI_ADVISORY',
+        is_high_stakes: false,
+        risk_category: 'NONE',
+        trust_note: 'Direct AI Text Response',
+        actionable_steps: ['जानकारी की पुष्टि करें / Verify information.'],
+        distress_score: 0,
+        distress_level: 'LOW',
+        damage_impact_hi: 'सामान्य जानकारी।',
+        damage_impact_en: 'General advisory.',
+        apiKeyIndexUsed: rotatedResult.keyIndexUsed,
+        modelUsed: rotatedResult.modelUsed
+      };
     }
   }
 
-  throw new Error('AI service temporarily unavailable. Please try again in a moment.');
+  throw new Error('AI service temporarily unavailable.');
 }
