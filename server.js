@@ -15,6 +15,7 @@ import { processVoiceQuery } from './src/services/geminiService.js';
 import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
 import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
+import { predictAgriculturePrice } from './src/services/agriMlService.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -62,7 +63,7 @@ let memoryQueryLogs = [
     isHighStakes: true,
     riskCategory: 'FINANCIAL_ELIGIBILITY',
     trustNote: 'High-stakes scheme eligibility query: Requires land document check.',
-    actionableSteps: ['Aadhar card link check karein', 'Kirana CSC center par e-KYC karein'],
+    actionableSteps: ['Aadhar card link check karein', 'Kirana Center par e-KYC karein'],
     status: 'PENDING_TRUST_REVIEW',
     createdAt: new Date()
   }
@@ -174,7 +175,7 @@ app.get('/api/health', (req, res) => {
 // 2. Process Voice Query (POST /api/query)
 app.post('/api/query', async (req, res) => {
   try {
-    const { transcribed_text, user_location, userId, userEmail, userName, dialect } = req.body || {};
+    const { transcribed_text, user_location, userId, userEmail, userName, dialect, conversation_history } = req.body || {};
 
     const safeText = sanitizeInput(transcribed_text);
     if (!safeText) {
@@ -211,13 +212,13 @@ app.post('/api/query', async (req, res) => {
     }
     const weatherData = await fetchLiveWeatherData(detectedCity);
 
-    // Run AI Engine through Rotator (sanitized text, optional dialect)
+    // Run AI Engine through Rotator (sanitized text, optional dialect, multi-turn history)
     const safeDialect = dialect ? sanitizeInput(dialect).slice(0, 30) : null;
     let aiResult = null;
     let engineSource = 'GEMINI_AI';
 
     try {
-      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect);
+      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history);
     } catch (geminiErr) {
       console.warn('[API /api/query] Gemini AI engine unavailable, using Local NLP Engine fallback:', geminiErr.message);
       const fallback = processUserSpeechQuery(safeText, { userLocation: user_location });
@@ -398,6 +399,26 @@ app.post('/api/intel', async (req, res) => {
   }
 });
 
+// 5b. Agriculture Machine Learning Price Prediction Endpoint (POST /api/agriculture/predict)
+app.post('/api/agriculture/predict', (req, res) => {
+  try {
+    const inputParams = req.body || {};
+    const result = predictAgriculturePrice(inputParams);
+    return res.json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('[API POST /api/agriculture/predict Error]:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to generate agriculture price prediction.',
+      fallback_warning: 'Agriculture prediction service temporarily unavailable.'
+    });
+  }
+});
+
 // 6. Get User Voice Query History (GET /api/user/queries/:userId)
 app.get('/api/user/queries/:userId', async (req, res) => {
   try {
@@ -411,6 +432,21 @@ app.get('/api/user/queries/:userId', async (req, res) => {
   } catch (error) {
     console.error('[API GET /api/user/queries Error]:', error);
     return res.status(500).json({ error: 'Failed to fetch user query history.' });
+  }
+});
+
+// 6b. Delete Query Record / Chat Session (DELETE /api/user/queries/:id)
+app.delete('/api/user/queries/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (isMongoDBConnected()) {
+      await QueryLog.findByIdAndDelete(id);
+    }
+    memoryQueryLogs = memoryQueryLogs.filter(q => String(q._id) !== String(id));
+    return res.json({ success: true, message: 'Query record deleted successfully.' });
+  } catch (error) {
+    console.error('[API DELETE /api/user/queries/:id Error]:', error);
+    return res.status(500).json({ error: 'Failed to delete query record.' });
   }
 });
 

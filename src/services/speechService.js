@@ -22,7 +22,7 @@ class SpeechService {
 
     if (this.recognitionSupported) {
       this.recognition = new SpeechRecognition();
-      this.recognition.continuous = false;
+      this.recognition.continuous = true;
       this.recognition.interimResults = true;
     }
 
@@ -115,16 +115,17 @@ class SpeechService {
 
     try {
       this.recognition.lang = langCode;
+      this.recognition.continuous = true;
 
       this.recognition.onresult = (event) => {
-        let transcript = '';
+        let fullTranscript = '';
         let isFinal = false;
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
+        for (let i = 0; i < event.results.length; ++i) {
+          fullTranscript += event.results[i][0].transcript + ' ';
           if (event.results[i].isFinal) isFinal = true;
         }
-        if (onResult) onResult({ transcript, isFinal });
+        if (onResult) onResult({ transcript: fullTranscript.trim(), isFinal });
       };
 
       this.recognition.onerror = (event) => {
