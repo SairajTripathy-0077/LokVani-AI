@@ -160,13 +160,16 @@ export function AppProvider({ children }) {
     localStorage.removeItem('lokvani_api_key');
   }, []);
 
-  // Load Real-Time Data from Public APIs on mount
+  // Load Real-Time Data from Public APIs based on user location
   useEffect(() => {
     async function loadRealData() {
-      const weather = await fetchLiveWeatherData('Azamgarh');
+      const state = userLocation?.state || 'Uttar Pradesh';
+      const district = userLocation?.district || userLocation?.city || 'Azamgarh';
+
+      const weather = await fetchLiveWeatherData(district, userLocation?.lat, userLocation?.lng);
       setLiveWeather(weather);
 
-      const livePrices = await fetchLiveMandiPrices();
+      const livePrices = await fetchLiveMandiPrices(state, district);
       if (livePrices && livePrices.length > 0) {
         setCommunityIntel(prev => {
           const existingIds = new Set(prev.map(p => p.id));
@@ -176,7 +179,7 @@ export function AppProvider({ children }) {
       }
     }
     loadRealData();
-  }, []);
+  }, [userLocation]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_real_queries', JSON.stringify(queries));
