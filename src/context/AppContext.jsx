@@ -170,13 +170,14 @@ export function AppProvider({ children }) {
   // Load Real-Time Data for the user's specific location on mount or location update
   useEffect(() => {
     async function loadRealData() {
-      const activeLocation = userProfile?.district || userLocation?.district || userProfile?.state || userLocation?.state || '';
-      if (activeLocation) {
-        const weather = await fetchLiveWeatherData(activeLocation);
-        setLiveWeather(weather);
-      }
+      const state = userLocation?.state || userProfile?.state || 'Uttar Pradesh';
+      const district = userLocation?.district || userProfile?.district || userLocation?.city || 'Azamgarh';
+      const activeLocation = district || state || 'Azamgarh';
 
-      const livePrices = await fetchLiveMandiPrices();
+      const weather = await fetchLiveWeatherData(activeLocation, userLocation?.lat, userLocation?.lng);
+      setLiveWeather(weather);
+
+      const livePrices = await fetchLiveMandiPrices(state, district);
       if (livePrices && livePrices.length > 0) {
         setCommunityIntel(prev => {
           const existingIds = new Set(prev.map(p => p.id));
@@ -186,7 +187,7 @@ export function AppProvider({ children }) {
       }
     }
     loadRealData();
-  }, [userLocation?.district, userProfile?.district]);
+  }, [userLocation?.district, userProfile?.district, userLocation?.state, userProfile?.state]);
 
   useEffect(() => {
     localStorage.setItem('lokvani_real_queries', JSON.stringify(queries));

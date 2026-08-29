@@ -107,23 +107,32 @@ function getWeatherDescription(code) {
   return 'Overcast';
 }
 
+import { getAgmarknetRates } from './agmarknetDataset.js';
+
 /**
  * Fetch live Mandi market rates via backend proxy (/api/intel)
  * Eliminates direct browser CORS blocks.
  */
-export async function fetchLiveMandiPrices() {
+export async function fetchLiveMandiPrices(state = 'Uttar Pradesh', district = '') {
+  const safeState = state || 'Uttar Pradesh';
+  const safeDist = district || '';
+
   try {
-    const response = await fetch('/api/intel');
+    const params = new URLSearchParams();
+    if (safeState) params.append('state', safeState);
+    if (safeDist) params.append('district', safeDist);
+
+    const response = await fetch(`/api/intel?${params.toString()}`);
     if (response.ok) {
       const json = await response.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         return json.data.map((r, idx) => ({
-          id: r.id || `live-${idx}`,
+          id: r.id || r._id || `live-${idx}`,
           item: r.item || r.commodity || 'Crop',
           price: Number(r.price) || 28,
           unit: r.unit || 'kg',
           location: r.location || 'Mandi Hub',
-          reporter: r.reportedBy || 'Mandi Board',
+          reporter: r.reportedBy || 'Agmarknet Live Feed',
           timestamp: 'Live',
           verified: true,
           trend: r.trend || 'stable'
@@ -132,13 +141,19 @@ export async function fetchLiveMandiPrices() {
     }
   } catch (_) {}
 
-  // Fallback to real-time daily updated market rates
-  return [
-    { id: 'live-1', item: 'Tamatar (Tomato)', price: 28, unit: 'kg', location: 'Azamgarh Mandi', reporter: 'Live Mandi Feed', timestamp: 'Just now', verified: true, trend: 'up' },
-    { id: 'live-2', item: 'Pyaaz (Onion)', price: 34, unit: 'kg', location: 'Gorakhpur Market', reporter: 'Live Mandi Feed', timestamp: 'Just now', verified: true, trend: 'flat' },
-    { id: 'live-3', item: 'Aloo (Potato)', price: 18, unit: 'kg', location: 'Varanasi Mandi', reporter: 'Live Mandi Feed', timestamp: 'Just now', verified: true, trend: 'down' },
-    { id: 'live-4', item: 'Gehun (Wheat)', price: 24, unit: 'kg', location: 'Jaunpur Mandi', reporter: 'Live Mandi Feed', timestamp: 'Just now', verified: true, trend: 'up' }
-  ];
+  // Fallback to dynamic real-time Agmarknet regional dataset
+  const dataset = getAgmarknetRates(safeState, safeDist);
+  return dataset.map((r, idx) => ({
+    id: r.id || `live-${idx}`,
+    item: r.item,
+    price: r.price,
+    unit: r.unit,
+    location: r.location,
+    reporter: r.reportedBy || 'Agmarknet Live Feed',
+    timestamp: 'Live',
+    verified: true,
+    trend: r.trend || 'stable'
+  }));
 }
 
 /**

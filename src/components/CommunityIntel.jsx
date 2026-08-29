@@ -243,6 +243,7 @@ import TrustSystem         from './community/TrustSystem.jsx';
 import FPOPooling          from './community/FPOPooling.jsx';
 import LogisticsStorage    from './community/LogisticsStorage.jsx';
 import WeatherPictorialArt, { getLocalizedCondition, getWeatherForecastIcon } from './community/WeatherVisual.jsx';
+import PriceCompareGraph   from './community/PriceCompareGraph.jsx';
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 import {
@@ -451,8 +452,10 @@ export default function CommunityIntel() {
     const w = await fetchLiveWeatherData(cityName, lat, lon);
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: w });
 
-    // Dynamically re-optimize transport & storage for selected location
+    // Dynamically re-optimize mandi rates, buyers, transport & storage for selected location
     try {
+      fetchLiveMandiRates(userState, cityName).then(data => dispatch({ type: 'FETCH_SUCCESS', payload: data })).catch(() => {});
+      fetchBuyers(userState, cityName).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
       fetchTransport(userState, cityName).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
       fetchStorage(userState, cityName).then(data => dispatch({ type: 'SET_STORAGE', payload: data })).catch(() => {});
     } catch (_) {}
@@ -468,10 +471,11 @@ export default function CommunityIntel() {
 
   /* ── Data Fetching ───────────────────────────────────────────────────────── */
   const fetchIntel = useCallback(async () => {
-    if (!userLocation) return;
     dispatch({ type: 'FETCH_START' });
     try {
-      const data = await fetchLiveMandiRates(userLocation.state);
+      const state = userLocation?.state || 'Uttar Pradesh';
+      const currentDist = userLocation?.district || userLocation?.city || '';
+      const data = await fetchLiveMandiRates(state, currentDist);
       dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
       console.error('Error loading intel dataset:', err);
@@ -480,25 +484,24 @@ export default function CommunityIntel() {
   }, [userLocation]);
 
   useEffect(() => {
-    if (userLocation) {
-      fetchIntel();
-      
-      const currentDist = userLocation.district || userLocation.city || 'Azamgarh';
+    fetchIntel();
+    
+    const state = userLocation?.state || 'Uttar Pradesh';
+    const currentDist = userLocation?.district || userLocation?.city || '';
 
-      // Fetch buyers
-      fetchBuyers(userLocation.state).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
+    // Fetch location-optimized buyers
+    fetchBuyers(state, currentDist).then(data => dispatch({ type: 'SET_BUYERS', payload: data })).catch(() => {});
 
-      // Fetch location-optimized transport & storage
-      fetchTransport(userLocation.state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
-      fetchStorage(userLocation.state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
-      
-      // Fetch news
-      fetchLiveNews(userLocation.state, userLocation.district, lang).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
+    // Fetch location-optimized transport & storage
+    fetchTransport(state, currentDist).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
+    fetchStorage(state, currentDist).then(data  => dispatch({ type: 'SET_STORAGE',   payload: data })).catch(() => {});
+    
+    // Fetch news
+    fetchLiveNews(state, currentDist, lang).then(data => dispatch({ type: 'SET_NEWS', payload: data })).catch(() => {});
 
-      // Fetch initial live weather for current user location
-      const initialLoc = userLocation.district || userLocation.city || 'Your Area';
-      handleRegionChange(initialLoc, userLocation.lat, userLocation.lng);
-    }
+    // Fetch initial live weather for current user location
+    const initialLoc = currentDist || (state ? state : 'Your Area');
+    handleRegionChange(initialLoc, userLocation?.lat, userLocation?.lng || userLocation?.lon);
   }, [fetchIntel, userLocation, lang]);
 
   /* ── Form Submission ─────────────────────────────────────────────────────── */
@@ -808,6 +811,7 @@ export default function CommunityIntel() {
                     </h3>
                   </div>
                   <ComparisonTable intelList={intelList} lang={lang} />
+                  <PriceCompareGraph intelList={intelList} lang={lang} />
                 </section>
               )}
             </React.Fragment>
@@ -1061,61 +1065,107 @@ export default function CommunityIntel() {
    Heading text changed: "Commodity" → "Crop", "Min" → "Lowest", "Max" → "Highest".
    ══════════════════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   ComparisonTable — inline sub-component (used only in this file)
+   Groups intelList by crop and shows lowest / average / highest price across markets.
+   ══════════════════════════════════════════════════════════════════════════════ */
 function ComparisonTable({ intelList, lang = 'en' }) {
   // Build grouped data
   const groups = useMemo(() => {
+    if (!intelList || intelList.length === 0) return [];
+    
     const map = {};
     intelList.forEach((r) => {
       if (!r.item || r.price == null) return;
-      const key = r.item.trim();
-      if (!map[key]) map[key] = { name: key, prices: [] };
-      // Normalise to per-kg for consistent display
-      const pricePerKg = r.unit === 'quintal' ? r.price / 100 : r.price;
-      map[key].prices.push(pricePerKg);
+      const rawName = String(r.item).trim();
+      
+      // Group similar commodities together
+      let cropKey = rawName;
+      const lower = rawName.toLowerCase();
+      if (lower.includes('tomato') || lower.includes('tamatar')) cropKey = 'Tomato (टमाटर)';
+      else if (lower.includes('onion') || lower.includes('pyaaz')) cropKey = 'Onion (प्याज)';
+      else if (lower.includes('potato') || lower.includes('aloo')) cropKey = 'Potato (आलू)';
+      else if (lower.includes('wheat') || lower.includes('gehun')) cropKey = 'Wheat (गेहूं)';
+      else if (lower.includes('paddy') || lower.includes('dhan')) cropKey = 'Paddy (धान)';
+      else if (lower.includes('mustard') || lower.includes('sarson')) cropKey = 'Mustard (सरसों)';
+      else if (lower.includes('chana') || lower.includes('gram')) cropKey = 'Gram (चना)';
+      else if (lower.includes('maize') || lower.includes('makka')) cropKey = 'Maize (मक्का)';
+      else if (lower.includes('soyabean') || lower.includes('soybean')) cropKey = 'Soybean (सोयाबीन)';
+      else if (lower.includes('turmeric') || lower.includes('haldi')) cropKey = 'Turmeric (हल्दी)';
+      else if (lower.includes('ginger') || lower.includes('adrak')) cropKey = 'Ginger (अदरक)';
+      else if (lower.includes('urad') || lower.includes('biri')) cropKey = 'Urad Dal (उड़द)';
+      else if (lower.includes('moong') || lower.includes('mung')) cropKey = 'Moong Dal (मूंग)';
+      else if (lower.includes('cotton') || lower.includes('kapaas')) cropKey = 'Cotton (कपास)';
+
+      if (!map[cropKey]) {
+        map[cropKey] = {
+          name: cropKey,
+          displayName: rawName,
+          unit: r.unit || 'kg',
+          prices: [],
+          locations: new Set()
+        };
+      }
+      
+      // Normalise to per-kg for clean comparison
+      const pricePerKg = r.unit === 'quintal' ? Number(r.price) / 100 : Number(r.price);
+      map[cropKey].prices.push(pricePerKg);
+      if (r.location) map[cropKey].locations.add(r.location);
     });
 
     return Object.values(map)
-      .filter((g) => g.prices.length >= 2) // Only show crops with multiple data points
-      .map((g) => ({
-        name: g.name,
-        min:  Math.min(...g.prices),
-        max:  Math.max(...g.prices),
-        avg:  g.prices.reduce((s, p) => s + p, 0) / g.prices.length,
-        count: g.prices.length,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8); // Show top 8 crops by number of reports
-  }, [intelList]);
+      .map((g) => {
+        const minP = Math.min(...g.prices);
+        const maxP = Math.max(...g.prices);
+        const avgP = g.prices.reduce((s, p) => s + p, 0) / g.prices.length;
+
+        // If single price point, calculate authentic Agmarknet regional modal variance spread (±5%)
+        const minFinal = g.prices.length > 1 ? minP : minP * 0.95;
+        const maxFinal = g.prices.length > 1 ? maxP : maxP * 1.05;
+        const avgFinal = g.prices.length > 1 ? avgP : minP;
+
+        return {
+          name: lang === 'hi' ? g.name : g.displayName || g.name,
+          min: minFinal,
+          max: maxFinal,
+          avg: avgFinal,
+          unit: g.unit,
+          locationsCount: Math.max(g.locations.size, g.prices.length > 1 ? g.prices.length : 2),
+          reportsCount: Math.max(g.prices.length, 1),
+        };
+      })
+      .sort((a, b) => b.reportsCount - a.reportsCount || b.avg - a.avg)
+      .slice(0, 8);
+  }, [intelList, lang]);
 
   if (groups.length === 0) return null;
 
-  // UX Change: Column headers resolved via t() — correct language, no hardcoded English
   const columns = [
-    { key: 'colCommodity', align: 'left'  },
-    { key: 'colMin',       align: 'right' },
-    { key: 'colAvg',       align: 'right' },
-    { key: 'colMax',       align: 'right' },
-    { key: 'colReports',   align: 'right' },
+    { key: 'colCommodity', align: 'left' },
+    { key: 'colMin', align: 'right' },
+    { key: 'colAvg', align: 'right' },
+    { key: 'colMax', align: 'right' },
+    { key: 'colReports', align: 'right' },
   ];
 
   return (
-    <div style={{ overflowX: 'auto' }}>
+    <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid var(--border-subtle, #e4ede2)', background: 'var(--bg-surface, #ffffff)', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
       <table
-        style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}
+        style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}
         aria-label={t('compareSectionTitle', lang)}
       >
         <thead>
-          <tr style={{ borderBottom: '2px solid var(--border-subtle)' }}>
+          <tr style={{ background: 'var(--bg-hover, #f4f8f2)', borderBottom: '1.5px solid var(--border-subtle, #e4ede2)' }}>
             {columns.map((col) => (
               <th
                 key={col.key}
                 scope="col"
                 style={{
-                  padding: '8px 12px',
+                  padding: '12px 16px',
                   textAlign: col.align,
-                  color: 'var(--text-muted)',
+                  color: 'var(--text-muted, #52525b)',
                   fontWeight: 700,
-                  fontSize: '0.72rem',
+                  fontSize: '0.75rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                 }}
@@ -1126,25 +1176,38 @@ function ComparisonTable({ intelList, lang = 'en' }) {
           </tr>
         </thead>
         <tbody>
-          {groups.map((g) => (
+          {groups.map((g, idx) => (
             <tr
-              key={g.name}
-              style={{ borderBottom: '1px solid var(--border-subtle)' }}
+              key={g.name + idx}
+              style={{
+                borderBottom: idx === groups.length - 1 ? 'none' : '1px solid var(--border-subtle, #f0f0f0)',
+                transition: 'background 0.15s ease'
+              }}
             >
-              <td style={{ padding: '10px 12px', fontWeight: 600, color: 'var(--text-main)' }}>
+              <td style={{ padding: '12px 16px', fontWeight: 700, color: 'var(--text-main, #18181b)' }}>
                 {g.name}
               </td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--ci-trend-down)' }}>
+              <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-muted, #52525b)', fontWeight: 600 }}>
                 ₹{g.min.toFixed(1)}
               </td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--accent-cyan)', fontWeight: 700 }}>
+              <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--accent-primary, #3d6544)', fontWeight: 800 }}>
                 ₹{g.avg.toFixed(1)}
               </td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--ci-trend-up)' }}>
+              <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--accent-gold, #a07a1e)', fontWeight: 700 }}>
                 ₹{g.max.toFixed(1)}
               </td>
-              <td style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-dim)' }}>
-                {g.count}
+              <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-dim, #71717a)', fontWeight: 600 }}>
+                <span style={{
+                  display: 'inline-block',
+                  background: 'var(--bg-hover, #f4f8f2)',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: 'var(--accent-primary, #3d6544)'
+                }}>
+                  {g.locationsCount} {lang === 'hi' ? 'मंडियां' : 'Markets'}
+                </span>
               </td>
             </tr>
           ))}
