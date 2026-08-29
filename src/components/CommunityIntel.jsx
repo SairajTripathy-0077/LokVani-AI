@@ -451,8 +451,9 @@ export default function CommunityIntel() {
     const w = await fetchLiveWeatherData(cityName, lat, lon);
     dispatch({ type: 'SET_REGION_WEATHER', region: cityName, weather: w });
 
-    // Dynamically re-optimize transport & storage for selected location
+    // Dynamically re-optimize mandi rates, transport & storage for selected location
     try {
+      fetchLiveMandiRates(userState, cityName).then(data => dispatch({ type: 'FETCH_SUCCESS', payload: data })).catch(() => {});
       fetchTransport(userState, cityName).then(data => dispatch({ type: 'SET_TRANSPORT', payload: data })).catch(() => {});
       fetchStorage(userState, cityName).then(data => dispatch({ type: 'SET_STORAGE', payload: data })).catch(() => {});
     } catch (_) {}
@@ -471,7 +472,8 @@ export default function CommunityIntel() {
     if (!userLocation) return;
     dispatch({ type: 'FETCH_START' });
     try {
-      const data = await fetchLiveMandiRates(userLocation.state);
+      const currentDist = userLocation.district || userLocation.city || '';
+      const data = await fetchLiveMandiRates(userLocation.state, currentDist);
       dispatch({ type: 'FETCH_SUCCESS', payload: data });
     } catch (err) {
       console.error('Error loading intel dataset:', err);

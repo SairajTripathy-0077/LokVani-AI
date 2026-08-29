@@ -16,6 +16,7 @@ import { geminiRotator } from './src/services/geminiKeyRotator.js';
 import { fetchLiveWeatherData, fetchLiveMandiPrices } from './src/services/realDataService.js';
 import { processUserSpeechQuery } from './src/services/aiCoreEngine.js';
 import { predictAgriculturePrice } from './src/services/agriMlService.js';
+import { getAgmarknetRates } from './src/services/agmarknetDataset.js';
 
 // Input sanitizer: strip control chars, cap at 500 chars
 function sanitizeInput(text) {
@@ -284,11 +285,34 @@ app.post('/api/trust/verify', async (req, res) => {
 // 5. Get & Post Community Intel (GET & POST /api/intel)
 app.get('/api/intel', async (req, res) => {
   try {
+    const { state = 'Uttar Pradesh', district = '', search = '' } = req.query || {};
+
+    // 1. Get live Agmarknet benchmark data for the requested state & district
+    const liveAgmarknet = getAgmarknetRates(state, district);
+
+    // 2. Fetch crowdsourced Mandi prices from database if available
+    let dbItems = [];
     if (isMongoDBConnected()) {
-      const items = await CommunityIntelModel.find().sort({ createdAt: -1 }).limit(30);
-      return res.json({ success: true, data: items });
+      dbItems = await CommunityIntelModel.find().sort({ createdAt: -1 }).limit(20);
+    } else {
+      dbItems = memoryCommunityIntel;
     }
-    return res.json({ success: true, data: memoryCommunityIntel });
+
+    // 3. Merge crowdsourced user reports with live Agmarknet benchmark feeds
+    const combined = [...dbItems, ...liveAgmarknet];
+
+    // 4. Optional search filter
+    let filtered = combined;
+    if (search && typeof search === 'string') {
+      const q = search.toLowerCase().trim();
+      filtered = combined.filter(c => 
+        (c.item && c.item.toLowerCase().includes(q)) ||
+        (c.location && c.location.toLowerCase().includes(q)) ||
+        (c.category && c.category.toLowerCase().includes(q))
+      );
+    }
+
+    return res.json({ success: true, data: filtered });
   } catch (error) {
     console.error('[API GET /api/intel Error]:', error);
     return res.status(500).json({ error: 'Failed to fetch community intel.' });
