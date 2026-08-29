@@ -364,28 +364,26 @@ export default function UserVoiceApp() {
       text: m.text
     }));
 
-    const activeLocStr = userLocation?.district
-      ? `${userLocation.district}, ${userLocation.state || 'Uttar Pradesh'}`
-      : (userProfile?.district ? `${userProfile.district}, ${userProfile.state || 'Uttar Pradesh'}` : 'Azamgarh, Uttar Pradesh');
+    const resolvedUserLoc = userProfile?.district 
+      ? `${userProfile.district}, ${userProfile.state || 'India'}` 
+      : 'Azamgarh, UP';
 
     try {
       let data = null;
       try {
-        const fetchTimeout = setTimeout(() => ctrl.abort(), 3000);
         const res = await fetch('/api/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: ctrl.signal,
           body: JSON.stringify({
             transcribed_text: trimmed,
-            user_location: activeLocStr,
+            user_location: resolvedUserLoc,
             userId: user?.uid || 'user_demo_1',
             userName: userProfile?.fullName || user?.displayName || 'Citizen',
             dialect: dialectInfo.promptName,
             conversation_history: conversationHistory
           })
         });
-        clearTimeout(fetchTimeout);
         if (res.ok) {
           const text = await res.text();
           try {
@@ -401,7 +399,11 @@ export default function UserVoiceApp() {
       if (!data || (!data.shortAnswerHi && !data.shortAnswerEn) || data.status === 'OUT_OF_SERVICE') {
         try {
           const clientAi = await geminiRotator.executeWithRotation(
-            `You are LokVani AI, an inclusive voice AI assistant for small farmers in India. Provide responses in valid JSON:
+            `You are LokVani AI, an inclusive voice AI assistant for small farmers in India.
+User Location: ${resolvedUserLoc}.
+CRITICAL INSTRUCTION: Tailor your response strictly for ${resolvedUserLoc} or any specific location explicitly named in the user query: "${trimmed}".
+
+Provide responses in valid JSON:
 {
   "short_answer_hi": "string (35-50 words answer in simple Hindi)",
   "short_answer_en": "string (35-50 words answer in English)",
@@ -429,7 +431,7 @@ export default function UserVoiceApp() {
             data = {
               _id: `client_${Date.now()}`,
               transcribedText: trimmed,
-              userLocation: 'Azamgarh, UP',
+              userLocation: resolvedUserLoc,
               shortAnswerHi: parsed.short_answer_hi || parsed.shortAnswerHi || clientAi.text.slice(0, 200),
               shortAnswerEn: parsed.short_answer_en || parsed.shortAnswerEn || clientAi.text.slice(0, 200),
               detailedAnswerHi: parsed.detailed_answer_hi || parsed.detailedAnswerHi || clientAi.text,
@@ -453,7 +455,7 @@ export default function UserVoiceApp() {
         data = {
           _id: `offline_${Date.now()}`,
           transcribedText: trimmed,
-          userLocation: 'Azamgarh, UP',
+          userLocation: resolvedUserLoc,
           shortAnswerHi: 'AI सेवा अस्थायी रूप से अनुपलब्ध है। कृपया Vercel पर GEMINI_API_KEYS जांचें।',
           shortAnswerEn: 'AI service is temporarily out of service. Please check GEMINI_API_KEYS on Vercel.',
           detailedAnswerHi: 'AI मॉडल सर्वर से संपर्क नहीं हो सका। कृपया नेटवर्क कनेक्शन जांचें और पुनः प्रयास करें।',
@@ -521,11 +523,11 @@ export default function UserVoiceApp() {
         if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
         if (r.transcript && r.transcript.trim()) {
-          // Fast 800ms silence auto-submit
+          // Wait 2.2 seconds of silence to ensure user has finished their complete statement
           silenceTimerRef.current = setTimeout(() => {
             speechService.stopListening();
             handleProcessQuery(r.transcript);
-          }, 800);
+          }, 2200);
         }
       },
       (e) => {

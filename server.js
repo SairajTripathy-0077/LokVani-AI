@@ -130,13 +130,31 @@ app.post('/api/query', async (req, res) => {
       intelList = [...intelList, ...memoryCommunityIntel];
     }
 
-    // Fetch live weather context
+    // Dynamic Location Extraction (User explicit location in query > User state location > Default Azamgarh)
+    const CITIES_LIST = [
+      'Azamgarh', 'Gorakhpur', 'Varanasi', 'Lucknow', 'Kanpur', 'Patna', 'Gaya',
+      'Muzaffarpur', 'Jaipur', 'Kota', 'Indore', 'Bhopal', 'Ujjain', 'Mumbai',
+      'Pune', 'Nashik', 'Ahmedabad', 'Surat', 'Rajkot', 'Ludhiana', 'Amritsar',
+      'Delhi', 'Kolkata', 'Ranchi', 'Bhubaneswar', 'Cuttack', 'Sundergarh', 'Puri',
+      'Bangalore', 'Hyderabad', 'Chennai', 'Nagpur', 'Agra', 'Meerut', 'Bareilly',
+      'Aligarh', 'Moradabad', 'Saharanpur', 'Jhansi', 'Ayodhya', 'Basti', 'Mau'
+    ];
+
     let detectedCity = 'Azamgarh';
-    if (user_location) {
-      if (user_location.toLowerCase().includes('gorakhpur')) detectedCity = 'Gorakhpur';
-      else if (user_location.toLowerCase().includes('varanasi')) detectedCity = 'Varanasi';
-      else if (user_location.toLowerCase().includes('lucknow')) detectedCity = 'Lucknow';
+    if (safeText) {
+      const lower = safeText.toLowerCase();
+      for (const city of CITIES_LIST) {
+        if (lower.includes(city.toLowerCase())) {
+          detectedCity = city;
+          break;
+        }
+      }
     }
+    if (detectedCity === 'Azamgarh' && user_location) {
+      const firstPart = String(user_location).split(',')[0].trim();
+      if (firstPart) detectedCity = firstPart;
+    }
+
     const weatherData = await fetchLiveWeatherData(detectedCity);
 
     // Run AI Engine through Rotator (sanitized text, optional dialect, multi-turn history)
@@ -145,7 +163,7 @@ app.post('/api/query', async (req, res) => {
     let engineSource = 'GEMINI_AI';
 
     try {
-      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history);
+      aiResult = await processVoiceQuery(safeText, intelList, weatherData, safeDialect, conversation_history, `${detectedCity}, India`);
     } catch (geminiErr) {
       console.warn('[API /api/query] AI engine unavailable:', geminiErr.message);
       aiResult = {
