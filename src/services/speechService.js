@@ -3,7 +3,8 @@
  * Handles STT (Speech-to-Text) and TTS (Text-to-Speech) with multi-dialect support.
  *
  * Improvements:
- * - Fixes the Chrome/Edge getVoices() empty-list bug via voiceschanged event + caching
+ * - Creates fresh SpeechRecognition instance on start to avoid InvalidStateError in Chrome/Edge
+ * - Fixes Chrome/Edge getVoices() empty-list bug via voiceschanged event + caching
  * - Splits long TTS text into sentence-sized chunks queued sequentially (avoids truncation)
  * - Smarter voice selection: exact locale → language-family → default
  * - Exposes playback speed (rate) control
@@ -11,24 +12,17 @@
 
 class SpeechService {
   constructor() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     this.recognitionSupported = !!SpeechRecognition;
-    this.synthesisSupported = 'speechSynthesis' in window;
-    this.recognition = null;
+    this.synthesisSupported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+    this.activeRecognition = null;
 
     // Cached voices — populated on first getVoices() call or voiceschanged event
     this._cachedVoices = [];
     this._voicesLoaded = false;
 
-    if (this.recognitionSupported) {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-    }
-
     if (this.synthesisSupported) {
       this._loadVoices();
-      // Chrome loads voices asynchronously — listen for the event
       window.speechSynthesis.onvoiceschanged = () => {
         this._loadVoices();
       };
@@ -36,11 +30,13 @@ class SpeechService {
   }
 
   _loadVoices() {
-    const voices = window.speechSynthesis.getVoices();
-    if (voices.length > 0) {
-      this._cachedVoices = voices;
-      this._voicesLoaded = true;
-    }
+    try {
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        this._cachedVoices = voices;
+        this._voicesLoaded = true;
+      }
+    } catch (_) {}
   }
 
   getVoices() {
@@ -52,8 +48,6 @@ class SpeechService {
 
   /**
    * Select the best available voice for a given BCP-47 locale.
-   * Priority: exact locale match → language prefix match → default
-   * @param {string} langCode  e.g. 'hi-IN'
    */
   selectVoice(langCode) {
     const voices = this.getVoices();
@@ -65,22 +59,15 @@ class SpeechService {
     const exact = voices.find(v => v.lang.toLowerCase() === langCode.toLowerCase());
     if (exact) return exact;
 
-    // 2. Language-family match (e.g. 'hi' for 'hi-IN', 'hi-IN-x-something')
+    // 2. Language-family match
     const family = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
     if (family) return family;
 
-    // 3. Default — let the browser decide
     return null;
   }
 
-  /**
-   * Split text into sentence-sized chunks to avoid TTS truncation.
-   * @param {string} text
-   * @returns {string[]}
-   */
   _splitIntoChunks(text) {
     if (!text) return [];
-    // Split on sentence-ending punctuation + optional whitespace
     const raw = text.split(/(?<=[।.!?])\s+/);
     const chunks = [];
     let current = '';
@@ -101,76 +88,81 @@ class SpeechService {
 
   /**
    * Start listening for voice input.
-   * @param {function} onResult  Called with { transcript, isFinal }
-   * @param {function} onError   Called with error string
-   * @param {string} langCode    BCP-47 locale, e.g. 'hi-IN'
    */
   startListening(onResult, onError, langCode = 'hi-IN') {
-    if (!this.recognitionSupported) {
+    const SpeechRecognition = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    if (!SpeechRecognition) {
       if (onError) onError(
-        'Voice recognition not supported in this browser. Please use Chrome or Edge, or use Demo Presets.'
+        'Voice recognition not supported in this browser. Please use Chrome, Edge, or Safari, or click quick options.'
       );
       return;
     }
 
-    try {
-      this.recognition.lang = langCode;
-      this.recognition.continuous = true;
+    // Stop any existing active recognition instance before starting fresh
+    this.stopListening();
 
-      this.recognition.onresult = (event) => {
-        let fullTranscript = '';
+    try {
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = langCode;
+
+      let fullTranscript = '';
+
+      rec.onresult = (event) => {
+        let currentTranscript = '';
         let isFinal = false;
 
         for (let i = 0; i < event.results.length; ++i) {
-          fullTranscript += event.results[i][0].transcript + ' ';
+          currentTranscript += event.results[i][0].transcript + ' ';
           if (event.results[i].isFinal) isFinal = true;
         }
-        if (onResult) onResult({ transcript: fullTranscript.trim(), isFinal });
+        fullTranscript = currentTranscript.trim();
+        if (onResult) onResult({ transcript: fullTranscript, isFinal });
       };
 
-      this.recognition.onerror = (event) => {
+      rec.onerror = (event) => {
         console.warn('[SpeechService] STT error:', event.error);
-        if (onError && event.error !== 'no-speech') {
-          onError(`Voice recognition error: ${event.error}`);
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          if (onError) onError(`Voice recognition notice: ${event.error}`);
         }
       };
 
-      this.recognition.onend = () => {
-        // If recognition ends without a final result (e.g. user paused), it just stops.
-        // The component handles the state based on whether transcript is present.
+      rec.onend = () => {
+        if (this.activeRecognition === rec) {
+          this.activeRecognition = null;
+        }
       };
 
-      this.recognition.start();
+      this.activeRecognition = rec;
+      rec.start();
     } catch (err) {
       console.error('[SpeechService] Failed to start recognition:', err);
-      if (onError) onError('Microphone access denied or busy. Please allow microphone access.');
+      if (onError) onError('Microphone access denied or busy. Please check browser microphone permissions.');
     }
   }
 
   stopListening() {
-    if (this.recognition) {
-      try { this.recognition.stop(); } catch (_) { /* already stopped */ }
+    if (this.activeRecognition) {
+      try {
+        this.activeRecognition.stop();
+      } catch (_) {}
+      this.activeRecognition = null;
     }
   }
 
   // ─── TTS ─────────────────────────────────────────────────────────────────
 
-  /**
-   * Speak text using Web SpeechSynthesis API.
-   * Long text is split into chunks and queued sequentially.
-   *
-   * @param {string} text
-   * @param {string} langCode    BCP-47 locale, e.g. 'hi-IN'
-   * @param {function} onEnd     Called when all chunks finish
-   * @param {number} rate        Playback speed (0.5–2.0); default 0.92
-   */
   speakText(text, langCode = 'hi-IN', onEnd = null, rate = 0.92) {
     if (!this.synthesisSupported) {
       if (onEnd) onEnd();
       return;
     }
 
-    window.speechSynthesis.cancel();
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {}
 
     if (!text || text.trim() === '') {
       if (onEnd) onEnd();
@@ -188,27 +180,30 @@ class SpeechService {
         return;
       }
 
-      const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
-      utterance.lang = langCode;
-      utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
-      utterance.pitch = 1.0;
+      try {
+        const utterance = new SpeechSynthesisUtterance(chunks[chunkIndex]);
+        utterance.lang = langCode;
+        utterance.rate = Math.min(Math.max(rate, 0.5), 2.0);
+        utterance.pitch = 1.0;
 
-      if (voice) utterance.voice = voice;
+        if (voice) utterance.voice = voice;
 
-      utterance.onend = () => {
-        chunkIndex++;
-        speakNext();
-      };
+        utterance.onend = () => {
+          chunkIndex++;
+          speakNext();
+        };
 
-      utterance.onerror = (e) => {
-        // 'interrupted' fires when user cancels — not a real error
-        if (e.error !== 'interrupted') {
-          console.warn('[SpeechService] TTS error on chunk:', e.error);
-        }
+        utterance.onerror = (e) => {
+          if (e.error !== 'interrupted') {
+            console.warn('[SpeechService] TTS chunk notice:', e.error);
+          }
+          if (onEnd) onEnd();
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (_) {
         if (onEnd) onEnd();
-      };
-
-      window.speechSynthesis.speak(utterance);
+      }
     };
 
     speakNext();
@@ -216,14 +211,12 @@ class SpeechService {
 
   stopSpeaking() {
     if (this.synthesisSupported) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (_) {}
     }
   }
 
-  /**
-   * Check if TTS and STT are supported.
-   * @returns {{ stt: boolean, tts: boolean }}
-   */
   getSupportStatus() {
     return {
       stt: this.recognitionSupported,

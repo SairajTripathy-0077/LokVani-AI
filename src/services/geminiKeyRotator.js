@@ -1,14 +1,23 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * GeminiKeyRotator — Robust multi-key rotation and model failover engine.
- * Supports Vercel serverless, Node.js process.env, and Vite import.meta.env.
+ * Timeout wrapper helper for sub-second AI responses.
+ */
+function withTimeout(promise, ms = 3500) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('AI response timeout (3.5s limit)')), ms))
+  ]);
+}
+
+/**
+ * GeminiKeyRotator — Ultra-fast multi-key rotation and model failover engine.
  */
 class GeminiKeyRotator {
   constructor() {
     this.keys = [];
     this.currentIndex = 0;
-    this.keyCooldowns = new Map(); // key -> cooldown expiry timestamp
+    this.keyCooldowns = new Map();
     this.initializeKeys();
   }
 
@@ -30,7 +39,6 @@ class GeminiKeyRotator {
         .filter(k => k.length > 10);
     }
 
-    // Deduplicate keys
     this.keys = [...new Set(this.keys)];
     console.log(`[GeminiKeyRotator] Initialized with ${this.keys.length} valid API key(s).`);
   }
@@ -40,7 +48,6 @@ class GeminiKeyRotator {
       this.keys = [...new Set(keysArray.map(k => k.replace(/["']/g, '').trim()).filter(k => k.length > 10))];
       this.currentIndex = 0;
       this.keyCooldowns.clear();
-      console.log(`[GeminiKeyRotator] Keys updated: ${this.keys.length} key(s) available.`);
     }
   }
 
@@ -65,7 +72,6 @@ class GeminiKeyRotator {
       attempts++;
     }
 
-    // If all keys are in cooldown, clear expired and return first key
     this.keyCooldowns.clear();
     return { key: this.keys[0], index: 0 };
   }
@@ -79,16 +85,8 @@ class GeminiKeyRotator {
       msg.includes('403') ||
       msg.includes('api_key_invalid');
 
-    // 1-minute cooldown for rate limits, 15s for temporary errors
-    const cooldownMs = isRateLimitOrQuota ? 60000 : 15000;
+    const cooldownMs = isRateLimitOrQuota ? 30000 : 10000;
     this.keyCooldowns.set(key, Date.now() + cooldownMs);
-
-    const maskedKey = key.length > 8
-      ? `${key.substring(0, 4)}...${key.substring(key.length - 4)}`
-      : '***';
-    console.warn(
-      `[GeminiKeyRotator] Key ${maskedKey} (Index ${this.currentIndex}) temporarily cooling down (${errorMessage}).`
-    );
 
     if (this.keys.length > 0) {
       this.currentIndex = (this.currentIndex + 1) % this.keys.length;
@@ -106,13 +104,12 @@ class GeminiKeyRotator {
     }
 
     let attempts = 0;
-    const maxAttempts = Math.min(this.keys.length, 5);
+    const maxAttempts = Math.min(this.keys.length, 3);
 
-    // List of reliable working Gemini models
+    // Fast working Gemini models
     const modelsToTry = [
       'gemini-2.5-flash',
       'gemini-3.6-flash',
-      'gemini-3.5-flash',
       'gemini-flash-latest'
     ];
 
@@ -130,7 +127,7 @@ class GeminiKeyRotator {
           const model = genAI.getGenerativeModel({ model: modelName });
           const fullPrompt = `${systemPrompt}\n\nUser Query: "${userPrompt}"`;
 
-          const response = await model.generateContent(fullPrompt);
+          const response = await withTimeout(model.generateContent(fullPrompt), 3500);
           const text = response.response.text();
 
           if (text && text.trim()) {
@@ -146,13 +143,11 @@ class GeminiKeyRotator {
           lastError = err;
           const errStr = (err.message || '').toLowerCase();
 
-          // If model is not found (404/not supported), continue trying next model without failing the key
-          if (errStr.includes('404') || errStr.includes('not found') || errStr.includes('unsupported')) {
+          if (errStr.includes('404') || errStr.includes('not found') || errStr.includes('timeout')) {
             continue;
           }
 
-          // If key is invalid or rate limited, break out of models to rotate key
-          if (errStr.includes('429') || errStr.includes('quota') || errStr.includes('403') || errStr.includes('api_key_invalid')) {
+          if (errStr.includes('429') || errStr.includes('quota') || errStr.includes('403')) {
             break;
           }
         }
@@ -164,7 +159,7 @@ class GeminiKeyRotator {
       }
     }
 
-    console.warn('[GeminiKeyRotator] All available Gemini keys/models failed.');
+    console.warn('[GeminiKeyRotator] All available Gemini keys/models failed or timed out.');
     return null;
   }
 }
