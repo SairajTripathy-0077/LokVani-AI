@@ -77,39 +77,33 @@ function DistressDamageBar({ result, dialect }) {
   let impactEn = result.damageImpactEn || result.damage_impact_en;
   let impactHi = result.damageImpactHi || result.damage_impact_hi;
 
-  // Dynamic Distress Score calculation based on query sentiment & AI evaluation
-  const queryText = (result.transcribedText || '').toLowerCase();
-  if (score === undefined || score === null || isNaN(Number(score))) {
-    if (queryText.includes('नुकसान') || queryText.includes('रोग') || queryText.includes('कीड़ा') || queryText.includes('सड़') || queryText.includes('die') || queryText.includes('rot') || queryText.includes('disease') || queryText.includes('loss') || queryText.includes('ruin') || queryText.includes('damage') || queryText.includes('emergency')) {
-      score = 88;
-      level = 'CRITICAL';
-      impactEn = 'Urgent Agricultural Distress: Potential 45%–65% crop/financial loss risk. Immediate treatment required.';
-      impactHi = 'गंभीर फसल व आर्थिक संकट: तुरंत समाधान न करने पर 45%-65% तक क्षति का जोखिम।';
-    } else if (queryText.includes('मौसम') || queryText.includes('बारिश') || queryText.includes('rain') || queryText.includes('flood') || queryText.includes('storm')) {
-      score = 72;
-      level = 'HIGH';
-      impactEn = 'Weather Impact Distress: Produce damage risk due to adverse weather anomalies.';
-      impactHi = 'मौसम प्रभाव क्षति जोखिम: प्रतिकूल मौसम से फसल व मंडी माल नुकसान की संभावना।';
-    } else if (result.domain === 'AGRI_ADVISORY' && (result.riskCategory === 'PESTICIDE_SAFETY' || result.riskCategory === 'AGRICULTURAL_DOSAGE')) {
+  // Heuristic calculation if not explicitly provided by backend
+  if (score === undefined || score === null) {
+    if (result.domain === 'AGRI_ADVISORY' && (result.riskCategory === 'PESTICIDE_SAFETY' || result.riskCategory === 'AGRICULTURAL_DOSAGE')) {
       score = 85;
       level = 'CRITICAL';
-      impactEn = 'High Crop Damage Risk: Potential crop yield loss if chemical treatment is misapplied.';
-      impactHi = 'उच्च फसल क्षति जोखिम: रासायनिक उपचार का गलत प्रयोग होने पर नुकसान की संभावना।';
-    } else if (result.domain === 'GOVT_SCHEME' || result.isHighStakes) {
-      score = 70;
+      impactEn = 'High Crop Damage Risk: Potential 35%–55% crop yield loss if pest/fungal blight is untreated within 48 hours.';
+      impactHi = 'उच्च फसल क्षति जोखिम: 48 घंटे में उचित कीटनाशक न छिड़कने पर 35%-55% तक फसल नुकसान की संभावना।';
+    } else if (result.domain === 'WEATHER') {
+      score = 65;
       level = 'HIGH';
-      impactEn = 'Financial Eligibility Risk: Subsidy or scheme application rejection risk without document verification.';
-      impactHi = 'वित्तीय पात्रता जोखिम: दस्तावेज सत्यापन न होने पर योजना लाभ रुकने का खतरा।';
+      impactEn = 'Weather Impact Risk: 20%–30% harvest damage risk from rain/waterlogging. Cover harvested produce immediately.';
+      impactHi = 'मौसम प्रभाव जोखिम: बारिश/जलभराव से 20%-30% कटी फसल नुकसान का खतरा। तुरंत तिरपाल से ढकें।';
+    } else if (result.domain === 'GOVT_SCHEME' || result.isHighStakes) {
+      score = 75;
+      level = 'HIGH';
+      impactEn = 'Financial Eligibility Risk: Risk of subsidy delay or application rejection without land record verification.';
+      impactHi = 'वित्तीय पात्रता जोखिम: दस्तावेज सत्यापन के बिना सब्सिडी रुकने या आवेदन निरस्त होने की संभावना।';
     } else if (result.domain === 'MARKET_PRICE') {
-      score = 40;
+      score = 35;
       level = 'MODERATE';
-      impactEn = 'Market Variance Distress: 10%–15% income variance risk depending on market timing.';
-      impactHi = 'मंडी भाव उतार-चढ़ाव जोखिम: बाजार समय के आधार पर 10%-15% आय अंतर की संभावना।';
+      impactEn = 'Market Price Risk: Moderate 10%–15% income variance based on market location and quality grade.';
+      impactHi = 'मंडी भाव जोखिम: बाजार स्थान और गुणवत्ता ग्रेड के आधार पर 10%-15% आय में उतार-चढ़ाव की संभावना।';
     } else {
-      score = 25;
+      score = 20;
       level = 'LOW';
-      impactEn = 'Low Distress Impact: Standard informational question with minimal operational risk.';
-      impactHi = 'सामान्य प्रश्न: न्यूनतम परिचालन व वित्तीय क्षति जोखिम।';
+      impactEn = 'Low Business Impact: Standard informational query with minimal operational risk.';
+      impactHi = 'कम व्यावसायिक जोखिम: सामान्य जानकारी प्रश्न; न्यूनतम परिचालन जोखिम।';
     }
   }
 
@@ -315,25 +309,6 @@ export default function UserVoiceApp() {
   const targetDialectInfo = DIALECT_MAP[targetLangCode] || DIALECT_MAP.hi;
   const activeTtsLocale = targetLangCode === 'en' ? 'en-IN' : targetDialectInfo.locale;
 
-  const handlePlayTTS = useCallback((textToSpeak) => {
-    if (!textToSpeak) return;
-    if (appState === 'SPEAKING') {
-      speechService.stopSpeaking();
-      setAppState('IDLE');
-      return;
-    }
-
-    setAppState('SPEAKING');
-    speechService.speakText(
-      textToSpeak,
-      activeTtsLocale,
-      () => {
-        setAppState('IDLE');
-      },
-      ttsRate
-    );
-  }, [appState, activeTtsLocale, ttsRate]);
-
   const primaryAnswer = (r) => {
     if (!r) return '';
     if (targetLangCode === 'en') return r.shortAnswerEn || r.shortAnswerHi || '';
@@ -439,10 +414,6 @@ Provide responses in valid JSON:
   "domain": "AGRI_ADVISORY",
   "is_high_stakes": false,
   "risk_category": "NONE",
-  "distress_score": 75,
-  "distress_level": "CRITICAL | HIGH | MODERATE | LOW",
-  "damage_impact_hi": "string explanation of crop/financial distress impact",
-  "damage_impact_en": "string explanation of crop/financial distress impact",
   "trust_note": "AI Generated Answer",
   "actionable_steps": ["step 1", "step 2"]
 }`,
@@ -470,10 +441,6 @@ Provide responses in valid JSON:
               domain: parsed.domain || 'AGRI_ADVISORY',
               isHighStakes: parsed.is_high_stakes || false,
               riskCategory: parsed.risk_category || 'NONE',
-              distressScore: parsed.distress_score || parsed.distressScore || 50,
-              distressLevel: parsed.distress_level || parsed.distressLevel || 'MODERATE',
-              damageImpactHi: parsed.damage_impact_hi || parsed.damageImpactHi || '',
-              damageImpactEn: parsed.damage_impact_en || parsed.damageImpactEn || '',
               trustNote: 'Direct Gemini AI Engine',
               actionableSteps: parsed.actionable_steps || [],
               status: 'AUTO_VERIFIED',
@@ -579,7 +546,12 @@ Provide responses in valid JSON:
     else setAppState('IDLE');
   }, [transcript, handleProcessQuery]);
 
-
+  const handlePlayTTS = useCallback((text) => {
+    if (appState === 'SPEAKING') { speechService.stopSpeaking(); setAppState('IDLE'); return; }
+    if (!text) return;
+    setAppState('SPEAKING');
+    speechService.speakText(text, activeTtsLocale, () => setAppState('IDLE'), ttsRate);
+  }, [appState, activeTtsLocale, ttsRate]);
 
   const handlePresetSelect = useCallback((p) => {
     if (isProcessing) return;
@@ -671,7 +643,7 @@ Provide responses in valid JSON:
                 <button
                   type="button"
                   onClick={handleNewChat}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#48734f] bg-[#48734f]/10 hover:bg-[#48734f]/20 border border-[#48734f]/30 px-2.5 py-0.5 rounded-lg transition-all cursor-pointer shadow-2xs"
                   title={language === 'hi' ? 'नई बातचीत शुरू करें' : 'Start a new chat'}
                 >
                   <Plus size={11} />
@@ -703,7 +675,7 @@ Provide responses in valid JSON:
                       className={cn(
                         'group/session text-left p-3 transition-all duration-300 flex items-start justify-between gap-2 w-full text-xs rounded-xl border cursor-pointer',
                         active
-                          ? 'bg-emerald-50/80 border-emerald-500/30 text-emerald-950 font-semibold shadow-2xs'
+                          ? 'bg-[#48734f]/10 border-[#48734f]/30 text-zinc-900 font-semibold shadow-2xs'
                           : 'border-transparent text-zinc-600 hover:border-black/[0.06] hover:bg-zinc-50'
                       )}
                     >
@@ -844,7 +816,7 @@ Provide responses in valid JSON:
             <div className="rounded-2xl bg-zinc-100/90 border border-zinc-200/90 p-4 space-y-3 shadow-2xs">
               <div className="flex items-center justify-between border-b border-zinc-200 pb-2">
                 <h4 className="text-xs font-bold text-zinc-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <MessageSquare size={13} className="text-emerald-700" />
+                  <MessageSquare size={13} className="text-[#48734f]" />
                   <span>{activeSession.title}</span>
                 </h4>
                 <span className="text-[10px] font-mono font-bold text-zinc-500 bg-white px-2 py-0.5 rounded-md border border-zinc-200">
@@ -858,7 +830,7 @@ Provide responses in valid JSON:
                     className={cn(
                       'p-2.5 rounded-xl text-xs space-y-1 transition-all',
                       msg.role === 'user'
-                        ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 font-medium ml-4'
+                        ? 'bg-[#48734f]/10 border border-[#48734f]/20 text-zinc-900 font-medium ml-4'
                         : 'bg-white border border-zinc-200 text-zinc-800 mr-4 shadow-2xs'
                     )}
                   >
@@ -947,7 +919,7 @@ Provide responses in valid JSON:
                         className={cn(
                           'px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer',
                           isSelected
-                            ? 'bg-emerald-600 text-white font-bold shadow-2xs'
+                            ? 'bg-[#48734f] text-white font-bold shadow-2xs'
                             : 'bg-white text-zinc-700 hover:bg-zinc-50 border border-zinc-200/80'
                         )}
                       >
