@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -8,10 +8,10 @@ import {
   Wifi, 
   ExternalLink, 
   Newspaper,
-  ThumbsUp,
-  Tag
+  ThumbsUp
 } from 'lucide-react';
 import { t } from './communityTranslations.js';
+import { translateText } from '../../services/newsService.js';
 
 const CATEGORY_CONFIG = {
   PRICE_ALERT:  { label_hi: 'भाव अलर्ट', label_en: 'Price Alert', icon: <TrendingUp size={12} />, bg: '#f4f8f2', color: '#2e5735', border: '#dbe7d4' },
@@ -37,11 +37,58 @@ function timeAgo(date, lang) {
 function NewsCard({ item, lang }) {
   const [likes, setLikes] = useState(item.confirms || 12);
   const [liked, setLiked] = useState(false);
+  
+  const [displayedHeadline, setDisplayedHeadline] = useState(() => {
+    return lang === 'hi' ? (item.headline_hi || item.headline_en || item.headline) : (item.headline_en || item.headline_hi || item.headline);
+  });
+  
+  const [displayedDetail, setDisplayedDetail] = useState(() => {
+    return lang === 'hi' ? (item.detail_hi || item.detail_en || item.detail) : (item.detail_en || item.detail_hi || item.detail);
+  });
 
   const cat = CATEGORY_CONFIG[item.category] || CATEGORY_CONFIG.ANNOUNCEMENT;
-  const headline = lang === 'hi' ? item.headline_hi : item.headline_en;
-  const detail = lang === 'hi' ? item.detail_hi : item.detail_en;
-  const reporter = lang === 'hi' ? item.reporter_hi : item.reporter_en;
+  const reporter = lang === 'hi' ? (item.reporter_hi || item.reporter_en || item.reporter) : (item.reporter_en || item.reporter_hi || item.reporter);
+
+  // Dynamic on-the-fly translation sync if target language text isn't in script
+  useEffect(() => {
+    let active = true;
+    const isHi = lang === 'hi';
+    const targetHeadline = isHi ? (item.headline_hi || item.headline_en || item.headline) : (item.headline_en || item.headline_hi || item.headline);
+    const targetDetail = isHi ? (item.detail_hi || item.detail_en || item.detail) : (item.detail_en || item.detail_hi || item.detail);
+
+    const hasDevanagari = /[\u0900-\u097F]/.test(targetHeadline || '');
+
+    if (isHi && !hasDevanagari && targetHeadline) {
+      translateText(targetHeadline, 'hi').then(tr => {
+        if (active && tr) setDisplayedHeadline(tr);
+      });
+      if (targetDetail && targetDetail !== targetHeadline) {
+        translateText(targetDetail, 'hi').then(tr => {
+          if (active && tr) setDisplayedDetail(tr);
+        });
+      } else {
+        setDisplayedDetail(targetDetail);
+      }
+    } else if (!isHi && hasDevanagari && targetHeadline) {
+      translateText(targetHeadline, 'en').then(tr => {
+        if (active && tr) setDisplayedHeadline(tr);
+      });
+      if (targetDetail && targetDetail !== targetHeadline) {
+        translateText(targetDetail, 'en').then(tr => {
+          if (active && tr) setDisplayedDetail(tr);
+        });
+      } else {
+        setDisplayedDetail(targetDetail);
+      }
+    } else {
+      setDisplayedHeadline(targetHeadline);
+      setDisplayedDetail(targetDetail);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [lang, item]);
 
   return (
     <article 
@@ -96,16 +143,16 @@ function NewsCard({ item, lang }) {
           margin: '0 0 6px 0',
           lineHeight: 1.4,
         }}>
-          {headline}
+          {displayedHeadline}
         </h4>
-        {detail && detail !== headline && (
+        {displayedDetail && displayedDetail !== displayedHeadline && (
           <p style={{
             fontSize: '0.86rem',
             color: 'var(--text-muted, #4b5563)',
             lineHeight: 1.55,
             margin: 0,
           }}>
-            {detail}
+            {displayedDetail}
           </p>
         )}
       </div>
@@ -239,4 +286,3 @@ export default function IntelFeed({ feedItems = [], lang = 'en' }) {
     </section>
   );
 }
-
